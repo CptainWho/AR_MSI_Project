@@ -4,20 +4,16 @@ Module Description:
 
 __project__ = 'Aufgabenblatt 1'
 __module__  = 'A1'
-__author__  = 'Philipp Lohrer'
+__author__  = 'Philipp Lohrer, Daniel Eckstein'
 __email__   = 'plohrer@htwg-konstanz.de'
-__date__    = '015.04.2015'
+__date__    = '15.04.2015'
 
 __version__ = '0.1'
 
-#################################################################
-## Changelog:
-#
-#################################################################
-## Imports
+# Imports
 #################################################################
 # Standard library imports
-from math import *
+import numpy as np
 # Local imports
 from HTWG_Robot_Simulator_V1 import (emptyWorld, Robot)
 
@@ -54,10 +50,6 @@ myWorld.setRobot(**set_robot_opt)
 myRobot._k_d = 0
 myRobot._k_drift = 0
 myRobot._k_theta = 0
-
-
-#for i in range(40):
-#    myRobot.move([0, pi/2])
 
 curveDrive(0.5, 2.5, 1)
 
