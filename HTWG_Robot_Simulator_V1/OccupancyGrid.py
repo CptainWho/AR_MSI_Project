@@ -126,4 +126,4 @@ def test2():
     myGrid.printGrid()
     myGrid.drawGrid()
 
-test2()
+# test2()
