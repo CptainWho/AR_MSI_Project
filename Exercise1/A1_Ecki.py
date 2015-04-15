@@ -19,7 +19,7 @@ def straightDrive(v, l):
 
 
 def curveDrive(v, r, deltatheta):
-    b = deltatheta * r
+    b = abs(deltatheta) * r
     t = b / float(v)
     omega = deltatheta * v / float(b)
     steps = int(t / 0.1)
@@ -46,12 +46,12 @@ myRobot._k_theta = 0
 #for i in range(40):
 #    myRobot.move([0, pi/2])
 
-curveDrive(0.5, 2.5, 1)
+#curveDrive(0.5, 2.5, 1)
 
-# straightDrive(0.5, 5)
-# curveDrive(0.5, 2.5, pi)
-# straightDrive(0.5, 5)
-# curveDrive(0.5, 2.5, pi)
+straightDrive(0.5, 5)
+curveDrive(0.5, 2.5, pi)
+straightDrive(0.5, 5)
+curveDrive(0.5, 2.5, pi)
 
 
 # Simulation schliessen:
