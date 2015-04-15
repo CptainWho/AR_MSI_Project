@@ -26,34 +26,34 @@ def curveDrive(v, r, deltatheta):
     for step in range(steps):
         myRobot.move([v, omega])
 
-# def curveDrive(v, r, delta_theta):
-#     omega_0 = v / float(r)
-#     steps = int(t / 0.1)
-#      for step in range(steps):
-#          myRobot.move([v, omega_0])
 
-
-# Anzahl Zeitschritte n mit jeweils der Laenge T = 0.1 sec definieren.
-# T laesst sich ueber die Methode myRobot.setTimeStep(T) einstellen.
-# T = 0.1 sec ist voreingestellt.
-n = 150
-
+# Abweicheungen Null setzen
 myRobot._k_d = 0
 myRobot._k_drift = 0
 myRobot._k_theta = 0
 
+# Kreisfahrt
+curveDrive(1, 2.5, -2*pi)
 
-#for i in range(40):
-#    myRobot.move([0, pi/2])
+myWorld.setRobot(myRobot, 10, 10, 0)
 
-#curveDrive(0.5, 2.5, 1)
-
+# Rechteckfahrt
 straightDrive(0.5, 5)
-curveDrive(0.5, 2.5, pi)
+curveDrive(0.2, 2, pi/2)
 straightDrive(0.5, 5)
-curveDrive(0.5, 2.5, pi)
-curveDrive(0.5, 2.5, -2*pi)
+curveDrive(0.2, 2, pi/2)
+straightDrive(0.5, 5)
+curveDrive(0.2, 2, pi/2)
+straightDrive(0.5, 5)
+curveDrive(0.2, 2, pi/2)
 
+myWorld.setRobot(myRobot, 1, 10, 0)
+
+# Fahrspurwchsel
+straightDrive(0.5, 5)
+curveDrive(0.5, 2.5, -pi/2)
+curveDrive(0.5, 2.5, pi/2)
+straightDrive(0.5, 5)
 
 # Simulation schliessen:
 myWorld.close()
