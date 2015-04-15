@@ -52,6 +52,7 @@ straightDrive(0.5, 5)
 curveDrive(0.5, 2.5, pi)
 straightDrive(0.5, 5)
 curveDrive(0.5, 2.5, pi)
+curveDrive(0.5, 2.5, -2*pi)
 
 
 # Simulation schliessen:
