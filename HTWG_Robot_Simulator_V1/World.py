@@ -87,7 +87,7 @@ class World:
         self._grid = None
 
         # Path history
-        self._showPathHistory = True
+        self._showPathHistory = False
         self._drivenDistance = 0.0
 
         # Drawn Polyline:
