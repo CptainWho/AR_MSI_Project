@@ -56,5 +56,4 @@ curveDrive(0.5, 2.5, 1)
 # Close Simulation
 myWorld.close()
 
-#test
 
