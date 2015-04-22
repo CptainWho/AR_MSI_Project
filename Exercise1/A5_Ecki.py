@@ -45,11 +45,15 @@ def goto(v, p, tol):
         # get new position
         [x, y, theta] = getRobotPos()
 
+
 def getRobotPos():
-    return myRobot.getOdoPose()
+    return myRobot.getTrueRobotPose()
+    #return myRobot.getOdoPose()
+
 
 def diff(theta, theta_target):
     return (theta_target - theta + pi) % (2 * pi) - pi
+
 
 # check whether point in within tolerance of target point
 def outOfTol(p, p_target, tol):
