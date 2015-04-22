@@ -9,11 +9,6 @@ auf 0 regelt. Was beobachten Sie? Verbessern Sie Ihre Regelung, indem Sie einen 
 einsetzen.
 """
 
-
-
-""" To Do """""
-
-
 from math import *
 from HTWG_Robot_Simulator_V1 import emptyWorld
 from HTWG_Robot_Simulator_V1 import Robot
@@ -38,6 +33,11 @@ def getRobotPos():
 
 
 def followLine(p1, p2):
+    v = 0.5 #define robot speed
+    k_p = 0.4 #define p of closed loop
+    k_d = 0.8 #define d of closed loop
+    tol = 0.5 #tolrance
+    e_old = 0 #error start value
 
     # define coordinates transformation on line
     angle = atan2(p2[1] - p1[1], p2[0] - p1[0])
@@ -46,32 +46,25 @@ def followLine(p1, p2):
     T_OP = mt.transform(t, rotMat)
     T_PO = np.linalg.inv(T_OP)
 
-    # Robot position in coordinate system of the line
-    [x, y, theta] = getRobotPos() # first get global position
-    R_O = [x, y, 1] # make it homogeneous
-    R_P = np.dot(T_PO, R_O)
+    while outOfTol(getRobotPos(), p2, tol):
 
-    # distance is y in line coordinate system
-    e = R_P[1]
+        # Robot position in coordinate system of the line
+        [x, y, theta] = getRobotPos() # first get global position
+        R_O = [x, y, 1] # make it homogeneous
+        R_P = np.dot(T_PO, R_O)
 
-    # [x, y, theta] = myRobot.getOdoPose()
-    # # calculate distance to line
-    # a = np.asarray(p2) - np.asarray(p1)
-    # r_g = np.asarray(p1)
-    # r_q = np.asarray([x, y])
-    # diff = r_g - r_q
-    # e = np.linalg.norm(np.cross(a, diff)) / np.linalg.norm(a)
+        # distance is y in line coordinate system
+        e = R_P[1]
 
-    # closed-loop
-    k_p = 0.4
-    k_d = 0.8
-    de_dt = (e - followLine.e_old) / myRobot.getTimeStep()
-    omega = - k_p * e - k_d * de_dt
+        # closed-loop
+        de_dt = (e - e_old) / myRobot.getTimeStep()
+        omega = - k_p * e - k_d * de_dt
 
-    followLine.e_old = c.copy(e)
+        e_old = c.copy(e)
 
-    return omega
-followLine.e_old = 0
+        myRobot.move([v, omega])
+
+
 
 # check whether point in within tolerance of target point
 def outOfTol(p, p_target, tol):
@@ -82,25 +75,18 @@ def outOfTol(p, p_target, tol):
     else:
         return False
 
-def straightDrive(v, l):
-    t = l / float(v)
-    steps = int(t / 0.1)
-    for step in range(steps):
-        myRobot.move([v, 0])
-
 """ Main """
 
-p1 = [x0, y0 - 1]
-p2 = [x0 + 10, y0 - 1]
-
-
+# define line
+p1 = [x0 + 1, y0 - 1]
+p2 = [x0 + 12, y0 - 1]
 
 # draw the line
 polyline = [[p1[0], p1[1]], [p2[0], p2[1]]]
 myWorld.drawPolyline(polyline)
 
-while outOfTol(getRobotPos(), p2, 0.5):
-    myRobot.move([0.2, followLine(p1, p2)])
+# follow the line
+followLine(p1, p2)
 
 # close world by clicking
 myWorld.close()
