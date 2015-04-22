@@ -6,9 +6,9 @@ __project__ = 'Aufgabenblatt 1'
 __module__  = 'A3'
 __author__  = 'Philipp Lohrer'
 __email__   = 'plohrer@htwg-konstanz.de'
-__date__    = '21.04.2015'
+__date__    = '23.04.2015'
 
-__version__ = '0.1'
+__version__ = '1.0'
 
 # Imports
 #################################################################
@@ -16,6 +16,7 @@ __version__ = '0.1'
 import numpy as np
 from math import *
 from numbers import Number
+from datetime import datetime
 # Local imports
 from HTWG_Robot_Simulator_V1 import (emptyWorld, Robot)
 #################################################################
@@ -24,8 +25,24 @@ def followLine(p1, p2, **kwargs):
     """
     :param p1: tuple(x1,y1)
     :param p2: tuple(x2,y2)
-    :return:
+    :param kwargs: speed, controller
+    :return: -
     """
+
+    # Controller parameters
+    k_p = 0.2
+    k_d = 0.5
+    k_i = 0.1
+    e_old = 0
+    e_sum = 0
+    t_old = datetime.now()
+
+    # Set tolerance for reaching end of line (p2)
+    tol = 1
+    if 'tolerance' in kwargs:
+        if isinstance(kwargs['tolerance'], Number):
+            tol = kwargs['tolerance']
+    print('tol = %0.2f' % tol)
 
     # Set robot speed to default value or check if speed is passed
     v = 0.5
@@ -36,7 +53,7 @@ def followLine(p1, p2, **kwargs):
 
     # Set controller to default or check if another controller is passed
     c = 'P'
-    controllers = ['P', 'PD', 'PID']
+    controllers = ['P', 'PD', 'PI', 'PID']
     if 'controller' in kwargs:
         if kwargs['controller'] in controllers:
             c = kwargs['controller']
@@ -49,7 +66,7 @@ def followLine(p1, p2, **kwargs):
     [x, y, theta] = myRobot.getOdoPose()
 
     # Follow the line until the robot reaches p2 with tolerance tol
-    while outOfTol((x, y), p2, 1):
+    while outOfTol((x, y), p2, tol):
         # Get estimated position and orientation of the robot
         [x, y, theta] = myRobot.getOdoPose()
 
@@ -61,6 +78,8 @@ def followLine(p1, p2, **kwargs):
         q = np.asarray([x, y])
         diff = q - r1
         e = np.linalg.norm(np.cross(a, diff)) / np.linalg.norm(a)
+        print('e: %0.5f' % e)
+
 
         # Check if robot is on the left or on the right side of the line
         # Cross-product of the direction vectors of line g: (p2 - p1) and line between p1 and point q: (q - p1)
@@ -69,14 +88,39 @@ def followLine(p1, p2, **kwargs):
         # Negative: robot is on the left side of the line
         z = a[1] * (x - p1[0]) - a[0] * (y - p1[1])
 
+        # Run control mode according to selected controller
         if c == 'P':
             # P control
-            k_p = 0.1
             omega = k_p * e * np.sign(z)
             myRobot.move((v, omega))
         elif c == 'PD':
             # PD control
-            break
+            t = datetime.now()
+            dt = (t - t_old).total_seconds()
+            e_dt = (e - e_old) / float(dt)
+            omega = (k_p * e + k_d * e_dt) * np.sign(z)
+            myRobot.move((v, omega))
+            e_old = e
+            t_old = t
+        elif c == 'PI':
+            # PI control
+            t = datetime.now()
+            dt = (t - t_old).total_seconds()
+            e_sum += e
+            omega = (k_p * e + k_i * e_sum * dt) * np.sign(z)
+            myRobot.move((v, omega))
+            t_old = t
+        elif c == 'PID':
+            # PID control
+            t = datetime.now()
+            dt = (t - t_old).total_seconds()
+            e_sum += e
+            e_dt = (e - e_old) / float(dt)
+            omega = (k_p * e + k_i * e_sum * dt + k_d * e_dt) * np.sign(z)
+            myRobot.move((v, omega))
+            e_old = e
+            t_old = t
+
 
 # check whether point in within tolerance of target point
 def outOfTol(p, p_target, tol):
@@ -86,8 +130,6 @@ def outOfTol(p, p_target, tol):
         return True
     else:
         return False
-
-
 
 # Create empty World and new Robot
 myWorld = emptyWorld.buildWorld()
@@ -100,17 +142,19 @@ set_robot_opt['y'] = 10
 set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
-
-
 [x0, y0, theta0] = myRobot.getTrueRobotPose()
-# tell robo where he starts
+# Tell robot where he starts
 myRobot.setOdoPose(x0, y0, theta0)
 
-p1 = [x0, y0-2]
-p2 = [x0+10, y0-2]
-followLine(p1, p2, speed=0.2, controller='P')
+# Set noise to zero
+myRobot._k_d = 0
+myRobot._k_drift = 0
+myRobot._k_theta = 0
 
-print myRobot.getOdoPose()
+# Define line and let robot follow it
+p1 = [x0, y0+2]
+p2 = [x0+15, y0-2]
+followLine(p1, p2, speed=0.2, controller='PID', tolerance=0.2)
 
 # close world by clicking
 myWorld.close()
