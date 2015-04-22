@@ -1,11 +1,17 @@
 __author__ = 'Ecki'
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
-Aufgabe 4
-Realisieren Sie eine Steuerung goto(v, p, tol), die den Roboter auf den Punkt p mit der
-Geschwindigkeit v zusteuert, wobei der Punkt p lediglich mit einer gewissen Toleranz tol errreicht
-werden muss.
+Aufgabe 5
+Realisieren Sie einen Linenverfolger followPolyline(v, poly), der einen Polygonzug poly mit der
+Geschwindigkeit v abfaehrt.
+Implementieren Sie zwei Verfahren:
+- der Roboter stoppt bei jedem Eckpunkt des Polygonzugs, richtet sich aus und faehrt erst dann
+auf den naechsten Eckpunkt zu die Geschwindigkeit v wird moeglichst konstant gehalten. Sobald der Roboter einen
+Eckpunkt mit einer gewissen Toleranz erreicht hat, fae hrt er bereits auf den naechsten
+Eckpunkt zu.
+Testen Sie Ihren Linienverfolger in typischen Szenarien.
 """
 
 from math import *
@@ -55,6 +61,10 @@ def outOfTol(p, p_target, tol):
         return False
 
 """ Main """
+
+#define polyline
+polyline = [[2, 10], [10, 10], [10, 6], [18, 6]]
+myWorld.drawPolyline(polyline)
 
 goto(0.4, [10, 10], 0.1)
 [x, y, theta] = myRobot.getOdoPose()

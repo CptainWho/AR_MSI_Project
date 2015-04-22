@@ -1,4 +1,12 @@
 __author__ = 'Ecki'
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Aufgabe 2
+Die tatsächliche Position des Roboters kann mit getTrueRobotPose() abgefragt werden. Die
+Funktionen aus Aufgabe 1 sollen nun mit Hilfe dieser Funktion umgesetzt werden.
+"""
+
 from math import *
 from HTWG_Robot_Simulator_V1 import emptyWorld
 from HTWG_Robot_Simulator_V1 import Robot
