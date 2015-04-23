@@ -30,9 +30,9 @@ def followLine(p1, p2, **kwargs):
     """
 
     # Controller parameters
-    k_p = 0.2
+    k_p = 0.3
     k_d = 0.5
-    k_i = 0.1
+    k_i = 0.01
     e_old = 0
     e_sum = 0
     t_old = datetime.now()
@@ -67,8 +67,8 @@ def followLine(p1, p2, **kwargs):
 
     # Follow the line until the robot reaches p2 with tolerance tol
     while outOfTol((x, y), p2, tol):
-        # Get estimated position and orientation of the robot
-        [x, y, theta] = myRobot.getOdoPose()
+        # Get position and orientation of the robot
+        [x, y, theta] = myRobot.getTrueRobotPose()
 
         # Calculate distance e from point q to line g
         # line g = r1 + x * a
@@ -80,11 +80,10 @@ def followLine(p1, p2, **kwargs):
         e = np.linalg.norm(np.cross(a, diff)) / np.linalg.norm(a)
         print('e: %0.5f' % e)
 
-
         # Check if robot is on the left or on the right side of the line
         # Cross-product of the direction vectors of line g: (p2 - p1) and line between p1 and point q: (q - p1)
         # Right-hand rule determines the orientation of the resulting imaginary z-axis:
-        # Positive: robot is on the right sid eof the line
+        # Positive: robot is on the right side of the line
         # Negative: robot is on the left side of the line
         z = a[1] * (x - p1[0]) - a[0] * (y - p1[1])
 
@@ -117,8 +116,10 @@ def followLine(p1, p2, **kwargs):
             e_old = e
             t_old = t
 
-        # Limit controller output omega (0...omega...pi) and set orientation
-        omega = sorted([0, omega, pi])[1] * np.sign(z)
+        # theta_g = np.arctan2(p2[1]-p1[1], p2[0]-p1[0])
+        # theta_diff = (theta - theta_g + pi) % (2 * pi) - pi
+        # print('Theta-Diff: %0.2f' % (theta_diff * 180 / pi))
+        omega *= np.sign(z)
 
         # Move Robot according to controller output
         myRobot.move((v, omega))
@@ -141,7 +142,7 @@ set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
 set_robot_opt['x'] = 1
 set_robot_opt['y'] = 10
-set_robot_opt['theta'] = 0
+set_robot_opt['theta'] = pi
 myWorld.setRobot(**set_robot_opt)
 
 [x0, y0, theta0] = myRobot.getTrueRobotPose()
@@ -149,14 +150,14 @@ myWorld.setRobot(**set_robot_opt)
 myRobot.setOdoPose(x0, y0, theta0)
 
 # Set noise to zero
-#myRobot._k_d = 0
-#myRobot._k_drift = 0
-#myRobot._k_theta = 0
+myRobot._k_d = 0
+myRobot._k_drift = 0
+myRobot._k_theta = 0
 
 # Define line and let robot follow it
 p1 = [x0, y0+2]
 p2 = [x0+15, y0-2]
-followLine(p1, p2, speed=0.2, controller='PI', tolerance=0.2)
+followLine(p1, p2, speed=0.2, controller='PID', tolerance=0.2)
 
 # close world by clicking
 myWorld.close()
