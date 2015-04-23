@@ -1,6 +1,6 @@
-__author__ = 'Ecki'
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__author__ = 'Ecki'
+
 """
 Aufgabe 3
 Realisieren Sie einen Linienverfolger followLine(p1, p2), der eine Strecke von Punkt p1 nach Punkt
@@ -28,8 +28,8 @@ myRobot.setOdoPose(x0, y0, theta0)
 """ Functions """
 
 def getRobotPos():
-    return myRobot.getTrueRobotPose()
-    #return myRobot.getOdoPose()
+    #return myRobot.getTrueRobotPose()
+    return myRobot.getOdoPose()
 
 
 def followLine(p1, p2):

@@ -1,6 +1,6 @@
-__author__ = 'Ecki'
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__author__ = 'Ecki'
+
 """
 Aufgabe 4
 Realisieren Sie eine Steuerung goto(v, p, tol), die den Roboter auf den Punkt p mit der
@@ -40,7 +40,9 @@ def goto(v, p, tol):
         [x, y, theta] = getRobotPos()
 
 def getRobotPos():
-    return myRobot.getOdoPose()
+    #return myRobot.getOdoPose()
+    return myRobot.getTrueRobotPose()
+
 
 def diff(theta, theta_target):
     return (theta_target - theta + pi) % (2 * pi) - pi

@@ -17,6 +17,7 @@ Testen Sie Ihren Linienverfolger in typischen Szenarien.
 from math import *
 from HTWG_Robot_Simulator_V1 import emptyWorld
 from HTWG_Robot_Simulator_V1 import Robot
+from A4_Ecki import goto
 import numpy as np
 
 """ Init """
@@ -63,6 +64,17 @@ def outOfTol(p, p_target, tol):
         return True
     else:
         return False
+
+def followPolyline(v, poly):
+    tol = 0.5 # tolerance
+
+    t=1
+    # first go to start point
+    while outOfTol(getRobotPos(), poly[0], 0.5):
+        t += 1
+
+    for i in poly:
+        print i
 
 """ Main """
 

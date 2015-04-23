@@ -149,14 +149,14 @@ myWorld.setRobot(**set_robot_opt)
 myRobot.setOdoPose(x0, y0, theta0)
 
 # Set noise to zero
-myRobot._k_d = 0
-myRobot._k_drift = 0
-myRobot._k_theta = 0
+#myRobot._k_d = 0
+#myRobot._k_drift = 0
+#myRobot._k_theta = 0
 
 # Define line and let robot follow it
 p1 = [x0, y0+2]
 p2 = [x0+15, y0-2]
-followLine(p1, p2, speed=0.2, controller='PID', tolerance=0.2)
+followLine(p1, p2, speed=0.2, controller='PI', tolerance=0.2)
 
 # close world by clicking
 myWorld.close()
