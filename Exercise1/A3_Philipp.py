@@ -91,15 +91,13 @@ def followLine(p1, p2, **kwargs):
         # Run control mode according to selected controller
         if c == 'P':
             # P control
-            omega = k_p * e * np.sign(z)
-            myRobot.move((v, omega))
+            omega = k_p * e
         elif c == 'PD':
             # PD control
             t = datetime.now()
             dt = (t - t_old).total_seconds()
             e_dt = (e - e_old) / float(dt)
-            omega = (k_p * e + k_d * e_dt) * np.sign(z)
-            myRobot.move((v, omega))
+            omega = k_p * e + k_d * e_dt
             e_old = e
             t_old = t
         elif c == 'PI':
@@ -107,8 +105,7 @@ def followLine(p1, p2, **kwargs):
             t = datetime.now()
             dt = (t - t_old).total_seconds()
             e_sum += e
-            omega = (k_p * e + k_i * e_sum * dt) * np.sign(z)
-            myRobot.move((v, omega))
+            omega = k_p * e + k_i * e_sum * dt
             t_old = t
         elif c == 'PID':
             # PID control
@@ -116,10 +113,15 @@ def followLine(p1, p2, **kwargs):
             dt = (t - t_old).total_seconds()
             e_sum += e
             e_dt = (e - e_old) / float(dt)
-            omega = (k_p * e + k_i * e_sum * dt + k_d * e_dt) * np.sign(z)
-            myRobot.move((v, omega))
+            omega = k_p * e + k_i * e_sum * dt + k_d * e_dt
             e_old = e
             t_old = t
+
+        # Limit controller output omega (0...omega...pi) and set orientation
+        omega = sorted([0, omega, pi])[1] * np.sign(z)
+
+        # Move Robot according to controller output
+        myRobot.move((v, omega))
 
 
 # check whether point in within tolerance of target point
