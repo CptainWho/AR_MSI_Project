@@ -18,7 +18,7 @@ import numpy as np
 # Roboter in einer Welt positionieren:
 myWorld = emptyWorld.buildWorld()
 myRobot = Robot.Robot()
-myWorld.setRobot(myRobot, 1, 2, -pi/2)
+myWorld.setRobot(myRobot, 1, 14, -pi/2)
 
 # tell robo where he starts
 [x0, y0, theta0] = myRobot.getTrueRobotPose()

@@ -1,6 +1,7 @@
-__author__ = 'Ecki'
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__author__ = 'Ecki'
+
+
 """
 Aufgabe 2
 Die tatsächliche Position des Roboters kann mit getTrueRobotPose() abgefragt werden. Die
