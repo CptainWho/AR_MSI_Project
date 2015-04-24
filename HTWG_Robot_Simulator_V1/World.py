@@ -21,6 +21,7 @@ import numpy as np
 from graphics import *
 from CursorController import *
 from OccupancyGrid import *
+from numbers import Number
 
 import time
 
@@ -93,6 +94,9 @@ class World:
         # Drawn Polyline:
         self._drawnPolyline = []
 
+        # Drawn Circles:
+        self._drawnCircles = []
+
     # --------
     # Draw a polyline.
     #
@@ -114,6 +118,32 @@ class World:
         for l in self._drawnPolyline:
             l.undraw()
         self._drawnPolyline = []
+
+    # --------
+    # Draw a circle.
+    #
+    def drawCircle(self, (x, y), color='black', **kwargs):
+        self.undrawCircle()
+        # Set radius
+        r = 0.1
+        if 'radius' in kwargs:
+            if isinstance(kwargs['radius'], Number):
+                r = kwargs['radius']
+        # Draw circle
+        c = Circle(Point(x, y), r)
+        c.draw(self._win)
+        c.setFill(color)
+        self._drawnCircles.append(c)
+
+    # --------
+    # Undraw the cirle.
+    #
+    def undrawCircle(self):
+        if self._drawnCircles == []:
+            return
+        for c in self._drawnCircles:
+            c.undraw()
+        self._drawnCircles = []
 
 
     # --------
