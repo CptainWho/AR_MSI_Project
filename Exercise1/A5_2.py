@@ -2,12 +2,11 @@
 __author__ = 'Ecki'
 
 """
-Aufgabe 5.1
 Realisieren Sie einen Linenverfolger followPolyline(v, poly), der einen Polygonzug poly mit der
-Geschwindigkeit v abfaehrt.
-Implementieren Sie zwei Verfahren:
-- der Roboter stoppt bei jedem Eckpunkt des Polygonzugs, richtet sich aus und faehrt erst dann
-auf den naechsten Eckpunkt zu die Geschwindigkeit v wird moeglichst konstant gehalten.
+Geschwindigkeit v abfährt.
+- die Geschwindigkeit v wird möglichst konstant gehalten. Sobald der Roboter einen
+Eckpunkt mit einer gewissen Toleranz erreicht hat, fährt er bereits auf den nächsten
+Eckpunkt zu.
 Testen Sie Ihren Linienverfolger in typischen Szenarien.
 """
 
