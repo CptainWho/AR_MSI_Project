@@ -19,7 +19,7 @@ import copy as c
 # Roboter in einer Welt positionieren:
 myWorld = emptyWorld.buildWorld()
 myRobot = Robot.Robot()
-myWorld.setRobot(myRobot, 1, 10, 0)
+myWorld.setRobot(myRobot, 1, 2, 0)
 
 # tell robo where he starts
 [x0, y0, theta0] = myRobot.getTrueRobotPose()
@@ -28,8 +28,8 @@ myRobot.setOdoPose(x0, y0, theta0)
 """ Functions """
 
 def getRobotPos():
-    #return myRobot.getTrueRobotPose()
-    return myRobot.getOdoPose()
+    return myRobot.getTrueRobotPose()
+    #return myRobot.getOdoPose()
 
 
 def followLine(p1, p2):
@@ -79,7 +79,7 @@ def outOfTol(p, p_target, tol):
 
 # define line
 p1 = [x0 + 1, y0 - 1]
-p2 = [x0 + 12, y0 - 1]
+p2 = [18, 18]
 
 # draw the line
 polyline = [[p1[0], p1[1]], [p2[0], p2[1]]]

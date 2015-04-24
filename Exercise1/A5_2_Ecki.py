@@ -16,13 +16,14 @@ from HTWG_Robot_Simulator_V1 import Robot
 import copy as c
 from Excercise2_Bachelor import MatrixTansformation as mt
 import numpy as np
+import CarrotDonkey as cd
 
 """ Init """
 
 # Roboter in einer Welt positionieren:
 myWorld = emptyWorld.buildWorld()
 myRobot = Robot.Robot()
-myWorld.setRobot(myRobot, 1, 2, -pi/2)
+myWorld.setRobot(myRobot, 5, 5, -pi/2)
 
 # tell robo where he starts
 [x0, y0, theta0] = myRobot.getTrueRobotPose()
@@ -124,33 +125,70 @@ def followLine(p1, p2, v):
 
         myRobot.move([v, omega])
 
+# Moves a point along a polyline with the speed of v
+# Every funtcion call sets the point one simulation step further
+#def pointMovement(poly, v, p_old):
+
+
+# moves a point along the line from p_start to p_target with v
+def movePointOnLine(p_start, p_target, p, v):
+    # distance to drive
+    d_diff = v * myRobot.getTimeStep()
+    # total distances
+    del_x = p_target[0] - p_start[0]
+    del_y = p_target[1] - p_start[1]
+    d = sqrt(del_y**2 + del_x**2)
+    # new point
+    p_new = [p[0] + del_x * d_diff / d, p[1] + del_y * d_diff / d]
+    return p_new
+
+# returns a list of coordinates so that a point can travel on the line with v
+# def getLinePoints(p_start, p_end, v)
+#     # total distances
+#     del_x = p_end[0] - p_start[0]
+#     del_y = p_end[1] - p_start[1]
+#     d = sqrt(del_y**2 + del_x**2)
+#     steps = np.round(d / (v * myRobot.getTimeStep()), decimals=0)
+#
+#     diff_x = del_x / steps
+#     diff_y = del_y / steps
+#
+#     linePoints = []
+#     linePoints.append([p_start[0], p_start[1]])
+#     for i in range(steps):
+#         x_next =
+#         linePoints.append()
+
+
 
 def followPolyline(v, poly):
     tol = 0.1 # tolerance
     omega = 0.8 # rotation speed
     angle_tol = 0.01 # tolerance of angle
+    return 1
 
-    p_old = poly[0]
-
-    # set all the points of polyline into for loop
-    for p in poly:
-        if p == poly[0]:
-            # first go to start point
-            goto(v, poly[0], tol)
-        else:
-            # rotate robot and follow the line to next point
-            rotateToTargetPoint(omega, p, angle_tol)
-            followLine(p_old, p, v)
-            p_old = p
 
 
 """ Main """
 
+myCD = cd.CarrotDonkey(myRobot)
+
 #define polyline
-polyline = [[2, 10], [10, 10], [10, 6], [18, 6], [9, 18]]
+polyline = [[2, 12], [10, 12], [10, 6], [18, 6], [9, 16], [9, 19]]
 myWorld.drawPolyline(polyline)
 
-followPolyline(0.6, polyline)
+p = polyline[0]
+p_old = p
+for p_next in polyline:
+    if p_next == polyline[0]:
+        myWorld.drawCircle((p[0], p[1]))
+    else:
+        while outOfTol(p, p_next, 0.01):
+            p = movePointOnLine(p_old, p_next, p, 0.2)
+            myWorld.drawCircle((p[0], p[1]))
+            myRobot.move(myCD.followCarrot(p))
+        p_old = p
+        p = p_next
 
 
 
