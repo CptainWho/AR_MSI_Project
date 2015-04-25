@@ -82,12 +82,13 @@ class CarrotDonkey:
         del_y = p[1] - p_new[1]
         d_new = sqrt(del_y**2 + del_x**2)
 
-        # point is within tolerance
+        # stop if point is within tolerance
         if d_new < d_diff/2:
             self.setCarrotPosition(p)
-        # distance gets bigger
+        # stop if distance gets bigger again
         elif d_new > d:
             self.setCarrotPosition(p)
+        # else renew position
         else:
             self.setCarrotPosition(p_new)
 
