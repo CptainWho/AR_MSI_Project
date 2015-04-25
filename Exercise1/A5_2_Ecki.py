@@ -156,7 +156,7 @@ def followPolyline(v, poly):
 myCD = cd.CarrotDonkey(myRobot, myWorld)
 
 #define polyline
-polyline = [[1, 3], [2, 8], [10, 8], [10, 6], [18, 6], [9, 16], [9, 19], [9, 10]]
+polyline = [[1, 6], [2, 8], [10, 8], [10, 6], [18, 6], [9, 16], [9, 19], [9, 10]]
 myWorld.drawPolyline(polyline)
 
 myCD.setCarrotPosition(polyline[0])
