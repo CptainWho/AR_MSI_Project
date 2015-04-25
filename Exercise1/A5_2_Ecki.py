@@ -142,24 +142,6 @@ def movePointOnLine(p_start, p_target, p, v):
     p_new = [p[0] + del_x * d_diff / d, p[1] + del_y * d_diff / d]
     return p_new
 
-# returns a list of coordinates so that a point can travel on the line with v
-# def getLinePoints(p_start, p_end, v)
-#     # total distances
-#     del_x = p_end[0] - p_start[0]
-#     del_y = p_end[1] - p_start[1]
-#     d = sqrt(del_y**2 + del_x**2)
-#     steps = np.round(d / (v * myRobot.getTimeStep()), decimals=0)
-#
-#     diff_x = del_x / steps
-#     diff_y = del_y / steps
-#
-#     linePoints = []
-#     linePoints.append([p_start[0], p_start[1]])
-#     for i in range(steps):
-#         x_next =
-#         linePoints.append()
-
-
 
 def followPolyline(v, poly):
     tol = 0.1 # tolerance
@@ -171,29 +153,31 @@ def followPolyline(v, poly):
 
 """ Main """
 
-myCD = cd.CarrotDonkey(myRobot)
+myCD = cd.CarrotDonkey(myRobot, myWorld)
 
 #define polyline
-polyline = [[2, 12], [10, 12], [10, 6], [18, 6], [9, 16], [9, 19]]
+polyline = [[1, 3], [2, 8], [10, 8], [10, 6], [18, 6], [9, 16], [9, 19], [9, 10]]
 myWorld.drawPolyline(polyline)
 
-p = polyline[0]
-p_old = p
+myCD.setCarrotPosition(polyline[0])
 for p_next in polyline:
-    if p_next == polyline[0]:
-        myWorld.drawCircle((p[0], p[1]))
-    else:
-        while outOfTol(p, p_next, 0.01):
-            p = movePointOnLine(p_old, p_next, p, 0.2)
-            myWorld.drawCircle((p[0], p[1]))
-            myRobot.move(myCD.followCarrot(p))
-        p_old = p
-        p = p_next
+    while myCD.carrot_pos != p_next:
+        myCD.moveCarrotToPoint(p_next, 0.5)
+        myRobot.move(myCD.followCarrot())
 
 
-
-[x, y, theta] = myRobot.getOdoPose()
-print x, y, theta
+# p = polyline[0]
+# p_old = p
+# for p_next in polyline:
+#     if p_next == polyline[0]:
+#         myWorld.drawCircle((p[0], p[1]))
+#     else:
+#         while outOfTol(p, p_next, 0.1):
+#             p = movePointOnLine(p_old, p_next, p, 0.5)
+#             myCD.setCarrotPosition(p)
+#             myRobot.move(myCD.followCarrot())
+#         p_old = p
+#         p = p_next
 
 # close world by clicking
 myWorld.close()
