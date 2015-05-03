@@ -88,8 +88,9 @@ class World:
         self._grid = None
 
         # Path history
-        self._showPathHistory = False
+        self._showPathHistory = True
         self._pathPoints = []
+        self._maxPathPoints = 150
         self._pathLine = None
         self._drivenDistance = 0.0
 
@@ -233,7 +234,7 @@ class World:
         theta = self._robotTheta
         dx = d*cos(theta+0.5*dTheta)
         dy = d*sin(theta+0.5*dTheta)
-        nc = Point(x+dx,y+dy)
+        nc = Point(x+dx, y+dy)
 
         if self.getNearestDistance(nc) < r: # movement is not possible because of obstacles
             print "Robot stalled: ", x, y, theta
@@ -252,10 +253,16 @@ class World:
         # Path history:
         self._drivenDistance += d
         if self._showPathHistory:
-            pathLine = Line(c,nc)
-            pathLine.setFill('red')
-            pathLine.setWidth(3)
-            pathLine.draw(self._win)
+            # If _pathPoints length is over self._maxPathPoints, undraw the oldest point
+            if len(self._pathPoints) > self._maxPathPoints:
+                self._pathPoints[len(self._pathPoints)-1].undraw()
+                # Resize _pathPoints to self._maxPathPoints elements
+                self._pathPoints = self._pathPoints[:self._maxPathPoints]
+            # Insert new Position Point in _pathPoints
+            self._pathPoints.insert(0, nc)
+            # Draw newest path Point
+            self._pathPoints[0].setFill('red')
+            self._pathPoints[0].draw(self._win)
         #print x+dx, y+dy, self.robotTheta
 
          # Clear sensor values, compute new sensor values and draw it:

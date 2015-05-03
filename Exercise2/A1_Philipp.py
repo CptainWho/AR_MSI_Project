@@ -35,7 +35,7 @@ set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 # Let robot move for x seconds
-runtime = timedelta(seconds=5.0)
+runtime = timedelta(seconds=15.0)
 starttime = datetime.now()
 while datetime.now() - starttime < runtime:
     myRobot.move([0, 0])
