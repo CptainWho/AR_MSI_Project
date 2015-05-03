@@ -89,6 +89,8 @@ class World:
 
         # Path history
         self._showPathHistory = False
+        self._pathPoints = []
+        self._pathLine = None
         self._drivenDistance = 0.0
 
         # Drawn Polyline:
@@ -249,7 +251,7 @@ class World:
 
         # Path history:
         self._drivenDistance += d
-        if self._showPathHistory == True:
+        if self._showPathHistory:
             pathLine = Line(c,nc)
             pathLine.setFill('red')
             pathLine.setWidth(3)
