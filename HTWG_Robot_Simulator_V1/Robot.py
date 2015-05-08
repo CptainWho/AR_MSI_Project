@@ -46,6 +46,24 @@ class Robot:
         self._T = T
 
     # --------
+    # returns the maximum speed
+    #
+    def getMaxSpeed(self):
+        return self._maxSpeed
+
+    # --------
+    # returns the maximum omega
+    #
+    def getMaxOmega(self):
+        return self._maxOmega
+
+    # --------
+    # returns the maximum sensor sense-values
+    #
+    def getMaxSenseValue(self):
+        return self._maxSenseValue
+
+    # --------
     # returns the diameter of the robot
     #
     def getSize(self):

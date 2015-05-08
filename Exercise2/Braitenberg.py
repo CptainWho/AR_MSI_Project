@@ -9,9 +9,9 @@ import random
 class Braitenberg:
     def __init__(self, my_robot):
         self.robot = my_robot
-        self.maxSpeed = self.robot._maxSpeed
-        self.maxOmega = self.robot._maxOmega
-        self.maxSenseValue = self.robot._maxSenseValue
+        self.maxSpeed = self.robot.getMaxSpeed()
+        self.maxOmega = self.robot.getMaxOmega()
+        self.maxSenseValue = self.robot.getMaxSenseValue()
 
 
     def beScary(self):
