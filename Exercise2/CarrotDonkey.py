@@ -7,24 +7,22 @@ import numpy as np
 class CarrotDonkey:
     def __init__(self, my_robot, my_world):
         self.e_omega_old = 0
-        self.e_theta_old = 0
         self.e_dist_old = 0
-        self.int_e_theta_dt = 0
+        self.int_e_omega_dt = 0
         self.int_e_dist_dt = 0
         self.robot = my_robot
         self.world = my_world
         self.dt = self.robot.getTimeStep()
         # PID Regler für Omega
-        self.k_p_omega = 1.8
-        self.k_i_omega = 0.01
-        self.k_d_omega = 0.5
+        self.k_p_omega = 0.2
+        self.k_i_omega = 0.00
+        self.k_d_omega = 0.2
         # PID Regler für v
-        self.k_p_v = 2.8
-        self.k_i_v = 0.01
+        self.k_p_v = 0.2
+        self.k_i_v = 0.00
         self.k_d_v = 0.3
         # distance to keep from dot
-        self.space = 0.6
-        #self.space = 0
+        self.space = 0.1
         # offset on v if its zero
         self.v_off = 0.0
         # define position of carrot
@@ -103,19 +101,8 @@ class CarrotDonkey:
         del_x = carrot[0] - x
         del_y = carrot[1] - y
 
-        #### PID for omega
-        # calculate theta error
-        theta_target = atan2(del_y, del_x)
-        e_theta = -self.diff(theta, theta_target)
-        # build derivative
-        d_e_theta_dt = (e_theta - self.e_theta_old) / self.dt
-        # build integral
-        self.int_e_theta_dt += (e_theta + self.e_theta_old) * self.dt / 2
-        # apply closed-loop
-        omega = - self.k_p_omega * e_theta - self.k_d_omega * d_e_theta_dt - self.k_i_omega * self.int_e_theta_dt
-        # refresh old value
-        self.e_theta_old = e_theta
-
+        # get omega
+        [v, omega] = self.rotateToCarrot()
 
         #### PID for v
         # calculate distance error
@@ -125,14 +112,32 @@ class CarrotDonkey:
         else:
             e_dist = self.space - dist
         # build derivative
-        d_e_dist_dt = (e_dist - self.e_dist_old) / self.dt
+        de_dist_dt = (e_dist - self.e_dist_old) / self.dt
         # build integral
         self.int_e_dist_dt -= (e_dist + self.e_dist_old) * self.dt / 2
         # apply closed-loop
-        v = - self.k_p_v * e_dist - self.k_d_v * d_e_dist_dt - self.k_i_v * self.int_e_dist_dt
+        v = - self.k_p_v * e_dist - self.k_d_v * de_dist_dt - self.k_i_v * self.int_e_dist_dt
         # add offset
         v += self.v_off
-        # refresh old value
-        self.e_dist_old = e_dist
 
+        return [v, omega]
+
+    def rotateToCarrot(self):
+        carrot = self.carrot_pos
+        [x, y, theta] = self.robot.getTrueRobotPose()
+        del_x = carrot[0] - x
+        del_y = carrot[1] - y
+
+        #### PID for omega
+        # calculate theta error
+        theta_target = atan2(del_y, del_x)
+        e_theta = -self.diff(theta, theta_target)
+        # build derivative
+        de_omega_dt = (e_theta - self.e_omega_old) / self.dt
+        # build integral
+        self.int_e_omega_dt += (e_theta + self.e_omega_old) * self.dt / 2
+        # apply closed-loop
+        omega = - self.k_p_omega * e_theta - self.k_d_omega * de_omega_dt - self.k_i_omega * self.int_e_omega_dt
+        # return omega
+        v = 0
         return [v, omega]

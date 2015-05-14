@@ -1,6 +1,6 @@
-__author__ = 'Ecki'
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__author__ = 'Ecki'
+
 
 import MatrixTansformation
 from numpy import *
