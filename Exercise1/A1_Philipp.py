@@ -1,5 +1,19 @@
-""" Module
+# -*- coding: utf-8 -*-
+""" Module Aufgabe 1
 Module Description:
+Realisieren Sie die folgenden beiden kinematischen Grundfertigkeiten des Roboters:
+- curveDrive(v, r, Δθ)
+- straightDrive(v, l)
+curveDrive bewegt den Roboter solange auf einem Kreisbogen mit Radius r und Geschwindigkeit
+v, bis sich seine Orientierung um Δθ geändert hat. straightDrive bewegt den Roboter eine gerade
+Strecke der Länge l mit der Geschwindigkeit v. Definieren Sie eine Folge von Geschwindigkeitsbefehlen,
+die die gewünschte Bewegung umsetzt. Beachten Sie dabei, dass Geschwindigkeit und
+Rotationsgeschwindigkeit beim Roboter begrenzt sind.
+Gehen Sie zunächst davon aus, dass der Roboter die gewünschten Geschwindigkeiten korrekt
+umsetzt (motionNoise auf 0 setzen) und realisieren Sie Kreis- und Rechteckfahrten und einen
+Fahrspurwechsel.
+Gehen Sie nun davon aus, dass die gewünschten Geschwindigkeiten nicht korrekt umgesetzt
+werden (motionNoise werden auf die voreingestellten Werte gesetzt). Was beobachten Sie?
 """
 
 __project__ = 'Aufgabenblatt 1'

@@ -1,5 +1,10 @@
-""" Module
+# -*- coding: utf-8 -*-
+""" Module Aufgabe 3
 Module Description:
+Realisieren Sie einen Linienverfolger followLine(p1, p2), der eine Strecke von Punkt p1 nach Punkt
+p2 moeglichst genau verfolgt. Realisieren Sie zunaechst einen P-Regler, der den Abstand zur Linie
+auf 0 regelt. Was beobachten Sie? Verbessern Sie Ihre Regelung, indem Sie einen PD-Regler
+einsetzen.
 """
 
 __project__ = 'Aufgabenblatt 1'
@@ -16,7 +21,6 @@ __version__ = '1.0'
 import numpy as np
 from math import *
 from numbers import Number
-from datetime import datetime
 # Local imports
 from HTWG_Robot_Simulator_V1 import (emptyWorld, Robot)
 #################################################################
@@ -30,12 +34,11 @@ def followLine(p1, p2, **kwargs):
     """
 
     # Controller parameters
-    k_p = 0.3
+    k_p = 0.03
     k_d = 0.5
-    k_i = 0.01
+    k_i = 0.005
     e_old = 0
     e_sum = 0
-    t_old = datetime.now()
 
     # Set tolerance for reaching end of line (p2)
     tol = 1
@@ -59,11 +62,14 @@ def followLine(p1, p2, **kwargs):
             c = kwargs['controller']
     print('Controller = %s' % c)
 
+    # Get robot timestep as deltaT
+    dt = myRobot.getTimeStep()
+
     # Draw the line and display it
     myWorld.drawPolyline((p1, p2))
 
-    # Get estimated position and orientation of the robot
-    [x, y, theta] = myRobot.getOdoPose()
+    # Get position and orientation of the robot
+    [x, y, theta] = myRobot.getTrueRobotPose()
 
     # Follow the line until the robot reaches p2 with tolerance tol
     while outOfTol((x, y), p2, tol):
@@ -93,28 +99,19 @@ def followLine(p1, p2, **kwargs):
             omega = k_p * e
         elif c == 'PD':
             # PD control
-            t = datetime.now()
-            dt = (t - t_old).total_seconds()
             e_dt = (e - e_old) / float(dt)
             omega = k_p * e + k_d * e_dt
             e_old = e
-            t_old = t
         elif c == 'PI':
             # PI control
-            t = datetime.now()
-            dt = (t - t_old).total_seconds()
             e_sum += e
             omega = k_p * e + k_i * e_sum * dt
-            t_old = t
         elif c == 'PID':
             # PID control
-            t = datetime.now()
-            dt = (t - t_old).total_seconds()
             e_sum += e
             e_dt = (e - e_old) / float(dt)
             omega = k_p * e + k_i * e_sum * dt + k_d * e_dt
             e_old = e
-            t_old = t
 
         # theta_g = np.arctan2(p2[1]-p1[1], p2[0]-p1[0])
         # theta_diff = (theta - theta_g + pi) % (2 * pi) - pi
@@ -142,7 +139,7 @@ set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
 set_robot_opt['x'] = 1
 set_robot_opt['y'] = 10
-set_robot_opt['theta'] = pi
+set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 [x0, y0, theta0] = myRobot.getTrueRobotPose()
@@ -150,13 +147,13 @@ myWorld.setRobot(**set_robot_opt)
 myRobot.setOdoPose(x0, y0, theta0)
 
 # Set noise to zero
-myRobot._k_d = 0
-myRobot._k_drift = 0
-myRobot._k_theta = 0
+# myRobot._k_d = 0
+# myRobot._k_drift = 0
+# myRobot._k_theta = 0
 
 # Define line and let robot follow it
 p1 = [x0, y0+2]
-p2 = [x0+15, y0-2]
+p2 = [x0+15, y0+2]
 followLine(p1, p2, speed=0.2, controller='PID', tolerance=0.2)
 
 # close world by clicking

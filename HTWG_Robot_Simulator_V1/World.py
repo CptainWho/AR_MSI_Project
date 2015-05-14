@@ -91,7 +91,9 @@ class World:
         self._showPathHistory = True
         self._pathPoints = []
         self._maxPathPoints = 150
+        self._path_resolution = 5  # Timesteps per path-point
         self._pathLine = None
+        self._path_counter = 0
         self._drivenDistance = 0.0
 
         # Drawn Polyline:
@@ -253,16 +255,19 @@ class World:
         # Path history:
         self._drivenDistance += d
         if self._showPathHistory:
-            # If _pathPoints length is over self._maxPathPoints, undraw the oldest point
-            if len(self._pathPoints) > self._maxPathPoints:
-                self._pathPoints[len(self._pathPoints)-1].undraw()
-                # Resize _pathPoints to self._maxPathPoints elements
-                self._pathPoints = self._pathPoints[:self._maxPathPoints]
-            # Insert new Position Point in _pathPoints
-            self._pathPoints.insert(0, nc)
-            # Draw newest path Point
-            self._pathPoints[0].setFill('red')
-            self._pathPoints[0].draw(self._win)
+            self._path_counter += 1
+            # Draw one point per x timesteps
+            if self._path_counter % self._path_resolution == 0:
+                # If _pathPoints length is over self._maxPathPoints, undraw the oldest point
+                if len(self._pathPoints) > self._maxPathPoints:
+                    self._pathPoints[len(self._pathPoints)-1].undraw()
+                    # Resize _pathPoints to self._maxPathPoints elements
+                    self._pathPoints = self._pathPoints[:self._maxPathPoints]
+                # Insert new Position Point in _pathPoints
+                self._pathPoints.insert(0, nc)
+                # Draw newest path Point
+                self._pathPoints[0].setFill('red')
+                self._pathPoints[0].draw(self._win)
         #print x+dx, y+dy, self.robotTheta
 
          # Clear sensor values, compute new sensor values and draw it:

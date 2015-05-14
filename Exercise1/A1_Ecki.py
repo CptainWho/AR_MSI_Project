@@ -1,6 +1,7 @@
-__author__ = 'Ecki'
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+__author__ = 'Ecki'
+
 """
 Aufgabe 1
 Realisieren Sie die folgenden beiden kinematischen Grundfertigkeiten des Roboters:

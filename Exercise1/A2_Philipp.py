@@ -1,5 +1,8 @@
-""" Module
+#-*- coding: utf-8 -*-
+""" Module Aufgabe 2
 Module Description:
+Die tatsächliche Position des Roboters kann mit getTrueRobotPose() abgefragt werden. Die
+Funktionen aus Aufgabe 1 sollen nun mit Hilfe dieser Funktion umgesetzt werden.
 """
 
 __project__ = 'Aufgabenblatt 1'

@@ -28,7 +28,7 @@ myRobot.setOdoPose(x0, y0, theta0)
 
 def goto(v, p, tol):
     k_omega = 0.5
-    [x, y, theta] = getRobotPos()
+    [x, y, theta] = myRobot.getTrueRobotPose()
     while outOfTol([x, y], p, tol):
         # target direction
         theta_target = atan2(p[1] - y, p[0] - x)
@@ -37,21 +37,18 @@ def goto(v, p, tol):
         # move robot
         myRobot.move([v, omega])
         # get new position
-        [x, y, theta] = getRobotPos()
-
-def getRobotPos():
-    #return myRobot.getOdoPose()
-    return myRobot.getTrueRobotPose()
+        [x, y, theta] = myRobot.getTrueRobotPose()
 
 
 def diff(theta, theta_target):
     return (theta_target - theta + pi) % (2 * pi) - pi
 
+
 # check whether point in within tolerance of target point
 def outOfTol(p, p_target, tol):
     sqrDist = (p[0] - p_target[0])**2 + (p[1] - p_target[1])**2
     sqrTol = tol**2
-    if(sqrDist > sqrTol):
+    if sqrDist > sqrTol:
         return True
     else:
         return False

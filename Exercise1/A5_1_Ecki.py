@@ -51,6 +51,7 @@ def getRobotPos():
     return myRobot.getTrueRobotPose()
     #return myRobot.getOdoPose()
 
+
 # calculate the angle difference from theta to theta_target
 # positive is defined as counterclockwise
 def diff(theta, theta_target):
@@ -152,8 +153,6 @@ polyline = [[2, 10], [10, 10], [10, 6], [18, 6], [9, 18]]
 myWorld.drawPolyline(polyline)
 
 followPolyline(0.6, polyline)
-
-
 
 [x, y, theta] = myRobot.getOdoPose()
 print x, y, theta

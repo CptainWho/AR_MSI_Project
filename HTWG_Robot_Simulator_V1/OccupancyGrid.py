@@ -119,7 +119,7 @@ def test1():
     myGrid.printGrid()
 
 def test2():
-    myGrid = OccupancyGrid(0, 0, 0.8, 0.5)
+    myGrid = OccupancyGrid(0, 0, 10.0, 8.0)
     myGrid.addLine(0.1,0.1, 0.7,0.1)
     myGrid.addLine(0.7,0.1, 0.7,0.3)
 

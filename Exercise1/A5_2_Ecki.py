@@ -2,6 +2,7 @@
 __author__ = 'Ecki'
 
 """
+Aufgabe 5.2 Carrot-Donkey
 Realisieren Sie einen Linenverfolger followPolyline(v, poly), der einen Polygonzug poly mit der
 Geschwindigkeit v abfährt.
 - die Geschwindigkeit v wird möglichst konstant gehalten. Sobald der Roboter einen
@@ -31,6 +32,7 @@ myRobot.setOdoPose(x0, y0, theta0)
 
 """ Functions """
 
+
 # robot drives direclty towards point p with v
 # robot stops within defined tolerance tol
 def goto(v, p, tol):
@@ -50,6 +52,7 @@ def goto(v, p, tol):
 def getRobotPos():
     return myRobot.getTrueRobotPose()
     #return myRobot.getOdoPose()
+
 
 # calculate the angle difference from theta to theta_target
 # positive is defined as counterclockwise
@@ -148,8 +151,6 @@ def followPolyline(v, poly):
     omega = 0.8 # rotation speed
     angle_tol = 0.01 # tolerance of angle
     return 1
-
-
 
 """ Main """
 
