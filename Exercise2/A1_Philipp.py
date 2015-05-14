@@ -1,6 +1,9 @@
-""" Module
+# -*- coding: utf-8 -*-
+""" Module Aufgabe 1
 Module Description:
-Braitenberg vehicle
+Realisieren Sie einen Roboter, der mit Hilfe der Abstandssensoren mit einem Braitenberg-
+Verfahren Hindernissen ausweicht. Zudem soll der Roboter in hindernisfreien Bereichen mit einer
+bestimmten Wahrscheinlichkeiten zufällige Drehungen durchführen.
 """
 
 __project__ = 'Aufgabenblatt 2'
