@@ -1,6 +1,7 @@
-__author__ = 'Ecki'
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__author__ = 'Ecki'
+
+
 
 import MatrixTansformation
 from numpy import *
@@ -20,5 +21,7 @@ T_A_B = mt.transform(t,mt.rot(theta))
 
 P_A = dot(T_A_B, P_B)
 
+print "P_B ="
 print P_B
+print "P_A ="
 print P_A

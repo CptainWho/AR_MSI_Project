@@ -30,23 +30,32 @@ print T_AC
 
 """ Teilaufgabe b) """
 print "b)"
+Q_C = array([[1], [1], [0], [1]])
+print "Q_C ="
+print Q_C
 
-print "T_AB * T_BC ="
-print dot(T_AB, T_BC)
-print "T_AC ="
-print T_AC
+Q_A = dot( dot(T_AB, T_BC), Q_C)
+print "Q_A = T_AB * T_BC * Q_C ="
+print Q_A
+Q_A = dot(T_AC, Q_C)
+print "Q_A = T_AC * Q_C ="
+print Q_A
+
 
 """ Teilaufgabe c) """
 print "c)"
+print "Q_A = "
+print Q_A
+
 t_CA = array([[-1], [2], [0]])
 theta_CA = (pi/2)*3
 
 T_CA = mt.transform(t_CA, mt.rotz(theta_CA))
 
-print "T_CA ="
-print T_CA
-print "inv(T_AC) ="
-print linalg.inv(T_AC)
+print "Q_C = T_CA * Q_A ="
+print dot(T_CA, Q_A)
+print "Q_C = inv(T_AC) * Q_A ="
+print dot(linalg.inv(T_AC), Q_A)
 
 """ Teilaufgabe d) """
 print "d)"
@@ -68,5 +77,5 @@ print "P_A ="
 print P_A
 print "P_C ="
 print P_C
-print "T_AB * P_B ="
+print "T_CA * P_A ="
 print dot(T_CA, P_A)
