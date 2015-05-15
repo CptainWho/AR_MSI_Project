@@ -32,11 +32,29 @@ myWorld = obstacleWorld.buildWorld()
 myRobot = Robot.Robot()
 myWorld.setRobot(myRobot, 4.5, 6, pi/2)
 
-def
+def obstacleInSight():
+    sensorDist = myRobot.sense()
+    sensorDirections = myRobot.getSensorDirections()
+    result = False
+    return result
+
+""" States """
+class NoObstacle(StateMachine.State):
+    def run(self):
+        print "Running with no Obstacle"
+
+    def next(self, input):
+        if input == True:
+
+
+""" Static variable init """
+myStateM.noobstacle = NoObstacle()
+
 
 """ Main """
 
-myStateM = StateMachine.A2_StateMachine
+myStateM = StateMachine.A2_StateMachine(StateMachine.A2_StateMachine.NoObstacle)
+myStateM.applyStates(obstacleInSight())
 
 
 

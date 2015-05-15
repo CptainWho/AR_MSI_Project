@@ -19,7 +19,7 @@ class Braitenberg:
 
         # Get sensor distances and corresponding sensor directions
         allSensorDist = self.robot.sense()
-        sensorDist = np.asarray([allSensorDist[6], allSensorDist[12]])
+        sensorDist = np.asarray([allSensorDist[5], allSensorDist[11]])
         sensorDirections = self.robot.getSensorDirections()
 
         for index, d in enumerate(sensorDist):

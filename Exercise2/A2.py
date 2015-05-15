@@ -30,41 +30,56 @@ __version__ = '0.1'
 import numpy as np
 from math import *
 # Local imports
-from HTWG_Robot_Simulator_V1 import Robot, obstacleWorld as obstacleWorld
+from HTWG_Robot_Simulator_V1 import Robot, emptyWorld as loadedWorld
 from StateMachine import StateMachine
+import BasicMovement as BasicMovement
+import Braitenberg as Braitenberg
 
 #################################################################
 
 # Create obstacleWorld and new Robot
-myWorld = obstacleWorld.buildWorld()
+myWorld = loadedWorld.buildWorld()
 myRobot = Robot.Robot()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-set_robot_opt['x'] = 1
-set_robot_opt['y'] = 10
+set_robot_opt['x'] = 3
+set_robot_opt['y'] = 7
 set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 # Set StateMachine
 state_machine = StateMachine(myRobot)
+basic_mov = BasicMovement.BasicMovement(myRobot)
+braitenberg = Braitenberg.Braitenberg(myRobot)
+
+#define polyline
+polyline = [[4, 8], [10, 8], [10, 6], [13, 6], [9, 13], [9, 14], [9, 8]]
+myWorld.drawPolyline(polyline)
+
+state_machine.setPolyline(polyline)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
+[v, omega] = [0, 0]
 
 while not target_reached:
     state = state_machine.next_state()
     if state in states:
         if state == 'NoObstacle':
-            pass
+            [v, omega] = basic_mov.followLine(state_machine.getLastPoint(), state_machine.getNextPoint(), 0.6)
 
         if state == 'Obstacle':
-            pass
+            [v, omega] = braitenberg.beScary()
 
         if state == 'CornerReached':
-            pass
+            [v, omega] = basic_mov.rotateToTargetPoint(state_machine.getNextPoint(), 0.001)
 
         if state == 'TargetReached':
-            pass
+            target_reached = True
+            [v, omega] = [0, 0]
 
+        myRobot.move([v, omega])
 
+# close world by clicking
+myWorld.close()
