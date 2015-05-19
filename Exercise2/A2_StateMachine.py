@@ -1,33 +1,69 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Ecki, Philipp'
+__author__ = 'Ecki'
 # State Machine from http://python-3-patterns-idioms-test.readthedocs.org/en/latest/StateMachine.html
 
 from math import *
 import numpy as np
-import CarrotDonkey as cd
-
-''' noch nicht fertig'''
-
-class A2_StateMachine:
-    def __init__(self, initial_state):
-        self.currentState = initial_state
-        self.currentState.run()
-
-    def runAll(self, inputs):
-        for i in inputs:
-            print i
-            self.currentState = self.currentState.next(i)
-            return self.currentState.run()
 
 
-
-    """ State Class """
+""" State Class """
 class State:
     def __init__(self):
         pass
 
-    def run(self):
-        assert 0, "run not implemented"
-
-    def next(self, input):
+    def next(self, transitions):
         assert 0, "next not implemented"
+
+
+""" State Machine """
+class StateMachine:
+    def __init__(self):
+
+        self.no_obstacle = NoObstacle()
+        self.obstacle = Obstacle()
+        self.corner_reached = CornerReached()
+        self.target_reached = TargetReached()
+        self.currentState = self.no_obstacle
+
+    def nextState(self, transitions):
+        self.currentState = self.currentState.next(transitions)
+
+    def stateEquals(self, State):
+        if self.currentState == State:
+            return True
+        else:
+            return False
+
+
+""" State Transitions """
+
+
+class NoObstacle(State):
+    def next(self, transitions):
+        if transitions.obstacleInSight():
+            return Obstacle
+        if transitions.nextPointReached():
+            if transitions.endPointReached():
+                return TargetReached
+            else:
+                return CornerReached
+        return NoObstacle
+
+
+class Obstacle(State):
+    def next(self, transitions):
+        if not transitions.obstacleInSight():
+            return NoObstacle
+        return Obstacle
+
+
+class CornerReached(State):
+    def next(self, transitions):
+        if not transitions.aimingToNextPoint():
+            return NoObstacle
+        return CornerReached
+
+
+class TargetReached(State):
+    def next(self, transitions):
+        return TargetReached

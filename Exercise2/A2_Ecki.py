@@ -1,64 +1,86 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Ecki'
-
-"""
+""" Module Aufgabe 2
+Module Description:
 Erweitern Sie nun Ihren Linienverfolger followPolyline() um eine Hindernisvermeidung. Ein
 vorgegebener Polygonzug soll möglichst genau abgefahren werden, wobei Hindernissen
 ausgewichen werden muss. Die folgenden Abbildungen zeigen für vorgegebene Polygonzüge
 (grün) typische Trajektorien (rot).
 Hinweis: Hilfreich könnte sein, den Linenverfolger als endlichen Automaten mit folgenden
 Zuständen zu realisieren:
--   der Roboter fährt auf den nächsten Eckpunkt zu und hat kein Hindernis in unmittelbarer
-    Nähe in Fahrtrichtung.
--   der Roboter fährt auf den nächsten Eckpunkt zu, sieht aber ein Hindernis in Fahrtrichtung:
-    er wählt aufgrund der Sensordaten eine neue Richtung, die möglichst nahe an der
-    Zielrichtung liegt, aber frei befahrbar ist (siehe auch Histogrammverfahren).
--   der Roboter hat einen Eckpunkt erreicht und richtet sich auf den nächsten Eckpunkt aus.
-Die Geschwindigkeit sollte aus Sicherheitsgründen umgekehrt proportional zur Rotationsgeschwindigkeit
-gewählt werden.
+- der Roboter fährt auf den nächsten Eckpunkt zu und hat kein Hindernis in unmittelbarer
+Nähe in Fahrtrichtung.
+- der Roboter fährt auf den nächsten Eckpunkt zu, sieht aber ein Hindernis in Fahrtrichtung:
+er wählt aufgrund der Sensordaten eine neue Richtung, die möglichst nahe an der
+Zielrichtung liegt, aber frei befahrbar ist (siehe auch Histogrammverfahren).
+- der Roboter hat einen Eckpunkt erreicht und richtet sich auf den nächsten Eckpunkt aus.
+Die Geschwindigkeit sollte aus Sicherheitsgründen umgekehrt proportional zur Rotationsgeschwindigkeit gewählt werden.
 """
 
+__project__ = 'Aufgabenblatt 2'
+__module__  = 'A2'
+__author__  = 'Philipp Lohrer'
+__email__   = 'plohrer@htwg-konstanz.de'
+__date__    = '14.05.2015'
+
+__version__ = '0.1'
+
+# Imports
+#################################################################
+# Standard library imports
+import numpy as np
 from math import *
-from HTWG_Robot_Simulator_V1 import obstacleWorld
-from HTWG_Robot_Simulator_V1 import officeWorld
-from HTWG_Robot_Simulator_V1 import Robot
-import A2_StateMachine as StateMachine
+# Local imports
+from HTWG_Robot_Simulator_V1 import Robot, emptyWorld as loadedWorld
+import A2_StateMachine as StateM
+import BasicMovement as BasicMovement
+import Braitenberg as Braitenberg
+import RobotNavigation as RobotNavigation
 
-from datetime import datetime, timedelta
+#################################################################
 
-# Roboter in einer Welt positionieren:
-myWorld = obstacleWorld.buildWorld()
-#myWorld = officeWorld.buildWorld()
+# Create obstacleWorld and new Robot
+myWorld = loadedWorld.buildWorld()
 myRobot = Robot.Robot()
-myWorld.setRobot(myRobot, 4.5, 6, pi/2)
+# Place Robot in World
+set_robot_opt = {}
+set_robot_opt['robot'] = myRobot
+set_robot_opt['x'] = 3
+set_robot_opt['y'] = 7
+set_robot_opt['theta'] = 0
+myWorld.setRobot(**set_robot_opt)
 
-def obstacleInSight():
-    sensorDist = myRobot.sense()
-    sensorDirections = myRobot.getSensorDirections()
-    result = False
-    return result
+# Set StateMachine
 
-""" States """
-class NoObstacle(StateMachine.State):
-    def run(self):
-        print "Running with no Obstacle"
+basic_mov = BasicMovement.BasicMovement(myRobot)
+braitenberg = Braitenberg.Braitenberg(myRobot)
+robot_nav = RobotNavigation.RobotNavigation(myRobot)
+state_machine = StateM.StateMachine()
 
-    def next(self, input):
-        if input == True:
+#define polyline
+polyline = [[4, 8], [10, 8], [10, 6], [13, 6], [9, 13], [9, 14], [9, 8]]
+myWorld.drawPolyline(polyline)
 
+robot_nav.setPolyline(polyline)
 
-""" Static variable init """
-myStateM.noobstacle = NoObstacle()
+target_reached = False
+[v, omega] = [0, 0]
 
+while not target_reached:
+    state_machine.nextState(robot_nav)
+    if state_machine.stateEquals(state_machine.no_obstacle):
+        [v, omega] = basic_mov.followLine(robot_nav.getLastPoint(), robot_nav.getNextPoint(), 0.6)
 
-""" Main """
+    if state_machine.stateEquals(state_machine.obstacle):
+        [v, omega] = braitenberg.beScary()
 
-myStateM = StateMachine.A2_StateMachine(StateMachine.A2_StateMachine.NoObstacle)
-myStateM.applyStates(obstacleInSight())
+    if state_machine.stateEquals(state_machine.corner_reached):
+        [v, omega] = basic_mov.rotateToTargetPoint(state_machine.getNextPoint(), 0.001)
 
+    if state_machine.stateEquals(state_machine.target_reached):
+        target_reached = True
+        [v, omega] = [0, 0]
 
-
-
+    myRobot.move([v, omega])
 
 # close world by clicking
 myWorld.close()

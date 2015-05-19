@@ -34,6 +34,7 @@ from HTWG_Robot_Simulator_V1 import Robot, emptyWorld as loadedWorld
 from StateMachine import StateMachine
 import BasicMovement as BasicMovement
 import Braitenberg as Braitenberg
+import RobotNavigation as RobotNavigation
 
 #################################################################
 
@@ -48,8 +49,10 @@ set_robot_opt['y'] = 7
 set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
+
 # Set StateMachine
-state_machine = StateMachine(myRobot)
+robot_navigation = RobotNavigation.RobotNavigation(myRobot)
+state_machine = StateMachine(myRobot, robot_navigation)
 basic_mov = BasicMovement.BasicMovement(myRobot)
 braitenberg = Braitenberg.Braitenberg(myRobot)
 
@@ -57,7 +60,7 @@ braitenberg = Braitenberg.Braitenberg(myRobot)
 polyline = [[4, 8], [10, 8], [10, 6], [13, 6], [9, 13], [9, 14], [9, 8]]
 myWorld.drawPolyline(polyline)
 
-state_machine.setPolyline(polyline)
+robot_navigation.setPolyline(polyline)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
@@ -67,13 +70,13 @@ while not target_reached:
     state = state_machine.next_state()
     if state in states:
         if state == 'NoObstacle':
-            [v, omega] = basic_mov.followLine(state_machine.getLastPoint(), state_machine.getNextPoint(), 0.6)
+            [v, omega] = basic_mov.followLine(robot_navigation.getLastPoint(), robot_navigation.getNextPoint(), 0.6)
 
         if state == 'Obstacle':
             [v, omega] = braitenberg.beScary()
 
         if state == 'CornerReached':
-            [v, omega] = basic_mov.rotateToTargetPoint(state_machine.getNextPoint(), 0.001)
+            [v, omega] = basic_mov.rotateToTargetPoint(robot_navigation.getNextPoint(), 0.001)
 
         if state == 'TargetReached':
             target_reached = True
