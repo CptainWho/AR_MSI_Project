@@ -83,15 +83,17 @@ class HistogramGrid:
         x = r * cos(theta)
         y = r * sin(theta)
 
-        print('x = %i, y = %i' % (x, y))
+        print('x = %0.2f, y = %0.2f' % (x, y))
 
-        if x < 0 or x > self.width:
+        # Coord Transformation: Place origin in middle of coord-system and reverse y-axis
+        xi = int(x/self.cell_size + self.x_size / 2.0)
+        yi = int(-y/self.cell_size + self.y_size / 2.0)
+
+        if xi < 0 or xi > self.x_size:
             return
-        if y < 0 or y > self.width:
+        if yi < 0 or yi > self.y_size:
             return
-        xi = int(x/self.cell_size)
-        yi = int(y/self.cell_size)
-        self.grid[xi, yi] = value
+        self.grid[yi, xi] += value
 
         print('xi = %i, yi = %i' % (xi, yi))
 
@@ -110,17 +112,19 @@ class HistogramGrid:
             return
         xi = int(x/self.cell_size)
         yi = int(y/self.cell_size)
-        return self.grid[xi, yi]
+        return self.grid[yi, xi]
 
 
 
-
-
-
-
-
-HG = HistogramGrid(0.5, 0.5)
-HG.set_value(0.4,pi/4)
+HG = HistogramGrid(9, 9, cell_size=1.0)
+HG.set_value(2,0)
+HG.set_value(2,pi/4)
+HG.set_value(2,pi/2)
+HG.set_value(2,3/4.0*pi)
+HG.set_value(2,pi)
+HG.set_value(2,5/4.0*pi)
+HG.set_value(2,3/2.0*pi)
+HG.set_value(2,7/4.0*pi)
 
 # print('dx = 2, dy = -1')
 # HG.move_grid(2,-1)
