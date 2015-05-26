@@ -30,11 +30,12 @@ __version__ = '0.1'
 import numpy as np
 from math import *
 # Local imports
-from HTWG_Robot_Simulator_V1 import Robot, emptyWorld as loadedWorld
+from HTWG_Robot_Simulator_V1 import Robot, obstacleWorld2 as loadedWorld
 from StateMachine import StateMachine
 import BasicMovement as BasicMovement
-import Braitenberg as Braitenberg
-import RobotNavigation as RobotNavigation
+import Braitenberg
+import RobotNavigation
+import PolarHistogram
 
 #################################################################
 
@@ -45,22 +46,24 @@ myRobot = Robot.Robot()
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
 set_robot_opt['x'] = 3
-set_robot_opt['y'] = 7
+set_robot_opt['y'] = 5
 set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 
 # Set StateMachine
-robot_navigation = RobotNavigation.RobotNavigation(myRobot)
-state_machine = StateMachine(myRobot, robot_navigation)
+RobotNav = RobotNavigation.RobotNavigation(myRobot)
+state_machine = StateMachine(myRobot, RobotNav)
 basic_mov = BasicMovement.BasicMovement(myRobot)
 braitenberg = Braitenberg.Braitenberg(myRobot)
+PolarHist = PolarHistogram.PolarHistogram(myRobot, RobotNav)
+
 
 #define polyline
-polyline = [[4, 8], [10, 8], [10, 6], [13, 6], [9, 13], [9, 14], [9, 8]]
+polyline = [[4, 5], [16, 5], [10, 6], [13, 6], [9, 13], [9, 14], [9, 8]]
 myWorld.drawPolyline(polyline)
 
-robot_navigation.setPolyline(polyline)
+RobotNav.setPolyline(polyline)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
@@ -70,19 +73,20 @@ while not target_reached:
     state = state_machine.next_state()
     if state in states:
         if state == 'NoObstacle':
-            [v, omega] = basic_mov.followLine(robot_navigation.getLastPoint(), robot_navigation.getNextPoint(), 0.6)
+            [v, omega] = basic_mov.followLine(RobotNav.getLastPoint(), RobotNav.getNextPoint(), 0.6)
 
         if state == 'Obstacle':
-            [v, omega] = braitenberg.beScary()
+            [v, omega] = PolarHist.avoidObstacle(RobotNav.getNextPoint())
 
         if state == 'CornerReached':
-            [v, omega] = basic_mov.rotateToTargetPoint(robot_navigation.getNextPoint(), 0.001)
+            [v, omega] = basic_mov.rotateToTargetPoint(RobotNav.getNextPoint(), 0.001)
 
         if state == 'TargetReached':
             target_reached = True
             [v, omega] = [0, 0]
 
         myRobot.move([v, omega])
+
 
 # close world by clicking
 myWorld.close()

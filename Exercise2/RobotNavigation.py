@@ -38,7 +38,6 @@ class RobotNavigation:
         else:
             return False
 
-
     # check if End Point is reached
     def endPointReached(self):
         if len(self.polyline) == 2:
@@ -102,3 +101,28 @@ class RobotNavigation:
             if distance != None:
                 return True
         return False
+
+    # calculates angle in the middle of two given angles
+    def getMedialAngle(self, start_angle, end_angle):
+        mid_angle = self.diff(start_angle, end_angle)/2.0
+        mid_angle += start_angle
+        return mid_angle
+
+
+    # searches inside the list of angles for the closest one and returns it
+    def searchClosestAngle(self, target_angle, list_of_angles):
+        closest_angle = 0
+        diff_old = 2*pi
+        for angle in list_of_angles:
+            diff = abs(self.diff(angle, target_angle))
+            if diff_old > diff:
+                diff_old = diff
+                closest_angle = angle
+        return closest_angle
+
+    # returns selected column from list (beginning at 0)
+    def getColumnFromList(self, column_number, list):
+        newlist = []
+        for i in list:
+            newlist.append(i[column_number])
+        return newlist
