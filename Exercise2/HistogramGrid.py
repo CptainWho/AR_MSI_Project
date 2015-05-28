@@ -310,8 +310,8 @@ def test_draw_grid(HG):
     HG.draw_grid()
 
 
-HG = HistogramGrid(9, 9, cell_size=1.0)
-test_grid_generation(HG)
-test_draw_grid(HG)
-histogram = test_get_histogram(HG)
-test_draw_histogram(HG, histogram)
+# HG = HistogramGrid(9, 9, cell_size=1.0)
+# test_grid_generation(HG)
+# test_draw_grid(HG)
+# histogram = test_get_histogram(HG)
+# test_draw_histogram(HG, histogram)

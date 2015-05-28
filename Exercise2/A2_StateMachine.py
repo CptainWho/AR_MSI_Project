@@ -7,7 +7,7 @@ import numpy as np
 
 
 """ State Class """
-class State:
+class State(object):
     def __init__(self):
         pass
 
@@ -39,6 +39,8 @@ class StateMachine:
 
 
 class NoObstacle(State):
+    def __init__(self):
+        State.__init__(self)
     def next(self, transitions):
         if transitions.obstacleInSight():
             return Obstacle
