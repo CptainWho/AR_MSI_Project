@@ -9,21 +9,47 @@ class PolarHistogram:
     def __init__(self, robot, robot_navigation):
         self.robot = robot
         self.robotNav = robot_navigation
-        self.threshold = 0.5
+        self.threshold = 0.05
+        self.angle_threshold = 30*pi/180
         self.histogram = None
-        self.k_p_omega = 0.1
+        self.k_p_omega = 1.2
 
     def avoidObstacle(self, target_point):
-        direction_angle = self.robotNav.getAngleToPoint(target_point)
+        direction_angle = self.robotNav.getAngleFromRobotToPoint(target_point)
         self.histogram = self.generateHistFromSensors()
         minima = self.locateMinima(self.histogram)
-        closest_angle = self.robotNav.searchClosestAngle(direction_angle, self.robotNav.getColumnFromList(2, minima))
+        #closest_angle = self.robotNav.searchClosestAngle(direction_angle, self.robotNav.getColumnFromList(2, minima))
+        closest_angle = self.computeClosestAngle(direction_angle, minima)
 
-        omega = self.k_p_omega * (closest_angle - self.robotNav.getRobotAngle())
+        # search for closest angle
+
+
+
+        print "closest angle: ", closest_angle
+        omega = self.k_p_omega * closest_angle
 
         #v = self.robot._maxSpeed * 1 * (1 - omega/self.robot._maxOmega)
-        v=0.3
+        v=0.4
         return [v, omega]
+
+    # searches for closest angle in minima array
+    def computeClosestAngle(self, target_angle, minima):
+        closest_angles = []
+        diff_old = 2*pi
+        for angles in minima:
+            diff = abs(self.robotNav.diff(angles[2], target_angle))
+            if diff_old > diff:
+                diff_old = diff
+                closest_angles = angles
+
+        if self.robotNav.AngleInRange(
+                closest_angles[0], closest_angles[1], target_angle, True, self.angle_threshold):
+            closest_angle = target_angle
+        else:
+            closest_angle = closest_angles[2]
+
+        return closest_angle
+
 
     def generateHistFromSensors(self):
         """
@@ -42,7 +68,8 @@ class PolarHistogram:
                     sensorData[i][1] = 0.0
         return sensorData
 
-    # start end direction
+    # generates the 2D-List mininma
+    # each minimum is described in one line with the colums: start, end, mid angle
     def locateMinima(self, histrogram):
         minima = []
 
@@ -59,6 +86,10 @@ class PolarHistogram:
 
                     # minimum goes on at first entry
                     if histrogram[0][1]< self.threshold:
+                        # if no minumum was found (no obstacle in sight)
+                        if len(minima) == 0:
+                            return [0.0, 0.0, 0.0]
+
                         # combine with first found minimum by start angle
                         minima[0][0] = start_angle
                     # minimum doesn't go on

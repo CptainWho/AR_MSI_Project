@@ -2,6 +2,7 @@
 __author__ = 'Ecki'
 
 from math import *
+import types
 
 
 class RobotNavigation:
@@ -9,7 +10,7 @@ class RobotNavigation:
     def __init__(self, robot):
         self.robot = robot
         self.polyline = [self.getRobotPoint(), self.getRobotPoint()]
-        self.tolPoint = 0.1
+        self.tolPoint = 0.2
         self.tolAngle = 0.1
 
     # defines the polyline for robot to follow
@@ -86,18 +87,39 @@ class RobotNavigation:
     def diff(self, theta, theta_target):
         return (theta_target - theta + pi) % (2 * pi) - pi
 
-    # returns the angle between robot orientation and a point
+    # calculate the absolute angle difference from theta to theta_target
+    # positive is defined as counterclockwise
+    # output ranges from 0 to 2*pi
+    # if counterclock is false rotation direction is changed (output from 0 to -2*pi)
+    def diffAbs(self, theta, theta_target, counterclock = True):
+        angle = (theta_target - theta) % (2 * pi)
+        if counterclock:
+            return angle
+        else:
+            return angle-2*pi
+
+    def addAngles(self, angle1, angle2):
+        return (angle1 + angle2) % (2*pi)
+
+    # returns the angle between robot position and a point
     def getAngleToPoint(self, point):
         # target direction
         [x, y, theta] = self.getRobotPos()
         theta_target = atan2(point[1] - y, point[0] - x)
         return theta_target
 
+    # returns the angle difference between the robot orientation and a point
+    def getAngleFromRobotToPoint(self, point):
+        theta = self.getRobotAngle()
+        theta_target = self.getAngleToPoint(point)
+        diff = self.diff(theta, theta_target)
+        return diff
+
     # decides whether there is a obstacle in robots line of sight
     def obstacleInSight(self):
         sensorDist = self.robot.sense()
         # check if there is a obstacle in front of robot
-        for distance in sensorDist[5:11]:
+        for distance in sensorDist[2:14]:
             if distance != None:
                 return True
         return False
@@ -111,6 +133,9 @@ class RobotNavigation:
 
     # searches inside the list of angles for the closest one and returns it
     def searchClosestAngle(self, target_angle, list_of_angles):
+        if list_of_angles == None:
+            return target_angle
+
         closest_angle = 0
         diff_old = 2*pi
         for angle in list_of_angles:
@@ -122,7 +147,41 @@ class RobotNavigation:
 
     # returns selected column from list (beginning at 0)
     def getColumnFromList(self, column_number, list):
+
         newlist = []
-        for i in list:
-            newlist.append(i[column_number])
-        return newlist
+        try:
+            for i in list:
+                number = i[column_number]
+                newlist.append(number)
+            return newlist
+        except TypeError:
+            return None
+
+
+    # checks if a angle lies between two angles
+    # the direction is defined from start_angle to end_angle in choosen rotation direction
+    #
+    def AngleInRange(self, start_angle, end_angle, angle, counterclock = True, offset = 0):
+        # add offset
+        start = self.addAngles(start_angle, offset)
+        end = self.addAngles(end_angle, -offset)
+
+        # return false if offset is too big
+        if 2*offset > abs(self.diffAbs(start_angle, end_angle, counterclock)):
+            return False
+
+        # check for range
+        if counterclock:
+            if self.diffAbs(start, angle) <= self.diffAbs(start, end):
+                return True
+            else:
+                return False
+        else:
+            if self.diffAbs(start, angle) >= self.diffAbs(start, end):
+                return True
+            else:
+                return False
+
+
+
+

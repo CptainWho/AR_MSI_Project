@@ -28,6 +28,11 @@ class StateMachine:
                 if not self.transitions.obstacleInSight():
                     self.current_state = 'NoObstacle'
                     print self.current_state
+                if self.transitions.nextPointReached():
+                    if self.transitions.endPointReached():
+                        self.current_state = 'TargetReached'
+                    else:
+                        self.current_state = 'CornerReached'
 
             if self.current_state == 'CornerReached':
                 if self.transitions.aimingToNextPoint():

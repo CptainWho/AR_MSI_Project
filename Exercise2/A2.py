@@ -30,7 +30,7 @@ __version__ = '0.1'
 import numpy as np
 from math import *
 # Local imports
-from HTWG_Robot_Simulator_V1 import Robot, obstacleWorld2 as loadedWorld
+from HTWG_Robot_Simulator_V1 import RobotFrontLasers as Robot, obstacleWorld1 as loadedWorld
 from StateMachine import StateMachine
 import BasicMovement as BasicMovement
 import Braitenberg
@@ -45,9 +45,9 @@ myRobot = Robot.Robot()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-set_robot_opt['x'] = 3
-set_robot_opt['y'] = 5
-set_robot_opt['theta'] = 0
+set_robot_opt['x'] = 5
+set_robot_opt['y'] = 3
+set_robot_opt['theta'] = pi/2
 myWorld.setRobot(**set_robot_opt)
 
 
@@ -60,7 +60,7 @@ PolarHist = PolarHistogram.PolarHistogram(myRobot, RobotNav)
 
 
 #define polyline
-polyline = [[4, 5], [16, 5], [10, 6], [13, 6], [9, 13], [9, 14], [9, 8]]
+polyline = [[5, 4], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [3, 16]]
 myWorld.drawPolyline(polyline)
 
 RobotNav.setPolyline(polyline)
