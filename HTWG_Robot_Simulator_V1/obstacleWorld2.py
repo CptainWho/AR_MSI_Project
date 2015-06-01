@@ -13,6 +13,10 @@ def buildWorld():
     world.addLine(14, 7, 13, 7)
     world.addLine(13, 7, 13, 5)
 
-    #polyline = [[5,5.5],[15,5.5]]
+    world.addLine(11, 7, 13, 9)
+
+    world.addLine(11.5, 2, 11.5, 4)
+
+    # polyline = [[5,5.5],[15,5.5]]
 
     return world

@@ -6,11 +6,10 @@ Verfahren Hindernissen ausweicht. Zudem soll der Roboter in hindernisfreien Bere
 bestimmten Wahrscheinlichkeiten zufällige Drehungen durchführen.
 """
 
-__project__ = 'Aufgabenblatt 2'
-__module__ = 'E2A1'
+__project__ = 'Exercise 2'
+__module__ = 'E2_A1'
 __author1__ = 'Ecki'
 __author2__ = 'Philipp Lohrer'
-__email__ = 'plohrer@htwg-konstanz.de'
 __date__ = '30.05.2015'
 
 __version__ = '1.0'

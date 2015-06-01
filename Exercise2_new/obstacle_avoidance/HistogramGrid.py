@@ -54,7 +54,38 @@ class HistogramGrid:
 
         # print self.grid
 
-    def move_grid(self, dx, dy):
+    def avoid_obstacle(self, robot_pos, target_point, debug=False):
+        """ Calculates nearest way in regard of given target point around detected obstacles
+        :param robot_pos: [x,y]
+        :param target_point: [x,y]
+        :return: speed, angular velocity ([v,omega])
+        """
+
+        # Get direction to target_point
+        target_angle = Calc.get_angle_from_robot_to_point(robot_pos, target_point)
+        # Create polar histogram
+        histogram = self.create_histogram()
+        # Split histogram in sector_angles and sector_occupancy
+        sector_angles, sector_occupancy = histogram
+        # Search for minimum occupancy values and return indexes
+        min_indexes = np.where(sector_occupancy == sector_occupancy.min())
+        # Get sector_angles with minimum occupancy and transform them to radian
+        angles_min_occupancy = sector_angles[min_indexes] / 180.0 * pi
+        # Search angle closest to target_angle
+        closest_angle = Calc.search_closest_angle(target_angle, angles_min_occupancy)
+
+        # Calculate omega for closest_angle
+        omega = 1.0 * Calc.diff(robot_pos[2], (closest_angle / 180.0 * pi))
+        # TODO scale v with occupancy value
+        v = 0.5
+
+        if debug:
+            print 'DEBUG: avoid_obstacle()'
+            print '\ttarget angle: %0.2f' % target_angle * 180.0 / pi
+            print '\tclosest angle: %0.2f' % closest_angle * 180.0 / pi
+        return [v, omega]
+
+    def move_grid(self, dx, dy, debug=False):
         """ Shift grid values according to robot motion dx, dy
         :param dx: relative robot movement in x direction
         :param dy: relative robot movement in y direction
@@ -80,7 +111,9 @@ class HistogramGrid:
             y_shift = abs(y_shift)
             self.grid = np.pad(self.grid, ((0, y_shift), (0, 0)), mode='constant')[y_shift:, :]
 
-        print self.grid
+        if debug:
+            print 'DEBUG: move_grid()'
+            print self.grid
 
     def set_value(self, r, theta, value=1, debug=False):
         """ Set grid value at r, theta
@@ -98,9 +131,9 @@ class HistogramGrid:
         yi = int(-y/self.cell_size + self.y_size / 2.0)
 
         # Check if coordinates exceed grid boundaries
-        if xi < 0 or xi > self.x_size:
+        if xi < 0 or xi >= self.x_size:
             return
-        if yi < 0 or yi > self.y_size:
+        if yi < 0 or yi >= self.y_size:
             return
         self.grid[yi, xi] += value
 
@@ -200,14 +233,6 @@ class HistogramGrid:
 
         return self.grid[yi, xi]
 
-    def get_min(self):
-        """
-        :return: minimums np.array([m1,m2,...,m_n])
-        """
-        # TODO
-
-        return None
-
     def draw_grid(self):
         """ Draw current grid
         :return: -
@@ -243,3 +268,5 @@ class HistogramGrid:
             plt.xticks(x_ind+width/2.0, text_sector_angles, rotation='vertical')
 
             plt.show()
+        else:
+            print 'No histogram available!'
