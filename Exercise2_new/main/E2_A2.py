@@ -30,7 +30,7 @@ from math import *
 # Local imports
 from HTWG_Robot_Simulator_V1 import RobotFrontLasers as Robot, obstacleWorld1 as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
-from Exercise2_new.movement import BasicMovement
+from Exercise2_new.movements import BasicMovement
 from Exercise2_new.obstacle_avoidance import Braitenberg, HistogramGrid
 
 

@@ -33,7 +33,7 @@ sensor_distances = np.asarray(myRobot.sense())
 if np.any(sensor_distances):
     obstacle_detected = True
 
-    # 1. Shift HistogramGrid according to relative movement of robot
+    # 1. Shift HistogramGrid according to relative movements of robot
     # 1.1. Get robot position and orientation
     robo_pos_x, robo_pos_y, robo_theta = myRobot.getTrueRobotPose()
     # 1.2. Calculate dx & dy

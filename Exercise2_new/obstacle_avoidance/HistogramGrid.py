@@ -52,7 +52,8 @@ class HistogramGrid:
         self.height = height
         self.cell_size = float(cell_size)
 
-        # print self.grid
+        self.ax = plt.subplot()
+        self.plt_grid = self.ax.matshow(self.grid)
 
     def avoid_obstacle(self, robot_pos, target_point, debug=False):
         """ Calculates nearest way in regard of given target point around detected obstacles
@@ -87,13 +88,17 @@ class HistogramGrid:
 
     def move_grid(self, dx, dy, debug=False):
         """ Shift grid values according to robot motion dx, dy
-        :param dx: relative robot movement in x direction
-        :param dy: relative robot movement in y direction
-        :return: -
+        :param dx: relative robot movements in x direction
+        :param dy: relative robot movements in y direction
+        :return: x_residual, y_residual
         """
 
-        x_shift = int(round(dx))
-        y_shift = int(round(dy))
+        x_shift = int(round(dx / self.cell_size))
+        y_shift = int(round(dy / self.cell_size))
+
+        # Calculate remaining (=residual) dx, dy
+        x_residual = (x_shift - dx / self.cell_size) * self.cell_size
+        y_residual = (y_shift - dy / self.cell_size) * self.cell_size
 
         # Shift array values via padding
         # np.pad(array_like,((before_axis1,after_axis1),(before_axis2,after_axis2)), ...
@@ -113,7 +118,12 @@ class HistogramGrid:
 
         if debug:
             print 'DEBUG: move_grid()'
-            print self.grid
+            print '\tdx = %0.2f, dy = %0.2f' % (dx, dy)
+            print '\t-> x_shift = %i, y_shift = %i' % (x_shift, y_shift)
+            print '\t-> x_residual = %0.2f, y_residual = %0.2f' % (x_residual, y_residual)
+            # print self.grid
+
+        return x_residual, y_residual
 
     def set_value(self, r, theta, value=1, debug=False):
         """ Set grid value at r, theta
@@ -233,12 +243,18 @@ class HistogramGrid:
 
         return self.grid[yi, xi]
 
-    def draw_grid(self):
+    def draw_grid(self, debug=False):
         """ Draw current grid
         :return: -
         """
-        # plt.ion()
-        plt.matshow(self.grid)
+        plt.ion()
+
+        if debug:
+            print 'DEBUG draw_grid()'
+            print self.grid
+
+        self.plt_grid.set_data(self.grid)
+        self.plt_grid.autoscale()
         plt.show()
 
     def draw_histogram(self):

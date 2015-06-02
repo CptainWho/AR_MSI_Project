@@ -198,8 +198,6 @@ def get_angle_from_robot_to_point(robot_pos, point):
 
 
 
-
-
 # OBSOLET
 # # returns selected column from list (beginning at 0)
 # def getColumnFromList(self, column_number, list):

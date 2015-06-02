@@ -224,8 +224,8 @@ class World:
     # --------
     # move the robot in the direction of his self._robotTheta + dTheta/2 by the length of d
     # and then change the robot's orientation by dTheta.
-    # The movement takes dt in clock time (dt is only used to change clock time output).
-    # If the robot's movement is not possible because of obstacles, the movement will be not
+    # The movements takes dt in clock time (dt is only used to change clock time output).
+    # If the robot's movements is not possible because of obstacles, the movements will be not
     # performed and False is returned.
     #
     def moveRobot(self, d, dTheta, dT):
@@ -238,7 +238,7 @@ class World:
         dy = d*sin(theta+0.5*dTheta)
         nc = Point(x+dx, y+dy)
 
-        if self.getNearestDistance(nc) < r: # movement is not possible because of obstacles
+        if self.getNearestDistance(nc) < r: # movements is not possible because of obstacles
             print "Robot stalled: ", x, y, theta
             # raw_input("Enter: ")
             return False

@@ -53,8 +53,8 @@ class HistogramGrid:
 
     def move_grid(self, dx, dy):
         """ Shift grid values according to robot motion dx, dy
-        :param dx: relative robot movement in x direction
-        :param dy: relative robot movement in y direction
+        :param dx: relative robot movements in x direction
+        :param dy: relative robot movements in y direction
         :return: -
         """
 
