@@ -3,6 +3,7 @@ __author__ = 'Ecki'
 
 import numpy as np
 from math import *
+from Exercise2_new.util import Calculations as Calc
 
 class PolarHistogram:
 
@@ -12,17 +13,21 @@ class PolarHistogram:
         self.threshold = 0.05
         self.angle_threshold = 30*pi/180
         self.histogram = None
-        self.k_p_omega = 1.2
+        self.k_p_omega = 0.8
 
     def avoidObstacle(self, target_point):
         direction_angle = self.robotNav.getAngleFromRobotToPoint(target_point)
         self.histogram = self.generateHistFromSensors()
-        minima = self.locateMinima(self.histogram)
-        #closest_angle = self.robotNav.searchClosestAngle(direction_angle, self.robotNav.getColumnFromList(2, minima))
-        closest_angle = self.computeClosestAngle(direction_angle, minima)
+        # minima = self.locateMinima(self.histogram)
+        # #closest_angle = self.robotNav.searchClosestAngle(direction_angle, self.robotNav.getColumnFromList(2, minima))
+        # closest_angle = self.computeClosestAngle(direction_angle, minima)
 
+        hist = np.asarray(self.histogram)
+        hist = hist.transpose()
+        indexes= np.where(hist[1] < self.threshold)
+        minima = hist[0][indexes]
         # search for closest angle
-
+        closest_angle = Calc.search_closest_angle(direction_angle, minima.tolist())
 
 
         print "closest angle: ", closest_angle
@@ -42,11 +47,14 @@ class PolarHistogram:
                 diff_old = diff
                 closest_angles = angles
 
-        if self.robotNav.AngleInRange(
-                closest_angles[0], closest_angles[1], target_angle, True, self.angle_threshold):
-            closest_angle = target_angle
-        else:
-            closest_angle = closest_angles[2]
+        try:
+            if self.robotNav.AngleInRange(
+                    closest_angles[0], closest_angles[1], target_angle, True, self.angle_threshold):
+                closest_angle = target_angle
+            else:
+                closest_angle = closest_angles[2]
+        except IndexError or TypeError:
+            print "error"
 
         return closest_angle
 
@@ -73,39 +81,15 @@ class PolarHistogram:
     def locateMinima(self, histrogram):
         minima = []
 
+        minimum_found = False
+
         # recognizes if loop runs inside a minumum
         inside_minimum = False
 
         for i in range(len(histrogram)):
 
-            # last element reached
-            if i == (len(histrogram) - 1):
-
-                # minimum doesn't end at last entry
-                if histrogram[i][1] < self.threshold:
-
-                    # minimum goes on at first entry
-                    if histrogram[0][1]< self.threshold:
-                        # if no minumum was found (no obstacle in sight)
-                        if len(minima) == 0:
-                            return [0.0, 0.0, 0.0]
-
-                        # combine with first found minimum by start angle
-                        minima[0][0] = start_angle
-                    # minimum doesn't go on
-                    else:
-
-                        # check if minimum just has started
-                        if not inside_minimum:
-                            start_angle = histrogram[i][0]
-
-                        end_angle = histrogram[i][0]
-                        # save last minumum
-                        minima.append([start_angle, end_angle, 0])
-
-
             # minimum starts
-            elif histrogram[i][1] < self.threshold and not inside_minimum:
+            if histrogram[i][1] < self.threshold and not inside_minimum:
                 inside_minimum = True
                 # save starting angle of minimum
                 start_angle = histrogram[i][0]
@@ -116,8 +100,27 @@ class PolarHistogram:
                 inside_minimum = False
                 # save end angle of minimum
                 end_angle = histrogram[i-1][0]
-
+                # add minimum to list
                 minima.append([start_angle, end_angle, 0])
+                # save that at least one minimum was found
+                minimum_found = True
+
+        # if minimum doesn't end at last entry
+        if inside_minimum == True:
+            # if this is the first minimum
+            if not minimum_found:
+                # end angle is last entry in list
+                end_angle = histrogram[-1][0]
+                # add the minimum
+                minima.append([start_angle, end_angle, 0])
+                # save that at least one minimum was found
+                minimum_found = True
+
+            # check if minimum goes on at first entry
+            if histrogram[0][1]< self.threshold:
+                # combine with first found minimum by start angle
+                minima[0][0] = start_angle
+
 
         # calculate mid angles
         for i in range(len(minima)):

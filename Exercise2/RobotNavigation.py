@@ -119,7 +119,7 @@ class RobotNavigation:
     def obstacleInSight(self):
         sensorDist = self.robot.sense()
         # check if there is a obstacle in front of robot
-        for distance in sensorDist[2:14]:
+        for distance in sensorDist:
             if distance != None:
                 return True
         return False

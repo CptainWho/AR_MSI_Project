@@ -2,7 +2,7 @@
 __author__ = 'Ecki'
 
 from math import *
-import numpy as np
+from Exercise2_new.util import RobotLocation
 
 class CarrotDonkey:
     def __init__(self, my_robot, my_world):
@@ -13,6 +13,7 @@ class CarrotDonkey:
         self.robot = my_robot
         self.world = my_world
         self.dt = self.robot.getTimeStep()
+        self.location = RobotLocation.RobotLocation(my_robot)
         # PID Regler für Omega
         self.k_p_omega = 0.2
         self.k_i_omega = 0.00
@@ -22,11 +23,14 @@ class CarrotDonkey:
         self.k_i_v = 0.00
         self.k_d_v = 0.3
         # distance to keep from dot
-        self.space = 0.1
+        self.space = 0.5
         # offset on v if its zero
         self.v_off = 0.0
         # define position of carrot
         self.carrot_pos = [10, 10]
+        self.carrot_pos_old = self.carrot_pos
+        # define minimum tolerance to carrot
+        self.tolerance = 0.01
 
 
     # calculate the angle difference from theta to theta_target
@@ -39,6 +43,12 @@ class CarrotDonkey:
     def setCarrotPosition(self, p):
         self.carrot_pos = p
         self.world.drawCircle(p)
+
+    def get_carrot_position(self):
+        """
+        :return: the carrots current position
+        """
+        return self.carrot_pos
 
     def set_space(self, space):
         """
@@ -98,11 +108,27 @@ class CarrotDonkey:
         else:
             self.setCarrotPosition(p_new)
 
+    def __get_internal_space(self):
+        """
+        check if carrot pos is changing.
+        if not carrot is stationary and robot dirves directly to it
+        :return:
+        """
+        if self.carrot_pos == self.carrot_pos_old:
+            return 0
+        else:
+            return self.space
+        #return self.space
 
     # returns [v, omega] for one time step. With v and omega as move input for the robot to follow a point (the carrot)
     def followCarrot(self):
 
+        # when robot has reached carrot, don't anything
+        if self.location.robot_inside_tolerance(self.carrot_pos, self.tolerance):
+            return [0, 0]
+
         carrot = self.carrot_pos
+        self.carrot_pos_old = self.carrot_pos
 
         [x, y, theta] = self.robot.getTrueRobotPose()
         del_x = carrot[0] - x
@@ -114,10 +140,10 @@ class CarrotDonkey:
         #### PID for v
         # calculate distance error
         dist = sqrt(del_x**2 + del_y**2)
-        if dist < self.space:
+        if dist < self.__get_internal_space():
             e_dist = 0
         else:
-            e_dist = self.space - dist
+            e_dist = self.__get_internal_space() - dist
         # build derivative
         de_dist_dt = (e_dist - self.e_dist_old) / self.dt
         # build integral
