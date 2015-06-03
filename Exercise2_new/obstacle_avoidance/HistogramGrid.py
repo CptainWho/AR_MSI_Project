@@ -31,11 +31,12 @@ class HistogramGrid:
     Furthermore the histogram and the histogram grid can be displayed via matplotlib.
     """
 
-    def __init__(self, width, height, cell_size=0.1):
+    def __init__(self, width, height, cell_size=0.1, hist_resolution=10):
         """ Initialize grid
         :param width: int
         :param height: int
         :param cell_size: default 0.1
+        :param hist_resolution: angle for each histogram sector, default: 10°
         :return: -
         """
 
@@ -47,13 +48,53 @@ class HistogramGrid:
         if self.y_size % 2 == 0:
             self.y_size += 1
         self.grid = np.zeros((self.x_size, self.y_size), dtype=np.int)
-        self.histogram = None
         self.width = width
         self.height = height
         self.cell_size = float(cell_size)
 
-        self.ax = plt.subplot()
-        self.plt_grid = self.ax.matshow(self.grid)
+        self.histogram = None
+        self.hist_resolution = hist_resolution
+
+        # Pyplot: enable interactive (= non-blocking) mode
+        plt.ion()
+        # Pyplot: create 2 subplots for histogram grid and polar histogram
+        fig, (self.ax1, self.ax2) = plt.subplots(nrows=2, ncols=1)
+        # Create plt-obj of matshow for faster data updating
+        self.plt_grid = None
+        # Initialize histogram with empty data
+        self.plt_hist = None
+
+    def _init_grid(self, axis):
+        """ Initialize HistogramGrid
+        :param axis: axis for plotting
+        :return: pyplot matshow obj
+        """
+
+        plt_grid = axis.matshow(self.grid)
+
+        return plt_grid
+
+    def _init_hist(self, axis):
+        """ Initialize histogram
+        :param axis: axis for plotting
+        :return: pyplot bar obj
+        """
+        # get sector angles and occupancy
+        sector_angles, sector_occupancy = self.histogram
+        # Extract sector angles as strings
+        text_sector_angles = [np.array_str(angle, precision=2) for angle in sector_angles[0]]
+        # Width of the bars
+        width = self.hist_resolution / 2.0
+        # Set up bars
+        plt_hist = axis.bar(sector_angles[0], sector_occupancy[0], width=width)
+        # add text for labels, title and axis ticks
+        axis.set_xlabel('sector angles')
+        axis.set_ylabel('occupancy value')
+        axis.set_title('Histogram')
+        axis.set_xticks(sector_angles[0])
+        axis.set_xticklabels(text_sector_angles,  rotation='vertical')
+
+        return plt_hist
 
     def avoid_obstacle(self, robot_pos, target_point, debug=False):
         """ Calculates nearest way in regard of given target point around detected obstacles
@@ -159,9 +200,9 @@ class HistogramGrid:
             print '\tResulting grid:'
             print self.grid
 
-    def create_histogram(self, sector_angle=5, debug=False):
+    def create_histogram(self, resolution=10, debug=False):
         """ Creates histogram and returns the angles with corresponding occupancy values
-        :param sector_angle: angle for each sector, default: 5°
+        :param resolution: angle for each sector, default: 10°
         :param debug: enable/disable debug-printing
         :return: numpy array([[sector_angles],[sector_occupancy]])
         """
@@ -171,8 +212,8 @@ class HistogramGrid:
         weight_const_b = 1.0 / 5.0  # 1 / max. sense value
 
         # Create arrays for sector_angles ([angles]) and sector_occupancy ([empty])
-        sectors = int(360/float(sector_angle) + 1.0)  # 360° included for easier loop usage
-        sector_angles = np.array([x*sector_angle for x in xrange(sectors)])
+        sectors = int(360/float(resolution) + 1.0)  # 360° included for easier loop usage
+        sector_angles = np.array([x * resolution for x in xrange(sectors)])
         sector_occupancy = np.zeros(sectors)
 
         # Get occupied cells from histogram grid and save their indexes ( array([[y1,y2,...,yn],[x1,x2,..,xn]]) )
@@ -207,8 +248,6 @@ class HistogramGrid:
 
         # Generate histogram, discard 360° sector and its occupancy value (last element)
         histogram = np.array([[sector_angles[:-1]], [sector_occupancy[:-1]]])
-
-        self.histogram = histogram
 
         # DEBUG
         if debug:
@@ -247,42 +286,31 @@ class HistogramGrid:
         """ Draw current grid
         :return: -
         """
-        plt.ion()
 
         if debug:
             print 'DEBUG draw_grid()'
             print self.grid
 
-        self.plt_grid.set_data(self.grid)
-        self.plt_grid.autoscale()
+        if self.plt_grid is None:
+            self.plt_grid = self._init_grid(self.ax1)
+        else:
+            self.plt_grid.set_data(self.grid)
+            self.plt_grid.autoscale()
         plt.show()
 
-    def draw_histogram(self):
-        """
-        :param self: Draw current histogram
+    def draw_hist(self):
+        """ Draw given histogram
         :return: -
         """
-
-        # plt.ion()
-
         # get sector angles and occupancy
-        if self.histogram is not None:
-            sector_angles, sector_occupancy = self.histogram
-            # Extract sector angles as strings
-            text_sector_angles = [np.array_str(angle, precision=2) for angle in sector_angles[0]]
-            print(sector_angles)
-            # Amount of bars to be drawn (0,1...,n)
-            x_ind = np.arange(np.size(sector_angles))
-            # Width of the bars
-            width = 0.4
-            # Set up bars
-            plt.bar(x_ind, sector_occupancy[0], width=width)
-            # add text for labels, title and axis ticks
-            plt.xlabel('sector angle')
-            plt.ylabel('occupancy')
-            plt.title('Histogram')
-            plt.xticks(x_ind+width/2.0, text_sector_angles, rotation='vertical')
-
-            plt.show()
+        self.histogram = self.create_histogram(resolution=self.hist_resolution)
+        sector_angles, sector_occupancy = self.histogram
+        if self.plt_hist is None:
+            self.plt_hist = self._init_hist(self.ax2)
         else:
-            print 'No histogram available!'
+            [bar.set_height(sector_occupancy[0][i]) for i, bar in enumerate(self.plt_hist)]
+        self.ax2.set_ylim([0, np.max(sector_occupancy[0])])
+        plt.show()
+
+
+

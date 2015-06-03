@@ -43,7 +43,7 @@ y_residual = 0
 counter = 0
 
 
-for i in xrange(150):
+for i in xrange(100):
     # Get sensor angles, starting from -pi/2
     sensor_angles = np.asarray(myRobot.getSensorDirections())
     # Get sensor distances
@@ -86,11 +86,10 @@ for i in xrange(150):
     else:
         obstacle_detected = False
     # Move robot (spin it)
-    myRobot.move([0.2, 0])
+    myRobot.move([0.5, 0])
 
-    # myHistogramGrid.create_histogram(debug=True)
     myHistogramGrid.draw_grid()
-
+    myHistogramGrid.draw_hist()
 
 
 print 'Done'
