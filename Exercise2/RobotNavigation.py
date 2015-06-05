@@ -24,7 +24,7 @@ class RobotNavigation:
         return self.polyline[0]
 
     # check if robot has reached a point and updates to next point
-    def nextPointReached(self):
+    def next_point_reached(self):
         if self.indsideTol(self.getNextPoint(), self.tolPoint):
             if len(self.polyline) > 2:
                 self.polyline.remove(self.polyline[0])
@@ -33,14 +33,14 @@ class RobotNavigation:
             return False
 
     # check if robot directly looks to the next point
-    def aimingToNextPoint(self):
+    def aiming_to_next_point(self):
         if self.insideAngleTol(self.getAngleToPoint(self.getNextPoint()), self.tolAngle):
             return True
         else:
             return False
 
     # check if End Point is reached
-    def endPointReached(self):
+    def end_point_reached(self):
         if len(self.polyline) == 2:
             if self.indsideTol(self.getNextPoint(), self.tolPoint):
                 return True
@@ -116,7 +116,7 @@ class RobotNavigation:
         return diff
 
     # decides whether there is a obstacle in robots line of sight
-    def obstacleInSight(self):
+    def obstacle_in_sight(self):
         sensorDist = self.robot.sense()
         # check if there is a obstacle in front of robot
         for distance in sensorDist:

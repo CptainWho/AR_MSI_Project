@@ -63,7 +63,7 @@ def point_in_tol(p, p_target, tol):
         return False
 
 
-def angel_in_tol(angle, angle_target, tol):
+def angle_in_tol(angle, angle_target, tol):
     """ Check whether angle is within tolerance of target angle
     :param angle: -
     :param angle_target: -
@@ -184,6 +184,27 @@ def angle_in_range(start_angle, end_angle, angle, counterclock=True, offset=0):
         else:
             return False
 
+
+def get_angle_of_line(p1, p2):
+    """
+    returns the angle of the line in global coordinate system
+    :param p1: line start
+    :param p2: line end
+    :return: angle from -pi to pi
+    """
+    theta = atan2(p2[1] - p1[1], p2[0] - p1[0])
+    return theta
+
+
+def get_positive_angle_of_line(p1, p2):
+    """
+    returns positive the angle of the line in global coordinate system
+    :param p1: line start
+    :param p2: line end
+    :return: angle from 0 to 2*pi
+    """
+    theta = get_angle_of_line(p1, p2) % (2*pi)
+    return theta
 
 def get_angle_from_robot_to_point(robot_pos, point):
     """ Returns the angle difference between the robot orientation and given point

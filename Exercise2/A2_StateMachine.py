@@ -42,10 +42,10 @@ class NoObstacle(State):
     def __init__(self):
         State.__init__(self)
     def next(self, transitions):
-        if transitions.obstacleInSight():
+        if transitions.obstacle_in_sight():
             return Obstacle
-        if transitions.nextPointReached():
-            if transitions.endPointReached():
+        if transitions.next_point_reached():
+            if transitions.end_point_reached():
                 return TargetReached
             else:
                 return CornerReached
@@ -54,14 +54,14 @@ class NoObstacle(State):
 
 class Obstacle(State):
     def next(self, transitions):
-        if not transitions.obstacleInSight():
+        if not transitions.obstacle_in_sight():
             return NoObstacle
         return Obstacle
 
 
 class CornerReached(State):
     def next(self, transitions):
-        if not transitions.aimingToNextPoint():
+        if not transitions.aiming_to_next_point():
             return NoObstacle
         return CornerReached
 

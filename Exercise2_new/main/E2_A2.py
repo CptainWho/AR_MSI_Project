@@ -31,7 +31,8 @@ from math import *
 from HTWG_Robot_Simulator_V1 import RobotFrontLasers as Robot, obstacleWorld1 as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
 from Exercise2_new.movements import BasicMovement
-from Exercise2_new.obstacle_avoidance import Braitenberg, HistogramGrid
+from Exercise2_new.obstacle_avoidance import PolarHistogram
+from Exercise2_new.util import Polyline
 
 
 # Create obstacleWorld and new Robot
@@ -50,7 +51,8 @@ myWorld.setRobot(**set_robot_opt)
 transitions = Transitions.Transitions(myRobot)
 state_machine = StateMachine.StateMachine(transitions)
 basic_mov = BasicMovement.BasicMovement(myRobot)
-braitenberg = Braitenberg.Braitenberg(myRobot)
+polar_hist = PolarHistogram.PolarHistogram(myRobot)
+
 
 # TODO
 
@@ -58,7 +60,8 @@ braitenberg = Braitenberg.Braitenberg(myRobot)
 polyline = [[5, 4], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [3, 16]]
 myWorld.drawPolyline(polyline)
 
-RobotNav.setPolyline(polyline)
+polyline = Polyline.Polyline(polyline)
+transitions.set_polyline_object(polyline)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
@@ -68,13 +71,13 @@ while not target_reached:
     state = state_machine.next_state()
     if state in states:
         if state == 'NoObstacle':
-            [v, omega] = basic_mov.followLine(RobotNav.getLastPoint(), RobotNav.getNextPoint(), 0.6)
+            [v, omega] = basic_mov.follow_line(polyline.get_last_point(), polyline.get_next_point(), 0.6)
 
         if state == 'Obstacle':
-            [v, omega] = PolarHist.avoidObstacle(RobotNav.getNextPoint())
+            [v, omega] = polar_hist.avoidObstacle(polyline.get_next_point())
 
         if state == 'CornerReached':
-            [v, omega] = basic_mov.rotateToTargetPoint(RobotNav.getNextPoint(), 0.001)
+            [v, omega] = basic_mov.rotate_to_target_point(polyline.get_next_point(), 0.001)
 
         if state == 'TargetReached':
             target_reached = True
