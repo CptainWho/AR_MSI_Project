@@ -114,7 +114,7 @@ def get_angle_from_robot_to_point(robot_pos, point):
     [x, y, theta] = robot_pos
     theta_target = atan2(point[1] - y, point[0] - x)
     if theta_target < 0:
-        theta_target += 360.0
+        theta_target += pi
     return theta_target
 
 
@@ -184,17 +184,17 @@ def angle_in_range(start_angle, end_angle, angle, counterclock=True, offset=0):
         else:
             return False
 
-
-def get_angle_from_robot_to_point(robot_pos, point):
-    """ Returns the angle difference between the robot orientation and given point
-    :param robot_pos: [x,y,theta]
-    :param point: point (x,y)
-    :return: angle difference
-    """
-
-    theta_robot = robot_pos[2]
-    theta_target = get_angle_from_robot_to_point(robot_pos, point)
-    return diff(theta_robot, theta_target)
+#
+# def get_angle_from_robot_to_point(robot_pos, point):
+#     """ Returns the angle difference between the robot orientation and given point
+#     :param robot_pos: [x,y,theta]
+#     :param point: point (x,y)
+#     :return: angle difference
+#     """
+#
+#     theta_robot = robot_pos[2]
+#     theta_target = get_angle_from_robot_to_point(robot_pos, point)
+#     return diff(theta_robot, theta_target)
 
 
 

@@ -4,10 +4,10 @@ Tests for class HistogramGrid
 """
 
 __project__ = 'Exercise 2'
-__module__ = 'TestObstacleDetection'
+__module__ = 'TestObstacleAvoidance'
 __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
-__date__ = '02.06.2015'
+__date__ = '05.06.2015'
 
 __version__ = '0.1'
 
@@ -28,11 +28,11 @@ set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
 set_robot_opt['x'] = 12
 set_robot_opt['y'] = 5
-set_robot_opt['theta'] = pi * 3 / 4.0
+set_robot_opt['theta'] = pi / 4.0
 myWorld.setRobot(**set_robot_opt)
 
 # Create HistogramGrid
-myHistogramGrid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_resolution=10)
+myHistogramGrid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=0.1)
 
 # Set start_position for robot
 robo_pos_x_old = 12
@@ -40,10 +40,13 @@ robo_pos_y_old = 5
 x_residual = 0
 y_residual = 0
 
+# Target point
+target = [5, 5]
+
 counter = 0
 
 
-for i in xrange(50):
+for i in xrange(100):
     # Get sensor angles, starting from -pi/2
     sensor_angles = np.asarray(myRobot.getSensorDirections())
     # Get sensor distances
@@ -57,12 +60,12 @@ for i in xrange(50):
         # 1. Shift HistogramGrid according to relative movements of robot
         # 1.1. Get robot position and orientation
         robo_pos_x, robo_pos_y, robo_theta = myRobot.getTrueRobotPose()
-        # print 'robo_pos_x = %0.2f, robo_pos_y = %0.2f' % (robo_pos_x, robo_pos_y)
+        print 'robo_pos_x = %0.2f, robo_pos_y = %0.2f' % (robo_pos_x, robo_pos_y)
         # 1.2. Calculate dx & dy
         dx = robo_pos_x - robo_pos_x_old - x_residual
         dy = robo_pos_y - robo_pos_y_old - y_residual
         # 1.3. Shift HistogramGrid
-        x_residual, y_residual = myHistogramGrid.move_grid(dx, dy, debug=True)
+        x_residual, y_residual = myHistogramGrid.move_grid(dx, dy, debug=False)
         # 1.4 Set new position as old position
         robo_pos_x_old = robo_pos_x
         robo_pos_y_old = robo_pos_y
@@ -81,15 +84,13 @@ for i in xrange(50):
     # TODO
 
         # 4. Optional: Visualize HistogramGrid and/or Histogram
-        myHistogramGrid.draw_grid(debug=True)
-        myHistogramGrid.draw_hist()
+        # myHistogramGrid.draw_grid()
+        # myHistogramGrid.draw_hist()
 
     else:
         obstacle_detected = False
 
     # Move robot
-    myRobot.move([0.0, pi/4.0])
-
-print 'Done'
+    myRobot.move(myHistogramGrid.avoid_obstacle(myRobot.getTrueRobotPose(), target, debug=True))
 
 
