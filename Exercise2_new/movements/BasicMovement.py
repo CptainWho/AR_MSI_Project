@@ -15,6 +15,7 @@ import numpy as np
 # Local imports
 from Exercise2_new.util import PID as PID
 from Exercise2_new.util import Calculations as Calc
+from Exercise2_new.util import RobotLocation
 
 
 class BasicMovement:
@@ -48,6 +49,11 @@ class BasicMovement:
         # PID controllers
         self.pid_fl = PID.PID(_k_p_fl, _k_i_fl, _k_d_fl, _dt)
         self.pid_rot = PID.PID(_k_p_rot, _k_i_rot, _k_d_rot, _dt)
+
+        # robot location
+        self.RobLoc = RobotLocation.RobotLocation(self.robot)
+
+
 
     def get_robot_pos(self):
         """ Return current robot position (x,y,theta)
@@ -85,6 +91,22 @@ class BasicMovement:
         e_dist *= -np.sign(z)
 
         omega = self.pid_fl.control(e_dist)
+
+        # check if robot rotates to far
+        line_angle = Calc.get_positive_angle_of_line(p1, p2)
+        robot_angle = self.RobLoc.get_positive_robot_angle()
+        # if robot is on the left side
+        if z < 0:
+            start_angle = Calc.add_angles(line_angle, -pi)
+            end_angle = Calc.add_angles(line_angle, -pi/2.0)
+        # if robot is on the right side
+        else:
+            start_angle = Calc.add_angles(line_angle, pi/2.0)
+            end_angle = Calc.add_angles(line_angle, pi)
+
+        # when robot would turn away from line
+        if Calc.angle_in_range(start_angle, end_angle, robot_angle):
+                omega = -omega
 
         return [v, omega]
 

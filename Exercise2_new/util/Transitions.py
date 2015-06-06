@@ -10,8 +10,11 @@ __version__ = '1.0'
 
 # Standard library imports
 import numpy as np
+from Exercise2_new.util import Polyline
+from Exercise2_new.util import RobotLocation
 # Local imports
 from Exercise2_new.util import Calculations as Calc
+
 
 
 class Transitions():
@@ -24,8 +27,9 @@ class Transitions():
         :param robot: robot reference
         :return: -
         """
-
+        self.polyline = None
         self.robot = robot
+        self.robot_loc = RobotLocation.RobotLocation(self.robot)
         # Tolerances to reach point / angle
         self.tol_point = 0.2
         self.tol_angle = 0.1
@@ -41,37 +45,17 @@ class Transitions():
             return True
         return False
 
+    def set_polyline_object(self, polyline):
+        self.polyline = polyline
+
     def next_point_reached(self):
-        """ Check if robot has reached a point and updates to next point
-        :return: True / False
-        """
+        return self.polyline.next_point_reached(self.robot_loc.get_robot_point())
 
-        if self.indsideTol(self.getNextPoint(), self.tolPoint):
-            if len(self.polyline) > 2:
-                self.polyline.remove(self.polyline[0])
-            return True
-        else:
-            return False
-
-    def endpoint_reached(self):
-        """ Check if End Point has been reached
-        :return: True / False
-        """
-
-        if len(self.polyline) == 2:
-            if self.indsideTol(self.getNextPoint(), self.tolPoint):
-                return True
-            else:
-                return False
-        else:
-            return False
+    def end_point_reached(self):
+        return self.polyline.end_point_reached(self.robot_loc.get_robot_point())
 
     def aiming_to_next_point(self):
         """ Check if robot directly looks to the next point with angle tolerance
         :return: True / False
         """
-
-        if self.insideAngleTol(self.getAngleToPoint(self.getNextPoint()), self.tolAngle):
-            return True
-        else:
-            return False
+        return self.robot_loc.inside_angle_tol(self.polyline.get_next_point(), self.tol_angle)

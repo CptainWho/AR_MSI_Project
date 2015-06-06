@@ -23,7 +23,7 @@ class CarrotDonkey:
         self.k_i_v = 0.00
         self.k_d_v = 0.3
         # distance to keep from dot
-        self.space = 0.5
+        self.space = 1.5
         # offset on v if its zero
         self.v_off = 0.0
         # define position of carrot
@@ -91,22 +91,24 @@ class CarrotDonkey:
         del_x = p[0] - self.carrot_pos[0]
         del_y = p[1] - self.carrot_pos[1]
         d = sqrt(del_y**2 + del_x**2)
-        # new point
-        p_new = [self.carrot_pos[0] + del_x * d_diff / d, self.carrot_pos[1] + del_y * d_diff / d]
-        # new distance
-        del_x = p[0] - p_new[0]
-        del_y = p[1] - p_new[1]
-        d_new = sqrt(del_y**2 + del_x**2)
+        # if distance is not zero
+        if not d == 0:
+            # new point
+            p_new = [self.carrot_pos[0] + del_x * d_diff / d, self.carrot_pos[1] + del_y * d_diff / d]
+            # new distance
+            del_x = p[0] - p_new[0]
+            del_y = p[1] - p_new[1]
+            d_new = sqrt(del_y**2 + del_x**2)
 
-        # stop if point is within tolerance
-        if d_new < d_diff/2:
-            self.setCarrotPosition(p)
-        # stop if distance gets bigger again
-        elif d_new > d:
-            self.setCarrotPosition(p)
-        # else renew position
-        else:
-            self.setCarrotPosition(p_new)
+            # stop if point is within tolerance
+            if d_new < d_diff/2:
+                self.setCarrotPosition(p)
+            # stop if distance gets bigger again
+            elif d_new > d:
+                self.setCarrotPosition(p)
+            # else renew position
+            else:
+                self.setCarrotPosition(p_new)
 
     def __get_internal_space(self):
         """
@@ -128,7 +130,6 @@ class CarrotDonkey:
             return [0, 0]
 
         carrot = self.carrot_pos
-        self.carrot_pos_old = self.carrot_pos
 
         [x, y, theta] = self.robot.getTrueRobotPose()
         del_x = carrot[0] - x
@@ -152,6 +153,9 @@ class CarrotDonkey:
         v = - self.k_p_v * e_dist - self.k_d_v * de_dist_dt - self.k_i_v * self.int_e_dist_dt
         # add offset
         v += self.v_off
+
+        # save old carrot position
+        self.carrot_pos_old = self.carrot_pos
 
         return [v, omega]
 

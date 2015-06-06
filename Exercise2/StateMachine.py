@@ -15,27 +15,27 @@ class StateMachine:
     def next_state(self):
         if self.current_state in self.states:
             if self.current_state == 'NoObstacle':
-                if self.transitions.obstacleInSight():
+                if self.transitions.obstacle_in_sight():
                     self.current_state = 'Obstacle'
                     print self.current_state
-                if self.transitions.nextPointReached():
-                    if self.transitions.endPointReached():
+                if self.transitions.next_point_reached():
+                    if self.transitions.end_point_reached():
                         self.current_state = 'TargetReached'
                     else:
                         self.current_state = 'CornerReached'
 
             if self.current_state == 'Obstacle':
-                if not self.transitions.obstacleInSight():
+                if not self.transitions.obstacle_in_sight():
                     self.current_state = 'NoObstacle'
                     print self.current_state
-                if self.transitions.nextPointReached():
-                    if self.transitions.endPointReached():
+                if self.transitions.next_point_reached():
+                    if self.transitions.end_point_reached():
                         self.current_state = 'TargetReached'
                     else:
                         self.current_state = 'CornerReached'
 
             if self.current_state == 'CornerReached':
-                if self.transitions.aimingToNextPoint():
+                if self.transitions.aiming_to_next_point():
                     self.current_state = 'NoObstacle'
 
             if self.current_state == 'TargetReached':

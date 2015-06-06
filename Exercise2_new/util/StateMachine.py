@@ -33,26 +33,26 @@ class StateMachine:
 
         if self.current_state == 'NoObstacle':
             # First check if any obstacle is in sight
-            if self.transitions.obstacleInSight():
+            if self.transitions.obstacle_in_sight():
                 self.current_state = 'Obstacle'
-            if self.transitions.nextPointReached():
-                if self.transitions.endPointReached():
+            if self.transitions.next_point_reached():
+                if self.transitions.end_point_reached():
                     self.current_state = 'TargetReached'
                 else:
                     self.current_state = 'CornerReached'
 
         elif self.current_state == 'Obstacle':
             # First check if obstacle is still in sight
-            if not self.transitions.obstacleInSight():
+            if not self.transitions.obstacle_in_sight():
                 self.current_state = 'NoObstacle'
-            elif self.transitions.nextPointReached():
-                if self.transitions.endPointReached():
+            elif self.transitions.next_point_reached():
+                if self.transitions.end_point_reached():
                     self.current_state = 'TargetReached'
                 else:
                     self.current_state = 'CornerReached'
 
         elif self.current_state == 'CornerReached':
-            if self.transitions.aimingToNextPoint() and not self.transitions.obstacleInSight():
+            if self.transitions.aiming_to_next_point() and not self.transitions.obstacle_in_sight():
                 self.current_state = 'NoObstacle'
             else:
                 self.current_state = 'Obstacle'
