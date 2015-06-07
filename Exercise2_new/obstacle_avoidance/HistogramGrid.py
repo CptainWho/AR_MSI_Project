@@ -16,6 +16,7 @@ __version__ = '0.9'
 # Standard library imports
 import numpy as np
 from math import *
+from numbers import Number
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 # Local imports
@@ -28,15 +29,16 @@ class HistogramGrid:
     Creates an empty histogram grid which can be filled with values for obstacle avoidance
     For this purpose the minimums of the polar histogram can be retrieved and a route to
     avoid an detected obstacle can be calculated.
-    Furthermore the histogram and the histogram grid can be displayed via matplotlib.
+    Furthermore the histogram and the histogram grid can be dynamically displayed via matplotlib.
     """
 
-    def __init__(self, width, height, cell_size=0.1, hist_resolution=10):
+    def __init__(self, width, height, cell_size=0.1, hist_resolution=10.0, hist_threshold=2.0):
         """ Initialize grid
         :param width: int
         :param height: int
         :param cell_size: default 0.1
         :param hist_resolution: angle for each histogram sector, default: 10°
+        :param hist_threshold: threshold for minimum-search, default: 50.0 occupancy
         :return: -
         """
 
@@ -54,6 +56,7 @@ class HistogramGrid:
 
         self.histogram = None
         self.hist_resolution = hist_resolution
+        self.hist_threshold = hist_threshold
 
         # Pyplot: enable interactive (= non-blocking) mode
         plt.ion()
@@ -106,25 +109,55 @@ class HistogramGrid:
         # Get direction to target_point
         target_angle = Calc.get_angle_from_robot_to_point(robot_pos, target_point)
         # Create polar histogram
-        histogram = self.create_histogram()
-        # Split histogram in sector_angles and sector_occupancy
-        sector_angles, sector_occupancy = histogram
-        # Search for minimum occupancy values and return indexes
-        min_indexes = np.where(sector_occupancy == sector_occupancy.min())
-        # Get sector_angles with minimum occupancy and transform them to radian
-        angles_min_occupancy = sector_angles[min_indexes] / 180.0 * pi
-        # Search angle closest to target_angle
-        closest_angle = Calc.search_closest_angle(target_angle, angles_min_occupancy)
+        sector_angles, sector_occupancy = self.create_histogram()
+        # Search for occupancy values below threshold and return indexes
+        min_indexes = np.where(sector_occupancy < self.hist_threshold)[1]
+        # Group all found min_indexes to valleys (check for neighborhood indexes)
+        min_valleys = []
+        valley_temp = np.array([min_indexes[0]])
+        for i in xrange(1, np.size(min_indexes)):
+            if min_indexes[i-1] + 1 == min_indexes[i]:
+                # Direct neighbor found -> add index to valley_temp
+                valley_temp = np.hstack((valley_temp, min_indexes[i]))
+            else:
+                # Next index is not direct neighbor -> add valley_temp to min_valleys and start a new valley_temp
+                min_valleys.append(valley_temp)
+                valley_temp = min_indexes[i]
+        min_valleys.append(valley_temp)
+        # Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
+        # If so concat the first and the last min_valley
+        if min_indexes[0] == 0 \
+                and min_indexes[np.size(min_indexes) - 1] == np.size(sector_angles) - 1:
+            min_valleys = [np.hstack((min_valleys[len(min_valleys) - 1], min_valleys[0]))] + min_valleys[1:-1]
+            # Subtract 360° from the sector angles at index[valley_temp] so that they become negative
+            sector_angles[0, valley_temp] -= 360.0
 
-        # Calculate omega for closest_angle
-        omega = 1.0 * Calc.diff(robot_pos[2], (closest_angle / 180.0 * pi))
-        # TODO scale v with occupancy value
+        # Calculate the middle of each min_valley
+        min_valley_angles = np.empty(0, dtype=np.float)
+        for min_valley in min_valleys:
+            min_valley_angle = np.mean(sector_angles[0, min_valley])
+            min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
+
+        # Search angle closest to target_angle
+        closest_angle = Calc.search_closest_angle(target_angle, (min_valley_angles / 180.0 * pi))
+
+        # Set omega proportional to diff(target_angle, closest_angle)
+        k = 2.0 / 3.0
+        omega = k * Calc.diff(closest_angle, target_angle)
+
+        # Set speed v anti-proportional
+        # TODO
         v = 0.5
 
         if debug:
             print 'DEBUG: avoid_obstacle()'
-            print '\ttarget angle: %0.2f' % target_angle * 180.0 / pi
-            print '\tclosest angle: %0.2f' % closest_angle * 180.0 / pi
+            print '\tminimum valleys:'
+            # print '\t' + str(sector_angles[0, min_valleys])
+            print '\tminimum valleys mean angles'
+            # print '\t' + str(min_valley_angles)
+            print '\ttarget angle: %0.2f' % (target_angle * 180.0 / pi)
+            print '\tclosest angle: %0.2f' % (closest_angle * 180.0 / pi)
+
         return [v, omega]
 
     def move_grid(self, dx, dy, debug=False):
@@ -200,19 +233,25 @@ class HistogramGrid:
             print '\tResulting grid:'
             print self.grid
 
-    def create_histogram(self, resolution=10, debug=False):
+    def create_histogram(self, debug=False, **kwargs):
         """ Creates histogram and returns the angles with corresponding occupancy values
         :param resolution: angle for each sector, default: 10°
         :param debug: enable/disable debug-printing
         :return: numpy array([[sector_angles],[sector_occupancy]])
         """
 
+        if 'resolution' in kwargs:
+            if isinstance(kwargs['resolution'], Number):
+                resolution = kwargs['resolution']
+        else:
+            resolution = self.hist_resolution
+
         # Constants
         weight_const_a = 1.0
         weight_const_b = 1.0 / 5.0  # 1 / max. sense value
 
         # Create arrays for sector_angles ([angles]) and sector_occupancy ([empty])
-        sectors = int(360/float(resolution) + 1.0)  # 360° included for easier loop usage
+        sectors = int(360/float(resolution) + 1)  # include 360° angle for easier looping
         sector_angles = np.array([x * resolution for x in xrange(sectors)])
         sector_occupancy = np.zeros(sectors)
 
@@ -223,17 +262,17 @@ class HistogramGrid:
         occupancy_values = self.grid[occupied_cell_indexes[0], occupied_cell_indexes[1]]
 
         # Reverse Coord Transformation: Shift origin back to left upper corner of coord-system and reverse y-axis
-        occupied_cell_indexes[1] = (occupied_cell_indexes[1] - (self.x_size - 1) / 2.0) * self.cell_size
-        occupied_cell_indexes[0] = (-occupied_cell_indexes[0] + (self.y_size - 1) / 2.0) * self.cell_size
+        occupied_cell_indexes_x = (occupied_cell_indexes[1] - (self.x_size - 1) / 2.0) * self.cell_size
+        occupied_cell_indexes_y = (-occupied_cell_indexes[0] + (self.y_size - 1) / 2.0) * self.cell_size
 
         # Transpose cell_indexes to get (x,y) tuples ( array([[y1,x1],[y2,x2],...[yn,xn]]) )
-        occupied_cell_indexes_t = np.transpose(occupied_cell_indexes)
+        # occupied_cell_indexes_t = np.transpose(occupied_cell_indexes)
 
         # Convert cell indexes to polar coordinates, calculate weight_m and add it to the corresponding sector
         # distances = array([d1,d2,...d_n])
-        distances = np.sqrt(occupied_cell_indexes[0]**2 + occupied_cell_indexes[1]**2)
+        distances = np.sqrt(occupied_cell_indexes_y**2 + occupied_cell_indexes_x**2)
         # angles = array([alpha1,alpha2,...,alpha_n])
-        angles = np.arctan2(occupied_cell_indexes[0], occupied_cell_indexes[1]) / pi * 180.0
+        angles = np.arctan2(occupied_cell_indexes_y, occupied_cell_indexes_x) / pi * 180.0
         # If angle < 0 add 360° to get range 0°...360°
         angles[angles < 0] += 360.0
         # Calculate weight for each occupied cell
@@ -251,7 +290,7 @@ class HistogramGrid:
 
         # DEBUG
         if debug:
-            print 'DEBUG: get_histogram()'
+            print 'DEBUG: create_histogram()'
             print '\tsector_angles:\n\t', sector_angles
             print'\tsector_occupancy:\n\t', sector_occupancy
             print'\toccupied_cell_indexes:\n\t', occupied_cell_indexes
