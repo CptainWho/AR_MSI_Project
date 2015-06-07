@@ -28,11 +28,12 @@ __version__ = '1.0'
 # Standard library imports
 from math import *
 # Local imports
-from HTWG_Robot_Simulator_V1 import RobotFrontLasers as Robot, obstacleWorld1 as loadedWorld
+from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld2 as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
 from Exercise2_new.movements import BasicMovement
 from Exercise2_new.obstacle_avoidance import PolarHistogram
 from Exercise2_new.util import Polyline
+from Exercise2_new.util import RobotLocation
 
 
 # Create obstacleWorld and new Robot
@@ -41,9 +42,9 @@ myRobot = Robot.Robot()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-set_robot_opt['x'] = 5
-set_robot_opt['y'] = 3
-set_robot_opt['theta'] = pi/2
+set_robot_opt['x'] = 2
+set_robot_opt['y'] = 6
+set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 
@@ -51,13 +52,16 @@ myWorld.setRobot(**set_robot_opt)
 transitions = Transitions.Transitions(myRobot)
 state_machine = StateMachine.StateMachine(transitions)
 basic_mov = BasicMovement.BasicMovement(myRobot)
-polar_hist = PolarHistogram.PolarHistogram(myRobot)
+robot_loc = RobotLocation.RobotLocation(myRobot)
+polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 
 
 # TODO
 
 #define polyline
-polyline = [[5, 4], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [3, 16]]
+#polyline = [[12, 4], [5, 4], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [3, 16]]
+polyline = [[3, 5.5], [22, 5.5]]
+#polyline = [[3, 6], [9.5, 6], [11, 2]]
 myWorld.drawPolyline(polyline)
 
 polyline = Polyline.Polyline(polyline)
@@ -71,13 +75,15 @@ while not target_reached:
     state = state_machine.next_state()
     if state in states:
         if state == 'NoObstacle':
-            [v, omega] = basic_mov.follow_line(polyline.get_last_point(), polyline.get_next_point(), 0.6)
+            next_point = polyline.get_next_point()
+            [v, omega] = basic_mov.follow_line(polyline.get_last_point(), next_point, 0.6)
 
         if state == 'Obstacle':
-            [v, omega] = polar_hist.avoidObstacle(polyline.get_next_point())
+            next_point = polyline.get_next_point()
+            [v, omega] = polar_hist.avoid_obstacle(next_point)
 
         if state == 'CornerReached':
-            [v, omega] = basic_mov.rotate_to_target_point(polyline.get_next_point(), 0.001)
+            [v, omega] = basic_mov.rotate_to_target_point(polyline.get_next_point())
 
         if state == 'TargetReached':
             target_reached = True

@@ -31,7 +31,7 @@ class Transitions():
         self.robot = robot
         self.robot_loc = RobotLocation.RobotLocation(self.robot)
         # Tolerances to reach point / angle
-        self.tol_point = 0.2
+        self.tol_point = 0.5
         self.tol_angle = 0.1
 
     def obstacle_in_sight(self):
@@ -39,10 +39,13 @@ class Transitions():
         :return: True / False
         """
 
-        sensor_dist = self.robot.sense()
+        sensor_dist = np.asarray(self.robot.sense())
+        threshold = self.robot.getMaxSenseValue()/2.0
+
         # check if there is a obstacle in front of robot
-        if np.any(sensor_dist):
-            return True
+        for i in sensor_dist:
+            if i < threshold and i is not None:
+                return True
         return False
 
     def set_polyline_object(self, polyline):
@@ -58,4 +61,4 @@ class Transitions():
         """ Check if robot directly looks to the next point with angle tolerance
         :return: True / False
         """
-        return self.robot_loc.inside_angle_tol(self.polyline.get_next_point(), self.tol_angle)
+        return self.robot_loc.aiming_to_point(self.polyline.get_next_point(), self.tol_angle)

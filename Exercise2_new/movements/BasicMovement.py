@@ -33,9 +33,9 @@ class BasicMovement:
         # Robot reference
         self.robot = robot
         # PID parameters for follow_line()
-        _k_p_fl = 0.6
+        _k_p_fl = 0.8
         _k_i_fl = 0.001
-        _k_d_fl = 0.8
+        _k_d_fl = 0.6
         # PID parameters for rotate_to_target_point()
         _k_p_rot = 1.5
         _k_i_rot = 0.01
@@ -97,12 +97,12 @@ class BasicMovement:
         robot_angle = self.RobLoc.get_positive_robot_angle()
         # if robot is on the left side
         if z < 0:
-            start_angle = Calc.add_angles(line_angle, -pi)
-            end_angle = Calc.add_angles(line_angle, -pi/2.0)
+            start_angle = Calc.add_angles_positive(line_angle, -pi)
+            end_angle = Calc.add_angles_positive(line_angle, -pi/2.0)
         # if robot is on the right side
         else:
-            start_angle = Calc.add_angles(line_angle, pi/2.0)
-            end_angle = Calc.add_angles(line_angle, pi)
+            start_angle = Calc.add_angles_positive(line_angle, pi/2.0)
+            end_angle = Calc.add_angles_positive(line_angle, pi)
 
         # when robot would turn away from line
         if Calc.angle_in_range(start_angle, end_angle, robot_angle):

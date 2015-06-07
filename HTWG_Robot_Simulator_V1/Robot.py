@@ -122,7 +122,7 @@ class Robot:
         if v < -self._maxSpeed:
             v = -self._maxSpeed
 
-        print "motion ", v, omega*180/pi
+        #print "motion ", v, omega*180/pi
 
         # Odometry pose update (based on the motion command):
         d = v * self._T

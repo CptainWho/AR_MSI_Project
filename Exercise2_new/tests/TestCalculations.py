@@ -3,11 +3,12 @@ __author__ = 'Ecki'
 from math import *
 from Exercise2_new.util import Calculations as Calc
 
-p1 = [0, 0]
-p2 = [1, -0.01]
+angle1 = -1.57079632679 #-10*pi/180
+angle2 = 4.53785605519#90*pi/180
 
-angle = Calc.get_angle_of_line(p1, p2)
-angle_pos = Calc.get_positive_angle_of_line(p1,p2)
+target = -0.0366485445028
 
-print angle*180/pi
-print angle_pos*180/pi
+print angle1*180/pi
+print angle2*180/pi
+print target*180/pi
+print Calc.angle_in_range(angle1, angle2, target)
