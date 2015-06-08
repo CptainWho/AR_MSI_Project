@@ -43,7 +43,8 @@ class Transitions():
         threshold = self.robot.getMaxSenseValue()/2.0
 
         # check if there is a obstacle in front of robot
-        for i in sensor_dist:
+        # (directions: 9 is angle = 0)
+        for i in sensor_dist[3:15]:
             if i < threshold and i is not None:
                 return True
         return False

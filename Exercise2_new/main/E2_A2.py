@@ -28,7 +28,7 @@ __version__ = '1.0'
 # Standard library imports
 from math import *
 # Local imports
-from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld2 as loadedWorld
+from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld1 as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
 from Exercise2_new.movements import BasicMovement
 from Exercise2_new.obstacle_avoidance import PolarHistogram
@@ -42,9 +42,11 @@ myRobot = Robot.Robot()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-set_robot_opt['x'] = 2
-set_robot_opt['y'] = 6
-set_robot_opt['theta'] = 0
+#set_robot_opt['x'] = 2
+#set_robot_opt['y'] = 6
+set_robot_opt['x'] = 7
+set_robot_opt['y'] = 1
+set_robot_opt['theta'] = pi/2
 myWorld.setRobot(**set_robot_opt)
 
 
@@ -59,8 +61,8 @@ polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 # TODO
 
 #define polyline
-#polyline = [[12, 4], [5, 4], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [3, 16]]
-polyline = [[3, 5.5], [22, 5.5]]
+polyline = [[6, 2], [5, 3], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [1, 18]]
+#polyline = [[3, 5.5], [22, 5.5]]
 #polyline = [[3, 6], [9.5, 6], [11, 2]]
 myWorld.drawPolyline(polyline)
 
@@ -76,7 +78,7 @@ while not target_reached:
     if state in states:
         if state == 'NoObstacle':
             next_point = polyline.get_next_point()
-            [v, omega] = basic_mov.follow_line(polyline.get_last_point(), next_point, 0.6)
+            [v, omega] = basic_mov.follow_line(polyline.get_last_point(), next_point, 0.5)
 
         if state == 'Obstacle':
             next_point = polyline.get_next_point()

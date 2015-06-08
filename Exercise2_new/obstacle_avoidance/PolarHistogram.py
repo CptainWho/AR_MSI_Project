@@ -27,7 +27,9 @@ class PolarHistogram:
         closest_angle = self.compute_closest_angle(direction_angle, minima)
 
         closest_angle_grad = closest_angle *180/pi
-        print closest_angle_grad
+        if abs(closest_angle_grad) > 120:
+            print closest_angle_grad
+
 
         # hist = np.asarray(self.histogram)
         # hist = hist.transpose()
@@ -162,7 +164,7 @@ class PolarHistogram:
         # calculate mid angles
         for i in range(len(minima)):
             #minima[i][2] = Calc.get_medial_angle(minima[i][0], minima[i][1])
-            minima[i][2] = Calc.get_medial_angle_positive(minima[i][0], minima[i][1])
+            minima[i][2] = Calc.get_medial_angle(minima[i][0], minima[i][1])
 
         return minima
 

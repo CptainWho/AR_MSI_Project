@@ -127,15 +127,15 @@ def get_angle_from_point_to_point(point1, point2):
     theta_target = atan2(point2[1] - point1[1], point2[0] - point1[0])
     return theta_target
 
-def get_medial_angle(start_angle, end_angle):
+def get_medial_angle(start_angle, end_angle, counterclock = True):
     """ Calculates angle in the middle of two given angles.
-    the middle is always seen from the shortest distance between the two angles.
+    the middle is always seen from start_angle to end_angle in given direction
     :param start_angle: -
     :param end_angle: -
     :return: angle raging from -pi to pi
     """
-    mid_angle = diff(start_angle, end_angle) / 2.0
-    mid_angle += start_angle
+    mid_angle = get_medial_angle_positive(start_angle, end_angle, counterclock)
+    mid_angle = (mid_angle + pi) % (2 * pi) - pi
     return mid_angle
 
 def get_medial_angle_positive(start_angle, end_angle, counterclock = True):
@@ -255,14 +255,14 @@ def get_positive_angle_of_line(p1, p2):
 #     theta_target = get_angle_from_robot_to_point(robot_pos, point)
 #     return diff(theta_robot, theta_target)
 
-# def get_angle_from_robot_to_point(robot_pos, point):
-#     """ Returns angle between robot position and a point
-#     :param point: [x,y]
-#     :return: angle [0..2*pi]
-#     """
-#
-#     [x, y, theta] = robot_pos
-#     theta_target = atan2(point[1] - y, point[0] - x)
-#     if theta_target < 0:
-#         theta_target += 360.0
-#     return theta_target
+def get_angle_from_robot_to_point(robot_pos, point):
+    """ Returns angle between robot position and a point
+    :param point: [x,y]
+    :return: angle [0..2*pi]
+    """
+
+    [x, y, theta] = robot_pos
+    theta_target = atan2(point[1] - y, point[0] - x)
+    if theta_target < 0:
+        theta_target += 360.0
+    return theta_target
