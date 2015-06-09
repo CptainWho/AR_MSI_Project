@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # class Robot.
 #
 # This class define methods to move a robot and to sense the world.
