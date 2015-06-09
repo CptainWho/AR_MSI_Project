@@ -2,6 +2,7 @@
 __author__ = 'Ecki'
 
 from math import *
+import numpy as np
 from Exercise2_new.util import RobotLocation
 
 class CarrotDonkey:

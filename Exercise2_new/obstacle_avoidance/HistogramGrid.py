@@ -7,7 +7,7 @@ __project__ = 'Exercise 2'
 __module__ = 'HistogramGrid'
 __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
-__date__ = '30.05.2015'
+__date__ = '08.06.2015'
 
 __version__ = '0.9'
 
@@ -101,7 +101,7 @@ class HistogramGrid:
 
     def avoid_obstacle(self, robot_pos, target_point, debug=False):
         """ Calculates nearest way in regard of given target point around detected obstacles
-        :param robot_pos: [x,y]
+        :param robot_pos: [x,y,theta]
         :param target_point: [x,y]
         :return: speed, angular velocity ([v,omega])
         """
@@ -132,22 +132,51 @@ class HistogramGrid:
             # Subtract 360° from the sector angles at index[valley_temp] so that they become negative
             sector_angles[0, valley_temp] -= 360.0
 
-        # Calculate the middle of each min_valley
+        # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
         min_valley_angles = np.empty(0, dtype=np.float)
+        min_valley_weights = np.empty(0, dtype=np.float)
         for min_valley in min_valleys:
             min_valley_angle = np.mean(sector_angles[0, min_valley])
             min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
+            min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
 
         # Search angle closest to target_angle
-        closest_angle = Calc.search_closest_angle(target_angle, (min_valley_angles / 180.0 * pi))
+        # TODO Optimize search
+        closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, (min_valley_angles / 180.0 * pi))
 
-        # Set omega proportional to diff(target_angle, closest_angle)
-        k = 2.0 / 3.0
-        omega = k * Calc.diff(closest_angle, target_angle)
+        # TODO add weight to each min_valley: the more sectors a valley has, the more weight it gets \
+        # (singular min_valleys shall get a very low weight --> quadratic weighting of sector amount? )
 
-        # Set speed v anti-proportional
-        # TODO
-        v = 0.5
+        choose_best_valley = False
+
+        if choose_best_valley:
+            # Choose best valley according to min_valley_weight and angle_diffs
+            # Best valley = max(min_valley_weight / angle_diffs)
+            best_valley_index = np.argmax(min_valley_weights / angle_diffs)
+
+            # closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
+            best_valley = min_valleys[best_valley_index]
+            best_angle = min_valley_angles[best_valley_index] / 180.0 * pi
+
+            # Set omega proportional to diff(target_angle, closest_angle)
+            k = 1.0
+            omega = k * Calc.diff(robot_pos[2], best_angle)
+            omega_max = pi  # TODO get omega_max directly from robot
+
+            # Set speed v anti-proportional to occupancy value of chosen valley and omega
+            v = 0.8 * (1 - np.sum(sector_occupancy[0, best_valley]) / np.sum(sector_occupancy[0])) * \
+                (1 - omega / omega_max)
+        else:
+            closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
+
+            # Set omega proportional to diff(target_angle, closest_angle)
+            k = 1.0
+            omega = k * Calc.diff(robot_pos[2], closest_angle)
+            omega_max = pi  # TODO get omega_max directly from robot
+
+            # Set speed v anti-proportional to occupancy value of chosen valley and omega
+            v = 0.8 * (1 - np.sum(sector_occupancy[0, closest_valley]) / np.sum(sector_occupancy[0])) * \
+                (1 - omega / omega_max)
 
         if debug:
             print 'DEBUG: avoid_obstacle()'

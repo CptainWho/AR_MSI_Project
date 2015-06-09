@@ -123,3 +123,12 @@ class BasicMovement:
         omega = -self.pid_rot.control(Calc.diff(theta, theta_target))
         v = 0
         return [v, omega]
+
+    # TODO: Go to point implementieren!
+    def goto_point(self, point, v=1.0):
+        [x, y, theta] = self.get_robot_pos()
+        theta_target = Calc.get_angle_from_robot_to_point([x, y, theta], point)
+        omega = Calc.diff(theta, theta_target)
+
+        return [v, omega]
+
