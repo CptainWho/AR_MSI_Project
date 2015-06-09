@@ -13,7 +13,7 @@ class RobotLocation:
         """
         :return: the robots position
         """
-        return  self.robot.getTrueRobotPose()
+        return self.robot.getTrueRobotPose()
 
     def get_robot_point(self):
         """
