@@ -147,15 +147,15 @@ def get_dist_from_point_to_point(start_point, end_point):
     return dist
 
 
-def get_medial_angle(start_angle, end_angle):
-    """ Calculates angle in the middle of two given angles
+def get_medial_angle(start_angle, end_angle, counterclock = True):
+    """ Calculates angle in the middle of two given angles.
+    the middle is always seen from start_angle to end_angle in given direction
     :param start_angle: -
     :param end_angle: -
-    :return: angle
+    :return: angle raging from -pi to pi
     """
-
-    mid_angle = diff(start_angle, end_angle) / 2.0
-    mid_angle += start_angle
+    mid_angle = get_medial_angle_custom(start_angle, end_angle, counterclock)
+    mid_angle = (mid_angle + pi) % (2 * pi) - pi
     return mid_angle
 
 def get_medial_angle_custom(start_angle, end_angle, counterclock = True):

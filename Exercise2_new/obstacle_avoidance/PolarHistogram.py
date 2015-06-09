@@ -164,7 +164,7 @@ class PolarHistogram:
         # calculate mid angles
         for i in range(len(minima)):
             #minima[i][2] = Calc.get_medial_angle(minima[i][0], minima[i][1])
-            minima[i][2] = Calc.get_medial_angle_custom(minima[i][0], minima[i][1])
+            minima[i][2] = Calc.get_medial_angle(minima[i][0], minima[i][1])
 
         return minima
 
