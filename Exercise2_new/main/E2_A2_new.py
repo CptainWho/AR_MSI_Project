@@ -28,6 +28,7 @@ __version__ = '1.0'
 # Standard library imports
 from math import *
 import numpy as np
+np.set_printoptions(threshold=np.nan)
 # Local imports
 from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld1_small as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
@@ -110,13 +111,14 @@ while not target_reached:
             for j, dist in enumerate(sensor_distances):
                 if dist is not None:
                     # Add value to HistogramGrid
-                    histogram_grid.set_value(dist, sensor_angles[j])
+                    print 'Set Histogram value at dist: %0.2f, angle: %0.2f' % (dist, sensor_angles[j])
+                    histogram_grid.set_value(dist, sensor_angles[j], debug=True)
 
             # 3. Perform path-finding with the resulting histogram
-            v, omega = histogram_grid.avoid_obstacle(robot_loc.get_robot_position(), next_point, debug=True)
+            v, omega = histogram_grid.avoid_obstacle(robot_loc.get_robot_position(), next_point, debug=False)
 
             # 4. Optional: Visualize HistogramGrid and/or Histogram
-            histogram_grid.draw_grid()
+            # histogram_grid.draw_grid()
             # histogram_grid.draw_hist()
 
         if state == 'CornerReached':

@@ -59,9 +59,6 @@ class Transitions():
         else:
             obstacle_detected = False
 
-        print 'DEBUG transition obstacle_in_sight()'
-        print sensor_dist[front_sensors]
-
         return obstacle_detected
 
     def set_polyline_object(self, polyline):

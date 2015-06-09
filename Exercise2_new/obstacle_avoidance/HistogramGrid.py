@@ -109,7 +109,7 @@ class HistogramGrid:
         # Get direction to target_point
         target_angle = Calc.get_angle_from_point_to_point(robot_pos, target_point)
         # Create polar histogram
-        sector_angles, sector_occupancy = self.create_histogram()
+        sector_angles, sector_occupancy = self.create_histogram(debug=False)
         # Search for occupancy values below threshold and return indexes
         min_indexes = np.where(sector_occupancy < self.hist_threshold)[1]
         # Group all found min_indexes to valleys (check for neighborhood indexes)
@@ -226,7 +226,7 @@ class HistogramGrid:
             print '\tdx = %0.2f, dy = %0.2f' % (dx, dy)
             print '\t-> x_shift = %i, y_shift = %i' % (x_shift, y_shift)
             print '\t-> x_residual = %0.2f, y_residual = %0.2f' % (x_residual, y_residual)
-            # print self.grid
+            print self.grid
 
         return x_residual, y_residual
 
@@ -247,8 +247,12 @@ class HistogramGrid:
 
         # Check if coordinates exceed grid boundaries
         if xi < 0 or xi >= self.x_size:
+            print 'Warning set_value()'
+            print '\tx_size mismatch!'
             return
         if yi < 0 or yi >= self.y_size:
+            print 'Warning set_value()'
+            print '\ty_size mismatch!'
             return
         self.grid[yi, xi] += value
 
@@ -262,7 +266,7 @@ class HistogramGrid:
             print '\tGrid coordinates:'
             print '\txi = %i, yi = %i' % (xi, yi)
             print '\tResulting grid:'
-            print self.grid
+            # print self.grid
 
     def create_histogram(self, debug=False, **kwargs):
         """ Creates histogram and returns the angles with corresponding occupancy values
