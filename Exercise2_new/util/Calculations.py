@@ -143,7 +143,7 @@ def get_dist_from_point_to_point(start_point, end_point):
     :param end_point:
     :return:
     """
-    dist = sqrt(start_point**2 + end_point**2)
+    dist = sqrt((end_point[1] - start_point[1])**2 + (end_point[0] - start_point[0])**2)
     return dist
 
 
