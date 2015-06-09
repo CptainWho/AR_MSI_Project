@@ -180,12 +180,14 @@ class HistogramGrid:
 
         if debug:
             print 'DEBUG: avoid_obstacle()'
-            print '\tminimum valleys:'
-            # print '\t' + str(sector_angles[0, min_valleys])
             print '\tminimum valleys mean angles'
-            # print '\t' + str(min_valley_angles)
+            print min_valley_angles
             print '\ttarget angle: %0.2f' % (target_angle * 180.0 / pi)
             print '\tclosest angle: %0.2f' % (closest_angle * 180.0 / pi)
+            print np.sum(sector_occupancy[0, closest_valley])
+            print np.sum(sector_occupancy[0])
+            print omega
+            print sector_occupancy
 
         return [v, omega]
 

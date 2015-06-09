@@ -29,7 +29,7 @@ __version__ = '1.0'
 from math import *
 import numpy as np
 # Local imports
-from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld1 as loadedWorld
+from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld1_small as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
 from Exercise2_new.movements import BasicMovement
 from Exercise2_new.obstacle_avoidance import HistogramGrid
@@ -88,6 +88,9 @@ while not target_reached:
             # Get sensor distances
             sensor_distances = np.asarray(myRobot.sense())
 
+            print 'DEBUG state Obstacle'
+            print sensor_distances
+
             # 1. Shift HistogramGrid according to relative movements of robot
             # 1.1. Get robot position and orientation
             robot_pos_x, robot_pos_y, robot_theta = robot_loc.get_robot_position()
@@ -110,11 +113,11 @@ while not target_reached:
                     histogram_grid.set_value(dist, sensor_angles[j])
 
             # 3. Perform path-finding with the resulting histogram
-            v, omega = histogram_grid.avoid_obstacle(robot_loc.get_robot_position(), next_point, debug=False)
+            v, omega = histogram_grid.avoid_obstacle(robot_loc.get_robot_position(), next_point, debug=True)
 
             # 4. Optional: Visualize HistogramGrid and/or Histogram
             histogram_grid.draw_grid()
-            histogram_grid.draw_hist()
+            # histogram_grid.draw_hist()
 
         if state == 'CornerReached':
             [v, omega] = basic_mov.rotate_to_target_point(polyline.get_next_point())
