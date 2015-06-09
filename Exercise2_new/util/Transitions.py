@@ -17,17 +17,19 @@ from Exercise2_new.util import Calculations as Calc
 
 
 
+
 class Transitions():
     """ Class description:
     Transitions for StateMachine
     """
 
-    def __init__(self, robot):
+    def __init__(self, robot, polyline):
         """ Initialization
         :param robot: robot reference
+        :param polyline: polyline reference
         :return: -
         """
-        self.polyline = None
+        self.polyline = polyline
         self.robot = robot
         self.robot_loc = RobotLocation.RobotLocation(self.robot)
         # Tolerances to reach point / angle
@@ -39,15 +41,25 @@ class Transitions():
         :return: True / False
         """
 
-        sensor_dist = np.asarray(self.robot.sense())
-        threshold = self.robot.getMaxSenseValue()/2.0
+        sensor_dist = np.asarray(self.robot.sense(), dtype=np.float)
+        threshold = self.robot.get_size()
+
+        # Get front sensors of the robot
+        front_sensors = self.robot.getFrontSensors()
+
+        # Calculate distance to next point -> threshold
+        next_point = self.polyline.get_next_point()
+        robot_point = self.robot_loc.get_robot_point()
+        target_dist = Calc.get_dist_from_point_to_point(robot_point, next_point)
 
         # check if there is a obstacle in front of robot
-        # (directions: 9 is angle = 0)
-        for i in sensor_dist[3:15]:
-            if i < threshold and i is not None:
-                return True
-        return False
+        # if target is nearer than obstacle -> ignore obstacle
+        if np.any(sensor_dist[front_sensors] < target_dist + threshold):
+            obstacle_detected = True
+        else:
+            obstacle_detected = False
+
+        return obstacle_detected
 
     def set_polyline_object(self, polyline):
         self.polyline = polyline

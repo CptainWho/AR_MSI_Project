@@ -8,6 +8,7 @@
 
 
 from math import *
+import numpy as np
 import random
 
 
@@ -31,6 +32,7 @@ class Robot:
         self._numberOfSensors = 36
         dTheta = 360.0 / self._numberOfSensors
         self._sensorDirections = [(-90.0 + dTheta * i) * pi / 180 for i in range(self._numberOfSensors)]
+        self._frontSensors = np.arange(4, 14)  # Define frontSensor indexes (-50°...+50°)
         self._maxSenseValue = 5.0  # Maximum sensor value for each sensor beam
         self._sensorNoise = 0.01  # standard deviation of distance measurement for 1m
 
@@ -38,6 +40,9 @@ class Robot:
         self._odoX = 0.0
         self._odoY = 0.0
         self._odoTheta = pi / 2
+
+    def getFrontSensors(self):
+        return self._frontSensors
 
     def getTimeStep(self):
         return self._T

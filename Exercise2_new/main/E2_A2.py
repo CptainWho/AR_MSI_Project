@@ -49,39 +49,35 @@ set_robot_opt['y'] = 1
 set_robot_opt['theta'] = pi/2
 myWorld.setRobot(**set_robot_opt)
 
+# define polyline
+polyline = [[6, 2], [5, 3], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [1, 18]]
+# polyline = [[3, 5.5], [22, 5.5]]
+# polyline = [[3, 6], [9.5, 6], [11, 2]]
+myWorld.drawPolyline(polyline)
+
+polyline = Polyline.Polyline(polyline)
 
 # Set up StateMachine
-transitions = Transitions.Transitions(myRobot)
+transitions = Transitions.Transitions(myRobot, polyline)
 state_machine = StateMachine.StateMachine(transitions)
 basic_mov = BasicMovement.BasicMovement(myRobot)
 robot_loc = RobotLocation.RobotLocation(myRobot)
 polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 
 
-# TODO
-
-#define polyline
-polyline = [[6, 2], [5, 3], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [1, 18]]
-#polyline = [[3, 5.5], [22, 5.5]]
-#polyline = [[3, 6], [9.5, 6], [11, 2]]
-myWorld.drawPolyline(polyline)
-
-polyline = Polyline.Polyline(polyline)
-transitions.set_polyline_object(polyline)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
 [v, omega] = [0, 0]
 
 while not target_reached:
+    next_point = polyline.get_next_point()
     state = state_machine.next_state()
     if state in states:
         if state == 'NoObstacle':
-            next_point = polyline.get_next_point()
             [v, omega] = basic_mov.follow_line(polyline.get_last_point(), next_point, 0.5)
 
         if state == 'Obstacle':
-            next_point = polyline.get_next_point()
             [v, omega] = polar_hist.avoid_obstacle(next_point)
 
         if state == 'CornerReached':

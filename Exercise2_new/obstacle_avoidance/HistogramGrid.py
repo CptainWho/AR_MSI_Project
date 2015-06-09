@@ -107,7 +107,7 @@ class HistogramGrid:
         """
 
         # Get direction to target_point
-        target_angle = Calc.get_angle_from_robot_to_point(robot_pos, target_point)
+        target_angle = Calc.get_angle_from_point_to_point(robot_pos, target_point)
         # Create polar histogram
         sector_angles, sector_occupancy = self.create_histogram()
         # Search for occupancy values below threshold and return indexes

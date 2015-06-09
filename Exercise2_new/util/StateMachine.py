@@ -29,6 +29,7 @@ class StateMachine:
 
     def next_state(self, debug=False):
         """ Determine next state according to given transition and current state
+        :param next_point
         :return: next state
         """
 
