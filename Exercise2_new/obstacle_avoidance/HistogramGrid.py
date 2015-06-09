@@ -189,6 +189,8 @@ class HistogramGrid:
             print omega
             print sector_occupancy
 
+        if v is None or omega is N
+
         return [v, omega]
 
     def move_grid(self, dx, dy, debug=False):

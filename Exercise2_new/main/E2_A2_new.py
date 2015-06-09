@@ -128,6 +128,7 @@ while not target_reached:
             target_reached = True
             [v, omega] = [0, 0]
 
+
         myRobot.move([v, omega])
 
 

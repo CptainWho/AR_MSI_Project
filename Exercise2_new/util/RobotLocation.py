@@ -66,3 +66,10 @@ class RobotLocation:
         diff = Calc.diff(theta, theta_target)
         return diff
 
+    def get_diff_from_robot_to_point(self, point):
+        """
+
+        :param point:
+        :return:
+        """
+
