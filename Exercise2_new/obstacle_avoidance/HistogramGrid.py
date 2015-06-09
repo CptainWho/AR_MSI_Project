@@ -184,12 +184,6 @@ class HistogramGrid:
             print min_valley_angles
             print '\ttarget angle: %0.2f' % (target_angle * 180.0 / pi)
             print '\tclosest angle: %0.2f' % (closest_angle * 180.0 / pi)
-            print np.sum(sector_occupancy[0, closest_valley])
-            print np.sum(sector_occupancy[0])
-            print omega
-            print sector_occupancy
-
-        if v is None or omega is N
 
         return [v, omega]
 
@@ -267,7 +261,7 @@ class HistogramGrid:
             print '\tx = %0.2f, y = %0.2f' % (x, y)
             print '\tGrid coordinates:'
             print '\txi = %i, yi = %i' % (xi, yi)
-            print '\tResulting grid:'
+            # print '\tResulting grid:'
             # print self.grid
 
     def create_histogram(self, debug=False, **kwargs):
@@ -338,7 +332,7 @@ class HistogramGrid:
             print '\toccupancy values:\n\t', occupancy_values
             print '\tweights:\n\t', weights
             print '\tsector_occupancy updated:\n\t', sector_occupancy
-            print '\thistogram transposed:\n\t', histogram.transpose()
+            # print '\thistogram transposed:\n\t', histogram.transpose()
 
         return histogram
 
