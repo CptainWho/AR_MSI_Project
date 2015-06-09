@@ -77,6 +77,26 @@ def angle_in_tol(angle, angle_target, tol):
     else:
         return False
 
+def diff_custom(start_angle, end_angle, counterclock = True,):
+    """ Calculate the angle difference from theta to theta_target
+        positive is defined as counterclockwise (output from 0 to pi)
+        If counterclock is false rotation direction is changed (output from 0 to -2*pi)
+    :param theta: -
+    :param theta_target: -
+    :param counterclock: default = True
+    :return: angle [0...2*pi]
+    """
+    # make angles positive
+    #theta %= 2 * pi
+    #theta_target %= 2 * pi
+
+    # calculate difference
+    angle = (end_angle - start_angle) % (2 * pi)
+    if counterclock:
+        return angle
+    else:
+        return angle - 2 * pi
+
 
 def diff_abs(theta, theta_target):
     """ Calculate the absolute angle difference from theta to theta_target
@@ -104,20 +124,27 @@ def add_angles(angle1, angle2):
     :return: angle [0...2*pi]
     """
 
-    return (angle1 + angle2) % (2*pi)
+    return  (angle1 + angle2 + pi) % (2*pi) - pi
 
-
-def get_angle_from_robot_to_point(robot_pos, point):
-    """ Returns angle between robot position and a point
-    :param point: [x,y]
-    :return: angle [0..2*pi]
+def get_angle_from_point_to_point(start_point, end_point):
     """
+    returns angle between two points
+    :param start_point:
+    :param end_point:
+    :return:
+    """
+    theta = atan2(end_point[1] - start_point[1], end_point[0] - start_point[0])
+    return theta
 
-    [x, y, theta] = robot_pos
-    theta_target = atan2(point[1] - y, point[0] - x)
-    if theta_target < 0:
-        theta_target += 2 * pi
-    return theta_target
+def get_dist_from_point_to_point(start_point, end_point):
+    """
+    returns distance between two points
+    :param start_point:
+    :param end_point:
+    :return:
+    """
+    dist = sqrt(start_point**2 + end_point**2)
+    return dist
 
 
 def get_medial_angle(start_angle, end_angle):
@@ -131,6 +158,16 @@ def get_medial_angle(start_angle, end_angle):
     mid_angle += start_angle
     return mid_angle
 
+def get_medial_angle_custom(start_angle, end_angle, counterclock = True):
+    """ Calculates angle in the middle of two given angles.
+    the middle is always seen from start_angle to end_angle in given direction
+    :param start_angle: -
+    :param end_angle: -
+    :return: angle raging from 0 to 2*pi
+    """
+    diff = diff_custom(start_angle, end_angle, counterclock)
+    mid_angle = add_angles_positive(start_angle, diff/2.0)
+    return mid_angle
 
 def search_closest_angle(target_angle, list_of_angles):
     """ Searches inside given list of angles for the closest one and returns it
@@ -159,6 +196,15 @@ def search_closest_angle(target_angle, list_of_angles):
         angle_diffs = np.hstack((angle_diffs, diff_temp))
     return closest_angle, angle_diffs
 
+def add_angles_positive(angle1, angle2):
+    """ Add given angles
+    output is a positive angle
+    :param angle1: -
+    :param angle2: -
+    :return: angle [0...2*pi]
+    """
+
+    return (angle1 + angle2) % (2*pi)
 
 def angle_in_range(start_angle, end_angle, angle, counterclock=True, offset=0):
     """ Checks if given angle lies between two angles,
@@ -172,21 +218,21 @@ def angle_in_range(start_angle, end_angle, angle, counterclock=True, offset=0):
     """
 
     # add offset
-    start = add_angles(start_angle, offset)
-    end = add_angles(end_angle, -offset)
+    start = add_angles_positive(start_angle, offset)
+    end = add_angles_positive(end_angle, -offset)
 
     # return false if offset is too big
-    if 2.0 * offset > diff_abs(start_angle, end_angle, counterclock):
+    if 2.0 * offset > diff_custom(start_angle, end_angle, counterclock):
         return False
 
     # check for range
     if counterclock:
-        if diff_abs(start, angle) <= diff_abs(start, end):
+        if diff_custom(start, angle) <= diff_custom(start, end):
             return True
         else:
             return False
     else:
-        if diff_abs(start, angle) >= diff_abs(start, end):
+        if diff_custom(start, angle) >= diff_custom(start, end):
             return True
         else:
             return False

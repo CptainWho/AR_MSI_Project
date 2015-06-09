@@ -83,7 +83,7 @@ class PolarHistogram:
             return target_angle
 
         # when minima window is too small, choose middle
-        if Calc.diff_abs(start_angle, end_angle) < 2*self.angle_edge_offset:
+        if Calc.diff_custom(start_angle, end_angle) < 2*self.angle_edge_offset:
             return mid_angle
 
         # check edge where the target is close and add offset
@@ -164,7 +164,7 @@ class PolarHistogram:
         # calculate mid angles
         for i in range(len(minima)):
             #minima[i][2] = Calc.get_medial_angle(minima[i][0], minima[i][1])
-            minima[i][2] = Calc.get_medial_angle(minima[i][0], minima[i][1])
+            minima[i][2] = Calc.get_medial_angle_custom(minima[i][0], minima[i][1])
 
         return minima
 
