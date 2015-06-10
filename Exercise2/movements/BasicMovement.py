@@ -33,9 +33,12 @@ class BasicMovement:
         # Robot reference
         self.robot = robot
         # PID parameters for follow_line()
+        # _k_p_fl = 0.8
+        # _k_i_fl = 0.01
+        # _k_d_fl = 0.6
         _k_p_fl = 0.8
-        _k_i_fl = 0.001
-        _k_d_fl = 0.6
+        _k_i_fl = 0.01
+        _k_d_fl = 1.2
         # PID parameters for rotate_to_target_point()
         _k_p_rot = 1.5
         _k_i_rot = 0.01
