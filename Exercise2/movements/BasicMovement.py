@@ -13,9 +13,9 @@ __version__ = '1.0'
 from math import *
 import numpy as np
 # Local imports
-from Exercise2_new.util import PID as PID
-from Exercise2_new.util import Calculations as Calc
-from Exercise2_new.util import RobotLocation
+from Exercise2.util import PID as PID
+from Exercise2.util import Calculations as Calc
+from Exercise2.util import RobotLocation
 
 
 class BasicMovement:

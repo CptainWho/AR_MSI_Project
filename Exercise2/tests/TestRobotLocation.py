@@ -4,7 +4,7 @@ __author__ = 'Ecki'
 import numpy as np
 from math import *
 from HTWG_Robot_Simulator_V1 import Robot as Robot, emptyWorld as loadedWorld
-from Exercise2_new.util import RobotLocation
+from Exercise2.util import RobotLocation
 
 # Create obstacleWorld and new Robot
 myWorld = loadedWorld.buildWorld()

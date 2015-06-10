@@ -20,7 +20,7 @@ from numbers import Number
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 # Local imports
-from Exercise2_new.util import Calculations as Calc
+from Exercise2.util import Calculations as Calc
 #################################################################
 
 

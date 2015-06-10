@@ -29,11 +29,11 @@ __version__ = '1.0'
 from math import *
 # Local imports
 from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld1 as loadedWorld
-from Exercise2_new.util import StateMachine, Transitions
-from Exercise2_new.movements import BasicMovement
-from Exercise2_new.obstacle_avoidance import PolarHistogram
-from Exercise2_new.util import Polyline
-from Exercise2_new.util import RobotLocation
+from Exercise2.util import StateMachine, Transitions
+from Exercise2.movements import BasicMovement
+from Exercise2.obstacle_avoidance import PolarHistogram
+from Exercise2.util import Polyline
+from Exercise2.util import RobotLocation
 
 
 # Create obstacleWorld and new Robot

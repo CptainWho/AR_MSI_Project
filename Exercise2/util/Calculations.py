@@ -225,17 +225,17 @@ def angle_in_range(start_angle, end_angle, angle, counterclock=True, offset=0):
     end = add_angles_positive(end_angle, -offset)
 
     # return false if offset is too big
-    if 2.0 * offset > diff_custom(start_angle, end_angle, counterclock):
+    if 2.0 * offset > diff_custom(start_angle, end_angle, True):
         return False
 
     # check for range
     if counterclock:
-        if diff_custom(start, angle) <= diff_custom(start, end):
+        if diff_custom(start, angle, True) <= diff_custom(start, end, True):
             return True
         else:
             return False
     else:
-        if diff_custom(start, angle) >= diff_custom(start, end):
+        if diff_custom(start, angle, True) >= diff_custom(start, end, True):
             return True
         else:
             return False

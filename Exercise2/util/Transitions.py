@@ -10,10 +10,10 @@ __version__ = '1.0'
 
 # Standard library imports
 import numpy as np
-from Exercise2_new.util import Polyline
-from Exercise2_new.util import RobotLocation
+from Exercise2.util import Polyline
+from Exercise2.util import RobotLocation
 # Local imports
-from Exercise2_new.util import Calculations as Calc
+from Exercise2.util import Calculations as Calc
 
 
 
