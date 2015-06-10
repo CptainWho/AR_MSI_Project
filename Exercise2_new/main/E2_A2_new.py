@@ -64,7 +64,7 @@ transitions = Transitions.Transitions(myRobot, polyline)
 state_machine = StateMachine.StateMachine(transitions)
 basic_mov = BasicMovement.BasicMovement(myRobot)
 robot_loc = RobotLocation.RobotLocation(myRobot)
-histogram_grid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=0.5)
+histogram_grid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
@@ -88,9 +88,6 @@ while not target_reached:
             sensor_angles = np.asarray(myRobot.getSensorDirections())
             # Get sensor distances
             sensor_distances = np.asarray(myRobot.sense())
-
-            print 'DEBUG state Obstacle'
-            print sensor_distances
 
             # 1. Shift HistogramGrid according to relative movements of robot
             # 1.1. Get robot position and orientation
@@ -118,7 +115,7 @@ while not target_reached:
             # 3. Perform path-finding with the resulting histogram
             # 3.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
             if np.any(value_set):
-                v, omega = histogram_grid.avoid_obstacle_backup(robot_loc, next_point, debug=False)
+                v, omega = histogram_grid.avoid_obstacle(robot_loc, next_point, debug=False)
             else:
                 # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
                 v, omega = v_old, omega_old

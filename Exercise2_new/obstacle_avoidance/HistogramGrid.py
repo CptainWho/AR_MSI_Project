@@ -109,15 +109,17 @@ class HistogramGrid:
         # TODO get v_max, omega_max directly from robot
         v_max = 1.0
         omega_max = pi
-        k = 1.0
-        valley_edge_offset = 1  # Skip the first n sectors closest to an edge of a valley
+        k = 0.7
+        valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
+        closest_angle = None
 
         # Get direction to target_point [-pi...pi]
         target_angle = Calc.get_angle_from_point_to_point(robot_loc.get_robot_point(), target_point)
         # Create polar histogram and transform sector_angles from range [0..2pi] to [-pi...pi]
         sector_angles, sector_occupancy = self.create_histogram(debug=False)
-        sector_angles = sector_angles / 180.0 * pi
+        sector_angles = sector_angles.flatten() / 180.0 * pi
         sector_angles[sector_angles > pi] -= 2 * pi
+        sector_occupancy = sector_occupancy.flatten()
         # Check if polar histogram is empty. If so, no obstacle is around -> use target_angle directly
         if not np.any(sector_occupancy):
             # Set omega proportional to diff(target_angle, closest_angle)
@@ -126,11 +128,11 @@ class HistogramGrid:
             # Set speed v to v_max
             v = v_max
         else:
-            # 1. Polar histogram contains at least 1 occupancy value -> search closest angle
+            # Polar histogram contains at least 1 occupancy value -> search closest angle
 
-            # 1.1 Search for occupancy values below threshold and return indexes
-            min_indexes = np.where(sector_occupancy < self.hist_threshold)[1]
-            # 1.2 Group all found min_indexes to valleys (check for neighborhood indexes)
+            # 1. Search for occupancy values below threshold and return indexes
+            min_indexes = np.where(sector_occupancy < self.hist_threshold)[0]
+            # 2. Group all found min_indexes to valleys (check for neighborhood indexes)
             min_valleys = []
             valley_temp = np.array([min_indexes[0]])
             for i in xrange(1, np.size(min_indexes)):
@@ -139,79 +141,52 @@ class HistogramGrid:
                     valley_temp = np.hstack((valley_temp, min_indexes[i]))
                 else:
                     # Next index is not direct neighbor -> add valley_temp to min_valleys and start a new valley_temp
-                    min_valleys.append(valley_temp)
+                    if np.size(valley_temp) > 1:
+                        min_valleys.append(valley_temp)
                     valley_temp = min_indexes[i]
-            min_valleys.append(valley_temp)
-            # 1.2.1 Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
+            if np.size(valley_temp) > 1:
+                min_valleys.append(valley_temp)
+            # 2.1 Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
             #       If so concat the first and the last min_valley
             if min_indexes[0] == 0 \
                     and min_indexes[np.size(min_indexes) - 1] == np.size(sector_angles) - 1:
                 min_valleys = [np.hstack((min_valleys[len(min_valleys) - 1], min_valleys[0]))] + min_valleys[1:-1]
 
-            # 1.3 Check if target_angle is in one of the min_valleys, if so set target_angle directly as closest_angle
+            # 3. Check if target_angle is in one of the min_valleys, if so set target_angle directly as closest_angle
             for min_valley in min_valleys:
                 min_valley_angles = sector_angles[min_valley]
                 try:
-                    # 1.3.1 Define left and right min_valley edges (+/- Offset)
-                    valley_edge_left = min_valley_angles[0 + valley_edge_offset]
-                    valley_edge_right = min_valley_angles[-1 - valley_edge_offset]
-                    # 1.3.2 Check if target_angle is in between of those two edges
-                    if Calc.diff(valley_edge_left, target_angle) > 0 > Calc.diff(valley_edge_right, target_angle):
-                        # target_angle is on the right side of the left edge and on the left side of the right edge
+                    if Calc.angle_in_range(min_valley_angles[0], min_valley_angles[-1], target_angle, offset=valley_edge_offset):
                         closest_angle = target_angle
+                        closest_min_valley = min_valley
+                        break
                 except IndexError:
-                    # min_valley is not big enough for offset -> skip this min_valley
                     continue
 
+            # 4. If target_angle is not in one of the min_valleys -> search min_valley_edge closest to target_angle
+            if closest_angle is None:
+                # 4.1 Get left and right min_valley_edges and apply valley_edge_offset
+                min_valley_edges_right = np.asarray([sector_angles[mv[-1]] - valley_edge_offset for mv in min_valleys])
+                min_valley_edges_left = np.asarray([sector_angles[mv[0]] + valley_edge_offset for mv in min_valleys])
+                min_valley_edges = np.vstack((min_valley_edges_left, min_valley_edges_right)).transpose()
+                # 4.2 Check if min_valley is big enough to apply offset
+                min_valley_diffs = Calc.diff_custom(min_valley_edges_left, min_valley_edges_right, counterclock=True)
+                min_valley_big_enough = np.asarray([False if mvd < 0 else True for mvd in min_valley_diffs])
+                # 4.3 Discard all min_valleys which are too small for offset
+                min_valley_angles = min_valley_edges[min_valley_big_enough].flatten()
+                # 4.4 Search min_valley_edge closest to target angle
+                closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, min_valley_angles)
+                # 4.5 Get corresponding min_valley
+                for i, mve in enumerate(min_valley_edges):
+                    if closest_angle in mve:
+                        closest_min_valley = min_valleys[i]
 
+            # 5. Set omega proportional to diff(target_angle, closest_angle)
+            omega = k * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
 
-
-            # TODO
-
-
-
-
-            # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
-            min_valley_angles = np.empty(0, dtype=np.float)
-            min_valley_weights = np.empty(0, dtype=np.float)
-            for min_valley in min_valleys:
-                min_valley_angle = np.mean(sector_angles[0, min_valley])
-                min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
-                min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
-
-            # Search angle closest to target_angle
-            # TODO Optimize search
-            closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, (min_valley_angles / 180.0 * pi))
-
-            # TODO add weight to each min_valley: the more sectors a valley has, the more weight it gets \
-            # (singular min_valleys shall get a very low weight --> quadratic weighting of sector amount? )
-
-            choose_best_valley = False
-
-            if choose_best_valley:
-                # Choose best valley according to min_valley_weight and angle_diffs
-                # Best valley = max(min_valley_weight / angle_diffs)
-                best_valley_index = np.argmax(min_valley_weights / angle_diffs)
-
-                # closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
-                best_valley = min_valleys[best_valley_index]
-                best_angle = min_valley_angles[best_valley_index] / 180.0 * pi
-
-                # Set omega proportional to diff(target_angle, closest_angle)
-                omega = k * Calc.diff(robot_loc.get_robot_angle(), best_angle)
-
-                # Set speed v anti-proportional to occupancy value of chosen valley and omega
-                v = 0.8 * (1 - np.sum(sector_occupancy[0, best_valley]) / np.sum(sector_occupancy[0])) * \
-                    (1 - omega / omega_max)
-            else:
-                closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
-
-                # Set omega proportional to diff(target_angle, closest_angle)
-                omega = k * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
-
-                # Set speed v anti-proportional to occupancy value of chosen valley and omega
-                v = 0.8 * (1 - np.sum(sector_occupancy[0, closest_valley]) / np.sum(sector_occupancy[0])) * \
-                    (1 - omega / omega_max)
+            # 6. Set speed v anti-proportional to occupancy value of chosen valley and omega
+            v = k * (1 - np.sum(sector_occupancy[closest_min_valley]) /
+                       (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
 
         if debug:
             print 'DEBUG: avoid_obstacle()'
@@ -220,6 +195,9 @@ class HistogramGrid:
             print '\ttarget angle: %0.2f' % (target_angle * 180.0 / pi)
             print '\tclosest angle: %0.2f' % (closest_angle * 180.0 / pi)
 
+        # print 'sum valley_occu = %0.2f' % np.sum(sector_occupancy[closest_min_valley])
+        # print 'sum all_occu = %0.2f' % np.sum(sector_occupancy)
+        print 'v = %0.2f, omega = %0.2f' % (v, omega)
         return [v, omega]
 
     def avoid_obstacle_backup(self, robot_loc, target_point, debug=False):
@@ -366,12 +344,18 @@ class HistogramGrid:
 
         # Check if coordinates exceed grid boundaries
         if xi < 0 or xi >= self.x_size:
-            print 'Warning set_value()'
-            print '\tx_size mismatch!'
+            # DEBUG
+            if debug:
+                print 'DEBUG: set_value()'
+                print 'Warning set_value()'
+                print '\tx_size mismatch!'
             return False
         if yi < 0 or yi >= self.y_size:
-            print 'Warning set_value()'
-            print '\ty_size mismatch!'
+            # DEBUG
+            if debug:
+                print 'DEBUG: set_value()'
+                print 'Warning set_value()'
+                print '\ty_size mismatch!'
             return False
         self.grid[yi, xi] += value
 

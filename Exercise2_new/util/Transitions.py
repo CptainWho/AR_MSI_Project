@@ -54,7 +54,7 @@ class Transitions():
 
         # check if there is a obstacle in front of robot
         # if target is nearer than obstacle -> ignore obstacle
-        if np.any(sensor_dist[front_sensors] < target_dist + threshold):
+        if np.any((sensor_dist[front_sensors] / 2.0) < target_dist + threshold):
             obstacle_detected = True
         else:
             obstacle_detected = False

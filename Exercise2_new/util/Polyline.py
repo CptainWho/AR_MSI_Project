@@ -7,7 +7,7 @@ class Polyline:
 
     def __init__(self, polyline):
         self.polyline = polyline
-        self.tol_point = 0.1
+        self.tol_point = 0.15
 
     def set_polyline(self, polyline):
         """

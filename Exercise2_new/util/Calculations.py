@@ -169,6 +169,7 @@ def get_medial_angle_custom(start_angle, end_angle, counterclock = True):
     mid_angle = add_angles_positive(start_angle, diff/2.0)
     return mid_angle
 
+
 def search_closest_angle(target_angle, list_of_angles):
     """ Searches inside given list of angles for the closest one and returns it
     :param target_angle: -
@@ -196,6 +197,7 @@ def search_closest_angle(target_angle, list_of_angles):
         angle_diffs = np.hstack((angle_diffs, diff_temp))
     return closest_angle, angle_diffs
 
+
 def add_angles_positive(angle1, angle2):
     """ Add given angles
     output is a positive angle
@@ -205,6 +207,7 @@ def add_angles_positive(angle1, angle2):
     """
 
     return (angle1 + angle2) % (2*pi)
+
 
 def angle_in_range(start_angle, end_angle, angle, counterclock=True, offset=0):
     """ Checks if given angle lies between two angles,

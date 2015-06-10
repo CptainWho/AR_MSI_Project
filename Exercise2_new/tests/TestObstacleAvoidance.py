@@ -17,7 +17,7 @@ import numpy as np
 # Local imports
 from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld_box as loadedWorld
 from Exercise2_new.obstacle_avoidance import HistogramGrid
-from Exercise2_new.util import Transitions
+from Exercise2_new.util import Transitions, RobotLocation, Polyline
 from Exercise2_new.movements import BasicMovement
 from Exercise2_new.util import Calculations as Calc
 
@@ -33,11 +33,14 @@ set_robot_opt['y'] = 5
 set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
+robot_loc = RobotLocation.RobotLocation(myRobot)
+polyline = Polyline.Polyline([0, 1])
+
 # Create HistogramGrid
 myHistogramGrid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=0.5)
 
 # Set up transitions
-transitions = Transitions.Transitions(myRobot)
+transitions = Transitions.Transitions(myRobot, polyline)
 
 # Set up Basic movements
 basic_movement = BasicMovement.BasicMovement(myRobot)
@@ -87,7 +90,7 @@ for i in xrange(100):
 
 
             # 3. Perform path-finding with the resulting histogram
-            v, omega = myHistogramGrid.avoid_obstacle(myRobot.getTrueRobotPose(), target, debug=True)
+            v, omega = myHistogramGrid.avoid_obstacle(robot_loc, target, debug=False)
 
             # 4. Optional: Visualize HistogramGrid and/or Histogram
             myHistogramGrid.draw_grid()
