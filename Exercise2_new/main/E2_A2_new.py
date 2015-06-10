@@ -28,7 +28,7 @@ __version__ = '1.0'
 # Standard library imports
 from math import *
 import numpy as np
-np.set_printoptions(threshold=np.nan)
+# np.set_printoptions(threshold=np.nan)
 # Local imports
 from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld1_small as loadedWorld
 from Exercise2_new.util import StateMachine, Transitions
@@ -68,7 +68,7 @@ histogram_grid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'CornerReached', 'TargetReached'}
-[v, omega] = [0, 0]
+v_old, omega_old = 0, 0
 # Set start_position for robot
 robot_point = robot_loc.get_robot_point()
 robot_pos_x_old = robot_point[0]
@@ -108,14 +108,20 @@ while not target_reached:
             # 2.1. Convert sensor angles to angles in the world system
             sensor_angles += robot_theta
             # 2.2. Add all detected distances to the HistogramGrid
+            value_set = []
             for j, dist in enumerate(sensor_distances):
                 if dist is not None:
                     # Add value to HistogramGrid
-                    print 'Set Histogram value at dist: %0.2f, angle: %0.2f' % (dist, sensor_angles[j])
-                    histogram_grid.set_value(dist, sensor_angles[j], debug=True)
+                    # print 'Set Histogram value at dist: %0.2f, angle: %0.2f' % (dist, sensor_angles[j])
+                    value_set.append(histogram_grid.set_value(dist, sensor_angles[j], debug=False))
 
             # 3. Perform path-finding with the resulting histogram
-            v, omega = histogram_grid.avoid_obstacle(robot_loc.get_robot_position(), next_point, debug=False)
+            # 3.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
+            if np.any(value_set):
+                v, omega = histogram_grid.avoid_obstacle_backup(robot_loc, next_point, debug=False)
+            else:
+                # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
+                v, omega = v_old, omega_old
 
             # 4. Optional: Visualize HistogramGrid and/or Histogram
             # histogram_grid.draw_grid()
@@ -128,8 +134,8 @@ while not target_reached:
             target_reached = True
             [v, omega] = [0, 0]
 
-
         myRobot.move([v, omega])
+        v_old, omega_old = v, omega
 
 
 # close world by clicking

@@ -131,7 +131,7 @@ def get_angle_from_point_to_point(start_point, end_point):
     returns angle between two points
     :param start_point:
     :param end_point:
-    :return:
+    :return: angle theta [-pi...0...+pi]
     """
     theta = atan2(end_point[1] - start_point[1], end_point[0] - start_point[0])
     return theta
