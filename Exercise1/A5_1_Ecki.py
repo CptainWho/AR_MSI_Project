@@ -15,7 +15,7 @@ from math import *
 from HTWG_Robot_Simulator_V1 import emptyWorld
 from HTWG_Robot_Simulator_V1 import Robot
 import copy as c
-from Excercise2_Bachelor import MatrixTansformation as mt
+from Exercise2_Bachelor import MatrixTansformation as mt
 import numpy as np
 
 """ Init """

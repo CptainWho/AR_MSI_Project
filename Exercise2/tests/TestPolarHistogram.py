@@ -4,8 +4,8 @@ __author__ = 'Ecki'
 import numpy as np
 from math import *
 from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld2 as loadedWorld
-from Exercise2_new.util import RobotLocation
-from Exercise2_new.obstacle_avoidance import PolarHistogram
+from Exercise2.util import RobotLocation
+from Exercise2.obstacle_avoidance import PolarHistogram
 
 # Create obstacleWorld and new Robot
 myWorld = loadedWorld.buildWorld()

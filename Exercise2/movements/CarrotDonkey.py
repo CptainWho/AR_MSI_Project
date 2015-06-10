@@ -3,7 +3,7 @@ __author__ = 'Ecki'
 
 from math import *
 import numpy as np
-from Exercise2_new.util import RobotLocation
+from Exercise2.util import RobotLocation
 
 class CarrotDonkey:
     def __init__(self, my_robot, my_world):

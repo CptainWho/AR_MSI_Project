@@ -3,7 +3,7 @@ __author__ = 'Ecki'
 
 import numpy as np
 from math import *
-from Exercise2_new.util import Calculations as Calc
+from Exercise2.util import Calculations as Calc
 
 class PolarHistogram:
 

@@ -14,7 +14,7 @@ __version__ = '0.1'
 # Standard library imports
 from math import pi
 # Local imports
-from Exercise2_new.obstacle_avoidance import HistogramGrid
+from Exercise2.obstacle_avoidance import HistogramGrid
 
 
 def test_grid_generation(hg):

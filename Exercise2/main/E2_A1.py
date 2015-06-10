@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Module Exercise2 Aufgabe1
+""" Module Exercise2_old Aufgabe1
 Module Description:
 Realisieren Sie einen Roboter, der mit Hilfe der Abstandssensoren mit einem Braitenberg-
 Verfahren Hindernissen ausweicht. Zudem soll der Roboter in hindernisfreien Bereichen mit einer
@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from HTWG_Robot_Simulator_V1 import obstacleWorld
 from HTWG_Robot_Simulator_V1 import officeWorld
 from HTWG_Robot_Simulator_V1 import Robot
-from Exercise2_new.obstacle_avoidance import Braitenberg as Bb
+from Exercise2.obstacle_avoidance import Braitenberg as Bb
 
 
 # Create obstacleWorld and new Robot

@@ -12,8 +12,8 @@ einsetzen.
 from math import *
 from HTWG_Robot_Simulator_V1 import emptyWorld
 from HTWG_Robot_Simulator_V1 import Robot
-from Excercise2_Bachelor import MatrixTansformation as mt
-from Exercise2 import BasicMovement as bm
+from Exercise2_Bachelor import MatrixTansformation as mt
+from Exercise2_old import BasicMovement as bm
 import numpy as np
 import copy as c
 

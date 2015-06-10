@@ -16,10 +16,10 @@ from math import pi
 import numpy as np
 # Local imports
 from HTWG_Robot_Simulator_V1 import Robot as Robot, obstacleWorld_box as loadedWorld
-from Exercise2_new.obstacle_avoidance import HistogramGrid
-from Exercise2_new.util import Transitions
-from Exercise2_new.movements import BasicMovement
-from Exercise2_new.util import Calculations as Calc
+from Exercise2.obstacle_avoidance import HistogramGrid
+from Exercise2.util import Transitions
+from Exercise2.movements import BasicMovement
+from Exercise2.util import Calculations as Calc
 
 
 # Create obstacleWorld and new Robot
