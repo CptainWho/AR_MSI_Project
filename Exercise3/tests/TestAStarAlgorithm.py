@@ -3,7 +3,7 @@ __author__ = 'Ecki'
 
 from math import *
 from HTWG_Robot_Simulator_V1 import Robot as Robot, officeWorld as loadedWorld
-from Exercise3.robot_navigation import AStarAlgorithm
+from Exercise3.robot_navigation import AStarAlgo
 from Exercise3.util import RobotLocation
 from Exercise3.movements import CarrotDonkey
 
@@ -22,7 +22,7 @@ myWorld.setRobot(**set_robot_opt)
 # create instances
 occupancy_grid = myWorld.getOccupancyGrid(0.5)
 robot_loc = RobotLocation.RobotLocation(myRobot)
-a_star = AStarAlgorithm.AStarAlgorithm(occupancy_grid)
+a_star = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
 # define poits
 start_point = a_star.match_in_grid(robot_loc.get_robot_point())
