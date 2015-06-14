@@ -16,6 +16,18 @@ class OccupancyGrid:
         self.cellSize = float(cellSize)
 
 
+    def getGridSize(self):
+        return [self.xSize, self.ySize]
+
+
+    def getCellSize(self):
+        return self.cellSize
+
+
+    def getGrid(self):
+        return self.grid
+
+
     def printGrid(self):
         print "xSize*ySize: ", self.xSize, self.ySize
         for yi in range(self.ySize-1,-1,-1):
@@ -126,4 +138,12 @@ def test2():
     myGrid.printGrid()
     myGrid.drawGrid()
 
-# test2()
+def test3():
+    myGrid = OccupancyGrid(0, 0, 2, 2, 1)
+    myGrid.setValue(0,0)
+    myGrid.setValue(0,1)
+
+    myGrid.printGrid()
+
+
+# test3()

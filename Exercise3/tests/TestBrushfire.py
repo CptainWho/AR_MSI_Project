@@ -17,13 +17,15 @@ from Exercise3.robot_navigation import Brushfire
 from HTWG_Robot_Simulator_V1 import OccupancyGrid, Robot,  officeWorld as World
 
 # Create obstacleWorld and new Robot
-myWorld = World.buildWorld()
+# myWorld = World.buildWorld()
 myRobot = Robot.Robot()
 
-occupancy_grid = myWorld.getOccupancyGrid()
-occupancy_grid.drawGrid()
-# occupancy_grid.printGrid()
+# occupancy_grid = myWorld.getOccupancyGrid()
+occupancy_grid = OccupancyGrid.OccupancyGrid(0,0,4,4,1)
+occupancy_grid.setValue(2,2)
+# occupancy_grid.drawGrid()
+occupancy_grid.printGrid()
 
-brushfire_grid = Brushfire.apply_brushfire(occupancy_grid, myRobot, safety_distance=None)
-brushfire_grid.drawGrid()
+brushfire_grid = Brushfire.apply_brushfire(occupancy_grid, myRobot, adjacency=4, safety_distance=None)
+# brushfire_grid.drawGrid()
 

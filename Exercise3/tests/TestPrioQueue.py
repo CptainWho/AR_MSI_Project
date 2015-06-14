@@ -22,6 +22,8 @@ prio_queue._put((1,4,'1,4'))
 prio_queue._put((2,0,'2,0'))
 prio_queue._put((2,2,'2,2'))
 prio_queue._put((3,2,'3,2'))
+prio_queue._put((0.4,1,'0.4,1'))
+prio_queue._put((0.4,0,'0.4,0'))
 
 while not prio_queue.empty():
     item = prio_queue._get()
