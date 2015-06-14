@@ -35,7 +35,7 @@ def getRobotPos():
 def followLine(p1, p2):
     v = 0.5 #define robot speed
     k_p = 0.4 #define p of closed loop
-    k_d = 0.8 #define d of closed loop
+    k_d = 1.6 #define d of closed loop
     tol = 0.5 #tolrance
     e_old = 0 #error start value
 
