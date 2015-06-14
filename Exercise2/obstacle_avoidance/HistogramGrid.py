@@ -109,7 +109,7 @@ class HistogramGrid:
         # TODO get v_max, omega_max directly from robot
         v_max = 1.0
         omega_max = pi
-        k = 0.7
+        k = 0.7  # 0.7
         valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
         closest_angle = None
 

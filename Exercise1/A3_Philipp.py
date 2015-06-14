@@ -35,7 +35,7 @@ def followLine(p1, p2, **kwargs):
 
     # Controller parameters
     k_p = 0.03
-    k_d = 0.5
+    k_d = 0.8
     k_i = 0.005
     e_old = 0
     e_sum = 0

@@ -44,16 +44,16 @@ myRobot = Robot.Robot()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-#set_robot_opt['x'] = 2
-#set_robot_opt['y'] = 6
-set_robot_opt['x'] = 7
-set_robot_opt['y'] = 1
-set_robot_opt['theta'] = pi/2
+set_robot_opt['x'] = 7  # ObstacleWorld1
+set_robot_opt['y'] = 1  # ObstacleWorld1
+# set_robot_opt['x'] = 3  # ObstacleWorld2
+# set_robot_opt['y'] = 7  # ObstacleWorld2
+set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 # define polyline
-polyline = [[6, 2], [5, 3], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [1, 18]]
-# polyline = [[3, 5.5], [22, 5.5]]
+polyline = [[6, 2], [5, 3], [5, 15], [10, 16], [13, 6], [9, 13], [9, 14], [9, 8], [1, 18]]  # ObstacleWorld1
+# polyline = [[5, 5], [12, 5], [18, 8]]  # ObstacleWorld2
 # polyline = [[3, 6], [9.5, 6], [11, 2]]
 myWorld.drawPolyline(polyline)
 
@@ -121,8 +121,8 @@ while not target_reached:
                 v, omega = v_old, omega_old
 
             # 4. Optional: Visualize HistogramGrid and/or Histogram
-            # histogram_grid.draw_grid()
-            # histogram_grid.draw_hist()
+            histogram_grid.draw_grid()
+            histogram_grid.draw_hist()
 
         if state == 'CornerReached':
             [v, omega] = basic_mov.rotate_to_target_point(polyline.get_next_point())
