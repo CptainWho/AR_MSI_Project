@@ -3,7 +3,7 @@ __author__ = 'Ecki'
 
 from math import *
 from HTWG_Robot_Simulator_V1 import Robot as Robot, officeWorld as loadedWorld
-from Exercise3.robot_navigation import AStarAlgo
+from Exercise3.robot_navigation import AStarAlgo as AStarAlgo
 from Exercise3.util import RobotLocation
 from Exercise3.movements import CarrotDonkey
 
@@ -31,6 +31,10 @@ myWorld.drawCircle((end_point[0], end_point[1]))
 occupancy_grid.drawGrid()
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld)
 
+# grid_pos = [3, 3]
+# a_star.update_in_grid(grid_pos, [3, 2], 12, "O")
+# print a_star.o_grid.grid
+# print a_star.get_p(grid_pos)
 
 a_star.shortest_path(start_point, end_point, myWorld, myRobot)
 print a_star.closed_list.list
