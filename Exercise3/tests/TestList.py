@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ecki'
 
-from Exercise3.robot_navigation import AStarAlgo
+from Exercise3.robot_navigation import AStarAlgo_old
 
-list = AStarAlgo.OpenList()
+list = AStarAlgo_old.OpenList()
 
 print list.not_empty()
 
