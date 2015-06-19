@@ -44,7 +44,7 @@ occupancy_grid = myWorld.getOccupancyGrid()
 
 brushfire = Brushfire.Brushfire(occupancy_grid, myRobot)
 
-brushfire_grid = brushfire.apply_brushfire_backup(adjacency=8, safety_distance=0.5)
+brushfire_grid = brushfire.apply_brushfire(adjacency=8, safety_distance=0.5)
 
 occupancy_grid.drawGrid()
 

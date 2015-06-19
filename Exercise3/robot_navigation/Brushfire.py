@@ -33,13 +33,13 @@ class Brushfire():
         self.adjacency_4 = [(i, j) for i in (-1, 0, 1) for j in (-1, 0, 1) if not (i == -1 * j or i == j)]  # skip middle + diagonal
         self.adjacency_8 = [(i, j) for i in (-1, 0, 1) for j in (-1, 0, 1) if not (i == j == 0)]  # skip middle
 
-    def apply_brushfire_backup(self, occupancy_grid=None, adjacency=8, safety_distance=None):
-        """ Applies brushfire-algorithm to given occupancy-grid and returns an updated occupancy_grid as array with
+    def apply_brushfire(self, occupancy_grid=None, adjacency=8, safety_distance=None):
+        """ Applies brushfire-algorithm to given occupancy-grid and updates it in place
         occupancy values (float) between 1 (obstacle) to 0 (no obstacle)
         :param occupancy_grid:  (optional) OccupancyGrid reference
         :param adjacency:       (optional) amount neighbors 4/8
         :param safety_distance: (optional) safety distance to wall, i.e. 5
-        :return:                (array-like) occupancy_grid with applied brushfire algorithm
+        :return:                -
         """
 
         if occupancy_grid is None:
@@ -47,7 +47,7 @@ class Brushfire():
 
         cell_size = occupancy_grid.getCellSize()
         grid_size = occupancy_grid.getGridSize()
-        brushfire_grid = np.asarray(occupancy_grid.getGrid(), dtype=np.float)
+        brushfire_grid = occupancy_grid.getGrid()
 
         if safety_distance is None:
             safety_distance = self.robot_radius
@@ -86,8 +86,6 @@ class Brushfire():
                 # Cell is far enough away from obstacle -> zero occupancy
                 occupancy_value = 0
             occupancy_grid.set_value_at_index(cell[0], cell[1], occupancy_value)
-
-        return brushfire_grid
 
     def get_neighbours(self, cell, grid_size, adjacency=8):
         """ Generator: Yield all neighbours of given cell with either 4 or 8 adjacency

@@ -10,12 +10,12 @@ from Exercise3.util import Calculations as Calc
 class AStarAlgorithm:
 
     def __init__(self, occupancy_grid):
-        self.grid = occupancy_grid
+        self.grid_ref = occupancy_grid
         # open list
         self.end_point = [0, 0]
         self.open_list = OpenList()
         self.closed_list = ClosedList()
-        self.knot_gap = self.grid.cellSize
+        self.knot_gap = self.grid_ref.cellSize
 
     def heuristic_to_end(self, point):
         Calc.get_dist_from_point_to_point(point, self.end_point)
@@ -26,8 +26,8 @@ class AStarAlgorithm:
         return dist
 
     def match_in_grid(self, point):
-        x = int(point[0]/self.grid.cellSize + 0.5) * self.grid.cellSize
-        y = int(point[1]/self.grid.cellSize + 0.5) * self.grid.cellSize
+        x = int(point[0]/self.grid_ref.cellSize + 0.5) * self.grid_ref.cellSize
+        y = int(point[1]/self.grid_ref.cellSize + 0.5) * self.grid_ref.cellSize
         return [x, y]
 
     #def calc_priority(self, point):
@@ -50,15 +50,16 @@ class AStarAlgorithm:
                 else:
                     x = point[0] + del_x
                     y = point[1] + del_y
-                    if self.grid.getValue(x, y) < 1:
+                    occupancy = self.grid_ref.getValue(x, y)
+                    if occupancy < 1:
                         cost = sqrt(del_x**2 + del_y**2)
-                        neighbours.append([[x, y], cost])
+                        neighbours.append([[x, y], cost, occupancy])
         return neighbours
 
 
 
 
-    def shortest_path(self, start_point, end_point, world, robot):
+    def shortest_path(self, start_point, end_point):
         """
         :param start_point:
         :param end_point:
@@ -86,10 +87,11 @@ class AStarAlgorithm:
                 w_point = neighbour[0]
                 # costs to get to this neighbour
                 c_v_w = neighbour[1]
+                w_occupancy = neighbour[2]
                 # search for neighbours in open list
                 index = self.open_list.get_index(w_point)
                 # calc distance, past and priority of this neighbour
-                d_w = d_v + c_v_w
+                d_w = (d_v + c_v_w) * (w_occupancy + 1)
                 p_w = v_point
                 h_w_z = self.heuristic(w_point, end_point)
                 priority_w = d_w + h_w_z
@@ -97,6 +99,7 @@ class AStarAlgorithm:
                 if index is None:
                     self.open_list.push(w_point, priority_w, d_w, p_w)
                 elif d_w < self.open_list.get_dist(index):
+                    # print 'Neighbour already in open_list -> update'
                     self.open_list.change_entry(index, priority_w, d_w, p_w)
 
 class ClosedList:

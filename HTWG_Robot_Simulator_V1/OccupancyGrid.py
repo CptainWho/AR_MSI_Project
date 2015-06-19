@@ -31,22 +31,22 @@ class OccupancyGrid:
         self.height = height
         self.cellSize = float(cellSize)
 
-        # added: figure for plotting
-        self.fig = plt.figure()
-        self.fig.suptitle('OccupancyGrid', fontsize=20)
+        plt.ion()
 
+    def getGridWidth(self):
+        return self.width
+
+    def getGridHeight(self):
+        return self.height
 
     def getGridSize(self):
         return [self.xSize, self.ySize]
 
-
     def getCellSize(self):
         return self.cellSize
 
-
     def getGrid(self):
         return self.grid
-
 
     def printGrid(self):
         print "xSize*ySize: ", self.xSize, self.ySize
@@ -57,6 +57,9 @@ class OccupancyGrid:
             print s
 
     def drawGrid(self):
+        # added: figure for plotting
+        fig = plt.figure()
+        fig.suptitle('OccupancyGrid', fontsize=20)
         plot = plt.imshow(self.grid.transpose(), origin='lower')
         cbar = plt.colorbar(mappable=plot)
         cbar.set_label('Occupancy', fontsize=16)
