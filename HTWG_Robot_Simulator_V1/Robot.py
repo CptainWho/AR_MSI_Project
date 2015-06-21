@@ -7,6 +7,9 @@
 # O. Bittel
 # V 1.0; 9.3.2015
 
+# Changelog:
+# 19.06.2015: (Phil) Added support for landmark detection
+
 
 from math import *
 import numpy as np
@@ -179,6 +182,14 @@ class Robot:
             return None
         else:
             return distAngles
+
+    # Added 19.06.2015
+    def sense_landmarks(self):
+        number_dist_angles = self._world.sense_landmark()
+        if number_dist_angles is None or number_dist_angles[1] == []:
+            return None
+        else:
+            return number_dist_angles
 
     # --------
     # set world

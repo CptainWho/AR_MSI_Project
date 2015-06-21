@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ecki'
 
-from Exercise3.robot_navigation import AStarAlgo_old
+from Exercise3.navigation import AStarAlgo_old
 
 list = AStarAlgo_old.OpenList()
 

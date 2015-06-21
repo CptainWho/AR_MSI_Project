@@ -4,7 +4,7 @@ __author__ = 'Ecki'
 from math import *
 from datetime import datetime
 from HTWG_Robot_Simulator_V1 import Robot as Robot, officeWorld as loadedWorld
-from Exercise3.robot_navigation import AStarAlgo_old as AStarAlgo, Brushfire
+from Exercise3.navigation import AStarAlgo_old as AStarAlgo, Brushfire
 from Exercise3.util import RobotLocation
 from Exercise3.movements import CarrotDonkey
 

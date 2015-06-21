@@ -16,6 +16,13 @@
 # V 1.1; 20.3.2015
 
 
+# Changelog
+# 19.06.2015: (Phil) Added support for landmark detection, added function to draw points
+# 20.06.2015: (Phil) Changed draw_points() to draw_particle(), added draw_number()
+# 21.06.2015: (Phil) Updated draw_particle() and draw_number(), added functions to directly undraw a single particle /
+#                    number
+#
+
 from math import *
 import numpy as np
 from graphics import *
@@ -102,6 +109,80 @@ class World:
         # Drawn Circles:
         self._drawnCircles = []
 
+        # Added 19.06.2015
+        self._particles = []  # [[particle1, circle1], [particle2, circle2], ..., [particle_n, circle_n]]
+        self._particle_radius = 0.05
+        self._drawn_numbers = []
+
+        self._landmarks = []  # [[number1, landmark1, nr1], ..., [number_n, landmark_n, nr_n]]
+        self._landmark_positions = []
+        self._landmark_radius = 0.2
+        self._landmark_sensor = True
+        self._landmark_sensor_angle = 360 * (pi/180) # 360 degrees
+        self._landmark_sensed_indexes = []  # Number (index) of the sensed landmark
+        self._landmark_sensed_dist = []  # Distance to the sensed landmark
+        self._landmark_sensed_angles = []  # Angles of the sensed landmark
+
+    # Added 19.0.2015
+    def get_size(self):
+        return [self._width, self._height]
+
+    def draw_particle(self, particle, color='black', number=None):
+        """ Draw given particle
+        :param particle:    particle_ref
+        :param color:       (string) color
+        :param number:      (int) number, default=None
+        :return:            -
+        """
+        p_x, p_y = particle.get_pos()
+        p = Circle(Point(p_x, p_y),  self._particle_radius)
+        p.setFill(color)
+        p.draw(self._win)
+        if number is not None:
+            number = self.draw_number(p_x + 0.2, p_y, number)
+        self._particles.append([particle, p, number])
+
+    def undraw_particle(self, particle):
+        """ Undraws given particle and removes it from particle-list
+        :param particle:    particle_ref
+        :return:            -
+        """
+        for p in self._particles:
+            if p[0] == particle:
+                p[1].undraw()
+                if p[2] is not None:
+                    self.undraw_number(p[2])
+                self._particles.remove(p)
+
+    def undraw_partciles(self):
+        """ Undraw all particles and clear particle list
+        :return: -
+        """
+        if not self._particles:
+            return
+        else:
+            for p in self._particles:
+                p[1].undraw()
+            self._particles = []
+
+    def draw_number(self, x, y, number, color='black', size=8):
+        nr = Text(Point(x, y), str(int(number)))
+        nr.setFill(color)
+        nr.setSize(size)
+        nr.draw(self._win)
+        self._drawn_numbers.append(nr)
+        return nr
+
+    def undraw_number(self, number):
+        if number in self._drawn_numbers:
+            number.undraw()
+            self._drawn_numbers.remove(number)
+
+    def undraw_numbers(self):
+        for number in self._drawn_numbers:
+            number.undraw()
+        self._drawn_numbers = []
+
     # --------
     # Draw a polyline.
     #
@@ -182,6 +263,33 @@ class World:
     #
     def getRooms(self):
         return self._rooms
+
+    # Added 19.06.2015
+    def draw_landmark(self, x, y, number=None):
+        """ Place a landmark in the world at position(x, y)
+        :param x:       coord
+        :param y:       coord
+        :param number:  (int) landmark number, default=None
+        :return: -
+        """
+
+        landmark = Circle(Point(x, y), self._landmark_radius)
+        landmark.draw(self._win)
+        self._landmark_positions.append([x, y])
+        if number is None:
+            number = len(self._landmarks)
+        nr = self.draw_number(x, y, number)
+        self._landmarks.append([number, landmark, nr])
+
+    def get_landmark_positions(self):
+        """ Return positions of all placed landmarks
+        :return: list([x1, y1], [x2, y2], [x_n, y_n])
+        """
+
+        if self._landmark_positions:
+            return self._landmark_positions
+        else:
+            return None
 
     # --------
     # set the robot at pose (x,y,theta) and draw it.
@@ -279,6 +387,12 @@ class World:
         self._boxesSensedAngles = []
         self.senseBox()
 
+        # Added 19.06.2015
+        self._landmark_sensed_indexes = []
+        self._landmark_sensed_dist = []
+        self._landmark_sensed_angles = []
+        self.sense_landmark()
+
         # Update clock and status bar
         self._clockTime += dT
         self._clockTimeText.setText("Clock Time: %4.2f Driven Distance: %4.2f Position: %4.2f, %4.2f, %4.2f "
@@ -374,6 +488,42 @@ class World:
                 box.draw(self._win)
         #print "senseBox: ", self._boxesSensedDist,self._boxesSensedAngles
         return [self._boxesSensedDist,self._boxesSensedAngles]
+
+    # Added 19.06.2015
+    def sense_landmark(self):
+        """ Sense all landmarks in sensor range
+        :return: landmark number, dist to landmark, angle to landmark
+        """
+        if self._landmark_sensor == False:
+            return None
+        if self._landmark_sensed_dist == []:
+            p = self._robotCircle.getCenter()
+            for landmark in self._landmarks:
+                landmark[1].undraw()
+                landmark[2].undraw()
+                landmark[1].setFill('white')
+                pb = landmark[1].getCenter()
+                theta = atan2(pb.getY()-p.getY(), pb.getX()-p.getX())
+                # print 'Box check', self._robotTheta, theta
+                # angle to box relative to robot's x axis from [-pi,+pi)
+                alpha_landmark = (self._robotTheta - theta + pi) % (2*pi) - pi
+                if abs(alpha_landmark) <= self._landmark_sensor_angle/2:
+                    ip = self.getNearestIntersectionWithBeam(p, theta)
+                    d = World._dist(p, pb)
+                    if World._dist(p, ip) > d:
+                        # landmark can be seen:
+                        #print 'landmark can be seen', d, alphaBox
+                        landmark[1].setFill('green')
+                        self.landmark_dist = World._dist(p, pb)
+                        self._landmark_sensed_indexes.append(landmark[0])
+                        self._landmark_sensed_dist.append(d)
+                        self._landmark_sensed_angles.append(alpha_landmark)
+                # Redraw landmark and number
+                landmark[1].draw(self._win)
+                landmark[2].draw(self._win)
+        # print "sense_landmark: ", self._landmark_sensed_dist,self._landmark_sensed_angles
+        return [self._landmark_sensed_indexes, self._landmark_sensed_dist, self._landmark_sensed_angles]
+
 
     def getCursorController(self):
         return CursorController(self._win)

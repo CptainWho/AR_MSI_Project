@@ -31,8 +31,6 @@ class OccupancyGrid:
         self.height = height
         self.cellSize = float(cellSize)
 
-        plt.ion()
-
     def getGridWidth(self):
         return self.width
 
@@ -56,8 +54,13 @@ class OccupancyGrid:
                 s += "%1d" % self.grid[xi][yi]
             print s
 
-    def drawGrid(self):
+    def drawGrid(self, dynamic=1):
         # added: figure for plotting
+        if dynamic == 1:
+            plt.ion()
+        else:
+            plt.ioff()
+
         fig = plt.figure()
         fig.suptitle('OccupancyGrid', fontsize=20)
         plot = plt.imshow(self.grid.transpose(), origin='lower')

@@ -11,10 +11,11 @@ __version__ = '1.0'
 
 # Standard library imports
 import numpy as np
+import time
 from math import pi
 import matplotlib.pyplot as plt
 # Local imports
-from Exercise3.robot_navigation import Brushfire
+from Exercise3.navigation import Brushfire
 from HTWG_Robot_Simulator_V1 import OccupancyGrid, Robot,  officeWorld as World
 
 # Create obstacleWorld and new Robot
@@ -46,8 +47,7 @@ brushfire = Brushfire.Brushfire(occupancy_grid, myRobot)
 
 brushfire_grid = brushfire.apply_brushfire(adjacency=8, safety_distance=0.5)
 
-occupancy_grid.drawGrid()
-
+occupancy_grid.drawGrid(dynamic=0)
 
 # plot = plt.imshow(brushfire_grid.transpose(), origin='lower')
 # cbar = plt.colorbar(mappable=plot)
