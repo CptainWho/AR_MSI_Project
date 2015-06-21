@@ -23,20 +23,23 @@ myRobot = Robot.Robot()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-set_robot_opt['x'] = 2
-set_robot_opt['y'] = 2
+set_robot_opt['x'] = 9
+set_robot_opt['y'] = 7
 set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 # Set up particle cloud
 particle_cloud = ParticleCloud.ParticleCloud(myWorld)
-particle_cloud.create_particles(10)
-# particle = ParticleCloud.Particle(0, 3, 4, 0, myWorld)
-# particle_cloud.append(particle)
+# particle_cloud.create_particles(10)
+particle0 = ParticleCloud.Particle(0, 9.5, 7, 0, myWorld)
+particle1 = ParticleCloud.Particle(1, 9.5, 7, pi, myWorld)
+particle2 = ParticleCloud.Particle(2, 8, 6, 0, myWorld)
+particle3 = ParticleCloud.Particle(3, 8, 6, pi, myWorld)
+particle_cloud.append([particle0, particle1, particle2, particle3])
 
 # Place landmarks
-myWorld.draw_landmark(3, 2)
-myWorld.draw_landmark(2, 4)
+myWorld.draw_landmark(10, 7)
+myWorld.draw_landmark(9, 9)
 
 landmark_positions = myWorld.get_landmark_positions()
 
@@ -52,7 +55,7 @@ for j in xrange(1):
     print 'Robot:'
     for i in xrange(len(number_dist_angles[0])):
         print '\tdist to landmark %d: %0.2f' % (i, number_dist_angles[1][i])
-        print '\tangle to landmark %d: %0.2f' % (i, number_dist_angles[2][i])
+        print '\tangle to landmark %d: %0.2f' % (i, number_dist_angles[2][i] / pi * 180.0)
 
     for particle in particle_cloud:
         weight = particle.calculate_weight(landmark_positions, number_dist_angles[1], number_dist_angles[2], debug=True)
@@ -61,7 +64,8 @@ for j in xrange(1):
 for particle in particle_cloud:
     p_x, p_y = particle.get_pos()
     p_number = particle.get_number()
-    particle(p_x, p_y, color='red', number=p_number)
+    p_theta = particle.get_theta()
+    particle(p_x, p_y, p_theta, color='red', number=p_number)
 
 # particle(10, 2, color='red', number=0)
 
