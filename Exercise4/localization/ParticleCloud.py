@@ -22,10 +22,9 @@ class ParticleCloud():
     """
 
     def __init__(self, world_ref, particles=None):
+        self.particles = []
         if particles is not None:
             self.particles = particles
-        else:
-            self.particles = []
 
         self.world_ref = world_ref
 
@@ -38,18 +37,22 @@ class ParticleCloud():
     def __contains__(self, particle):
         return True if particle in self.particles else False
 
-    def append(self, particles):
-        for particle in particles:
-            self.particles.append(particle)
-            # Draw Particle in world
-            p_number = particle.get_number()
-            self.world_ref.draw_particle(particle, number=p_number)
+    def add_particle(self, x, y, theta, number=None):
+        if number is None or number < len(self.particles):
+            number = len(self.particles)
+        particle = Particle(number, x, y, theta, self.world_ref)
+        self.append(particle)
 
-    def remove(self, particles):
-        for particle in particles:
-            self.particles.remove(particle)
-            # Undraw particle in world
-            self.world_ref.undraw_particle(particle)
+    def append(self, particle):
+        self.particles.append(particle)
+        # Draw Particle in world
+        p_number = particle.get_number()
+        self.world_ref.draw_particle(particle, number=p_number)
+
+    def remove(self, particle):
+        self.particles.remove(particle)
+        # Undraw particle in world
+        self.world_ref.undraw_particle(particle)
 
     def create_particles(self, amount):
         """ Create and randomly place a given amount of particles in given world's boundaries
@@ -70,6 +73,14 @@ class ParticleCloud():
 
             # Append particle to particle_cloud
             self.append(particle)
+
+    def shuffle_particles(self, n):
+        """ Shuffle n particles
+        :param n:   (int) amount of particles to shuffle
+        :return:    -
+        """
+
+        pass
 
 
 class Particle():
@@ -107,23 +118,12 @@ class Particle():
         self.world_ref.draw_particle(self, color, number)
 
     def get_pos(self):
-        """
-        :return: particle position [x, y]
-        """
         return [self.x, self.y]
 
     def get_theta(self):
-        """
-        :return: particle orientation
-        """
-
         return self.theta
 
     def get_number(self):
-        """
-        :return: (int) particle number
-        """
-
         return self.number
 
     def calculate_weight(self, landmark_positions, landmark_distances, landmark_angles, debug=False):
@@ -137,7 +137,6 @@ class Particle():
         if debug:
             print 'Particle %d:' % self.number
             print '\tp_theta = %0.2f' % (self.theta / pi * 180.0)
-
 
         for i in xrange(len(landmark_positions)):
             # Calculate estimated distance and angle from particle to given landmark
@@ -154,6 +153,6 @@ class Particle():
                 print '--> diff = %0.2f' % (landmark_distances[i] - est_dist_to_landmark)
                 print '\test angle to landmark %d: %0.2f' % (i, rel_angle_to_landmark / pi * 180.0),
                 print '--> diff = %0.2f' % (Calc.add_angles(landmark_angles[i], -rel_angle_to_landmark) / pi * 180)
-                print '\t--> resulting weight: %0.2f' % self.particle_weight
+                print '\t\t--> resulting weight: %0.2f' % self.particle_weight
 
         return self.particle_weight

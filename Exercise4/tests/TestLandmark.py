@@ -31,11 +31,10 @@ myWorld.setRobot(**set_robot_opt)
 # Set up particle cloud
 particle_cloud = ParticleCloud.ParticleCloud(myWorld)
 # particle_cloud.create_particles(10)
-particle0 = ParticleCloud.Particle(0, 9.5, 7, 0, myWorld)
-particle1 = ParticleCloud.Particle(1, 9.5, 7, pi, myWorld)
-particle2 = ParticleCloud.Particle(2, 8, 6, 0, myWorld)
-particle3 = ParticleCloud.Particle(3, 8, 6, pi, myWorld)
-particle_cloud.append([particle0, particle1, particle2, particle3])
+particle_cloud.add_particle(9.5, 7, 0, number=0)
+particle_cloud.add_particle(9.5, 7, pi, number=1)
+particle_cloud.add_particle(8, 6, 0, number=2)
+particle_cloud.add_particle(8, 6, pi, number=3)
 
 # Place landmarks
 myWorld.draw_landmark(10, 7)
