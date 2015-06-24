@@ -292,6 +292,7 @@ def get_distance_from_line_to_point(start, end, point):
 def douglas_peucker(polyline, epsilon):
     """
     algorithm for reducing the number of points in a curve that is approximated by a series of points
+    https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
     :param polyline: the polyline to simplify
     :param epsilon: tolerance factor
     :return: simplified polyline
