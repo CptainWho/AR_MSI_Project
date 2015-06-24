@@ -148,10 +148,7 @@ class AStarAlgorithm():
                     h_w_z = self.get_heuristic_dist_to_end(w_point)
                     p_w = v_point
                     # Scale priority according to occupancy ([0..1]) at grid[point] -> priority * [1.0 .. 2.0]
-                    print d_w + h_w_z,
-                    print w_point_occupancy + 1,
                     priority_w = (d_w + h_w_z) * (w_point_occupancy + 1)
-                    print priority_w
                     # Check if neighbour is already in open_list
                     if w_point not in self.open_list:
                         # Neighbour is still unknown -> add to open_list

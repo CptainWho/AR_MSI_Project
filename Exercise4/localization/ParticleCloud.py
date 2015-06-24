@@ -38,12 +38,11 @@ class ParticleCloud():
     def __contains__(self, particle):
         return True if particle in self.particles else False
 
-    def append(self, particles):
-        for particle in particles:
-            self.particles.append(particle)
-            # Draw Particle in world
-            p_number = particle.get_number()
-            self.world_ref.draw_particle(particle, number=p_number)
+    def append(self, particle):
+        self.particles.append(particle)
+        # Draw Particle in world
+        p_number = particle.get_number()
+        self.world_ref.draw_particle(particle, number=p_number)
 
     def remove(self, particles):
         for particle in particles:
