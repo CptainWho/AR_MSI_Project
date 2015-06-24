@@ -50,7 +50,7 @@ if landmark_positions is not None:
 
 for j in xrange(1):
     myRobot.move([0, -pi])
-    number_dist_angles = myRobot.sense_landmarks()
+    number_dist_angles = myRobot.sense_landmarks_in_range()
     #print number_dist_angles
     #print 'Robot:'
     #for i in xrange(len(number_dist_angles[0])):
