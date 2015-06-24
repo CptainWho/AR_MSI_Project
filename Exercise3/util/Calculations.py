@@ -290,30 +290,37 @@ def get_distance_from_line_to_point(start, end, point):
     return distance
 
 def douglas_peucker(polyline, epsilon):
-        # Finde den Punkt mit dem größten Abstand
-        d_max = 0
-        index = 0
-        for i in range(1, len(polyline)-1):
-            point = polyline[i]
-            d = abs(get_distance_from_line_to_point(polyline[0], polyline[-1], point))
-            if d > d_max:
-                index = i
-                d_max = d
+    """
+    algorithm for reducing the number of points in a curve that is approximated by a series of points
+    :param polyline: the polyline to simplify
+    :param epsilon: tolerance factor
+    :return: simplified polyline
+    """
+    # Find the point with the maximum distance
+    d_max = 0
+    index = 0
+    for i in range(1, len(polyline)-1):
+        point = polyline[i]
+        d = abs(get_distance_from_line_to_point(polyline[0], polyline[-1], point))
+        if d > d_max:
+            index = i
+            d_max = d
 
-        # Wenn die maximale Entfernung größer als Epsilon ist, dann rekursiv vereinfachen
-        if d_max >= epsilon:
-            # Recusive call
-            rec_results_1 = douglas_peucker(polyline[0:index], epsilon)
-            rec_results_2 = douglas_peucker(polyline[index:len(polyline)], epsilon)
+    # If max distance is greater than epsilon, recursively simplify
+    if d_max >= epsilon:
+        # Recusive call
+        rec_results_1 = douglas_peucker(polyline[0:index], epsilon)
+        rec_results_2 = douglas_peucker(polyline[index:len(polyline)], epsilon)
 
-            # Ergebnisliste aufbauen
-            result_list = rec_results_1[0:len(rec_results_1)-1]
-            result_list.extend(rec_results_2[0:len(rec_results_2)])
+        # Build the result list
+        result_list = rec_results_1[0:len(rec_results_1)-1]
+        result_list.extend(rec_results_2[0:len(rec_results_2)])
 
-        else:
-            result_list = [polyline[0], polyline[-1]]
+    else:
+        result_list = [polyline[0], polyline[-1]]
 
-        return result_list
+    # Return the result
+    return result_list
 
 # OBSOLET
 # # returns selected column from list (beginning at 0)
