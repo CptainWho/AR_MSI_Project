@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Module Description:
 Contains basic calculations
 """
@@ -265,6 +266,62 @@ def get_positive_angle_of_line(p1, p2):
     """
     theta = get_angle_of_line(p1, p2) % (2*pi)
     return theta
+
+def get_distance_from_line_to_point(start, end, point):
+    """
+    calculates the distance a_b from picture at:
+    http://www.gymbase.de/index/themeng13/ma/orthogonal_03.php
+    :param start:
+    :param end:
+    :param point:
+    :return:
+    """
+    # calculate line distances
+    line_del_x = end[0] - start[0]
+    line_del_y = end[1] - start[1]
+    line_len = get_dist_from_point_to_point(start, end)
+
+    # orthogonal vector on line
+    ortho_vect = np.asarray([-line_del_y, line_del_x])
+    # vector from start to point
+    point_vect = np.asarray([point[0] - start[0], point[1] - start[1]])
+
+    distance = np.dot(ortho_vect, point_vect) / float(line_len)
+    return distance
+
+def douglas_peucker(polyline, epsilon):
+    """
+    algorithm for reducing the number of points in a curve that is approximated by a series of points
+    https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
+    :param polyline: the polyline to simplify
+    :param epsilon: tolerance factor
+    :return: simplified polyline
+    """
+    # Find the point with the maximum distance
+    d_max = 0
+    index = 0
+    for i in range(1, len(polyline)-1):
+        point = polyline[i]
+        d = abs(get_distance_from_line_to_point(polyline[0], polyline[-1], point))
+        if d > d_max:
+            index = i
+            d_max = d
+
+    # If max distance is greater than epsilon, recursively simplify
+    if d_max >= epsilon:
+        # Recusive call
+        rec_results_1 = douglas_peucker(polyline[0:index], epsilon)
+        rec_results_2 = douglas_peucker(polyline[index:len(polyline)], epsilon)
+
+        # Build the result list
+        result_list = rec_results_1[0:len(rec_results_1)-1]
+        result_list.extend(rec_results_2[0:len(rec_results_2)])
+
+    else:
+        result_list = [polyline[0], polyline[-1]]
+
+    # Return the result
+    return result_list
 
 # OBSOLET
 # # returns selected column from list (beginning at 0)

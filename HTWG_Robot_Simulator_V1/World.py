@@ -21,7 +21,7 @@
 # 20.06.2015: (Phil) Changed draw_points() to draw_particle(), added draw_number()
 # 21.06.2015: (Phil) Updated draw_particle() and draw_number(), added functions to directly undraw a single particle /
 #                    number
-#
+# 24.06.2015: (Ecki) Refactored sense_landmark to sense_landmarks_in_range, created new function for sense_landmarks
 
 from math import *
 import numpy as np
@@ -391,7 +391,7 @@ class World:
         self._landmark_sensed_indexes = []
         self._landmark_sensed_dist = []
         self._landmark_sensed_angles = []
-        self.sense_landmark()
+        self.sense_landmarks_in_range()
 
         # Update clock and status bar
         self._clockTime += dT
@@ -490,7 +490,7 @@ class World:
         return [self._boxesSensedDist,self._boxesSensedAngles]
 
     # Added 19.06.2015
-    def sense_landmark(self):
+    def sense_landmarks_in_range(self):
         """ Sense all landmarks in sensor range
         :return: landmark number, dist to landmark, angle to landmark
         """
@@ -524,6 +524,29 @@ class World:
         # print "sense_landmark: ", self._landmark_sensed_dist,self._landmark_sensed_angles
         return [self._landmark_sensed_indexes, self._landmark_sensed_dist, self._landmark_sensed_angles]
 
+    # Added 24.06.2015
+    def sense_landmarks(self):
+        """
+        senses all landmarks in world
+        :return: landmark number, dist to landmark, angle to landmark
+        """
+        if self._landmark_sensor == False:
+            return None
+        # get robot position
+        pos_robot = self._robotCircle.getCenter()
+        landmark_sensed_indexes = []
+        landmark_sensed_dist = []
+        landmark_sensed_angles = []
+        for landmark in self._landmarks:
+            pos_lmrk = landmark[1].getCenter()
+            theta = atan2(pos_lmrk.getY()-pos_robot.getY(), pos_lmrk.getX()-pos_robot.getX())
+            # angle to box relative to robot's x axis from [-pi,+pi)
+            theta_lmrk = (self._robotTheta - theta + pi) % (2*pi) - pi
+            dist = World._dist(pos_robot, pos_lmrk)
+            landmark_sensed_indexes.append(landmark[0])
+            landmark_sensed_dist.append(dist)
+            landmark_sensed_angles.append(theta_lmrk)
+        return [landmark_sensed_indexes, landmark_sensed_dist, landmark_sensed_angles]
 
     def getCursorController(self):
         return CursorController(self._win)

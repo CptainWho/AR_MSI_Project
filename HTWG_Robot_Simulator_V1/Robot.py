@@ -184,12 +184,17 @@ class Robot:
             return distAngles
 
     # Added 19.06.2015
-    def sense_landmarks(self):
-        number_dist_angles = self._world.sense_landmark()
+    def sense_landmarks_in_range(self):
+        number_dist_angles = self._world.sense_landmarks_in_range()
         if number_dist_angles is None or number_dist_angles[1] == []:
             return None
         else:
             return number_dist_angles
+
+    # Added 24.06.2015
+    def sense_landmarks(self):
+        landmarks = self._world.sense_landmarks()
+        return landmarks
 
     # --------
     # set world
