@@ -37,9 +37,12 @@ myWorld.setRobot(**set_robot_opt)
 # create instances
 robot_loc = RobotLocation.RobotLocation(myRobot)
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld)
-occupancy_grid = myWorld.getOccupancyGrid(0.125)
+occupancy_grid = myWorld.getOccupancyGrid(0.25)
 brushfire = Brushfire.Brushfire(occupancy_grid, myRobot)
-brushfire.apply_brushfire(adjacency=4, safety_distance=0.25)
+t_start = datetime.now()
+brushfire.apply_brushfire(adjacency=8, safety_distance=0.25)
+t_delta = (datetime.now() - t_start).total_seconds()
+print 'Brushfire in: %0.5f seconds' % t_delta
 a_star = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
 # Draw occupancy grid with applied brushfire
@@ -60,7 +63,7 @@ print "Shortest path found! --> Draw polyline"
 myWorld.drawPolyline(polyline)
 
 # apply douglas peucker algorithm
-polyline = Calc.douglas_peucker(polyline, 0.3)
+polyline = Calc.douglas_peucker(polyline, 0.2)
 myWorld.drawPolyline(polyline)
 
 # Follow polyline via carrot-donkey
