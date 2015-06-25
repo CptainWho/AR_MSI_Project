@@ -16,7 +16,7 @@ import random as rnd
 from Exercise4.util import Calculations as Calc
 
 
-class ParticleCloud():
+class ParticleCloud:
     """ class description:
 
     """
@@ -108,7 +108,7 @@ class ParticleCloud():
         pass
 
 
-class Particle():
+class Particle:
     """ class description:
 
     """
