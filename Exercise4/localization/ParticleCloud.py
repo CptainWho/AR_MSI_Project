@@ -5,12 +5,12 @@
 __project__ = 'Exercise 4'
 __module__  = 'ParticleCloud'
 __author__  = 'Philipp Lohrer'
-__date__    = '21.06.2015'
+__date__    = '25.06.2015'
 
 __version__ = '0.1'
 
 # Standard library imports
-from math import pi
+from math import pi, sqrt, sin, cos
 import random as rnd
 # Local imports
 from Exercise4.util import Calculations as Calc
@@ -21,12 +21,21 @@ class ParticleCloud():
 
     """
 
-    def __init__(self, world_ref, particles=None):
+    def __init__(self, world_ref, robot_ref, draw=False):
+        """
+        :param world_ref: reference of World
+        :param robot_ref: reference of Robot
+        :return:
+        """
         self.particles = []
-        if particles is not None:
-            self.particles = particles
 
         self.world_ref = world_ref
+        self.robot_ref = robot_ref
+
+        self.draw = draw
+
+        # Robot parameters [v_max, omega_max, noise_d, noise_theta, noise_drift, time_step]
+        self.motion_params = self.robot_ref.getMotionParams()
 
     def __iter__(self):
         return iter(self.particles)
@@ -46,13 +55,16 @@ class ParticleCloud():
     def append(self, particle):
         self.particles.append(particle)
         # Draw Particle in world
-        p_number = particle.get_number()
-        self.world_ref.draw_particle(particle, number=p_number)
+        if self.draw:
+                # Draw particle in world
+                particle.draw()
 
     def remove(self, particle):
         self.particles.remove(particle)
         # Undraw particle in world
-        self.world_ref.undraw_particle(particle)
+        if self.draw:
+                # Undraw particle in world
+                particle.undraw()
 
     def create_particles(self, amount):
         """ Create and randomly place a given amount of particles in given world's boundaries
@@ -73,6 +85,19 @@ class ParticleCloud():
 
             # Append particle to particle_cloud
             self.append(particle)
+
+    def move_particles(self, motion):
+        """ Move all particles
+        :param motion:  [v, omega]
+        :return:        -
+        """
+
+        for particle in self.particles:
+            particle.move(motion, self.motion_params)
+            if self.draw:
+                # Redraw particle in world
+                particle.undraw()
+                particle.draw()
 
     def shuffle_particles(self, n):
         """ Shuffle n particles
@@ -103,28 +128,67 @@ class Particle():
 
         self.particle_weight = 1
 
-    def __call__(self, x, y, theta, color='black', number=None):
-        """ Change position of this particle
-        :param x:       x-coord
-        :param y:       y-coord
-        :param theta:   angle [-pi ... pi]
-        :param color    (string) color, default=black
-        :param number:  (int) number, default=None
-        :return:    -
-        """
-
-        self.world_ref.undraw_particle(self)
-        self.x, self.y, self.theta = x, y, theta
-        self.world_ref.draw_particle(self, color, number)
-
     def get_pos(self):
-        return [self.x, self.y]
+        return [self.x, self.y, self.theta]
+
+    def set_pos(self, x, y, theta):
+        self.x, self.y, self.theta = x, y, theta
 
     def get_theta(self):
         return self.theta
 
     def get_number(self):
         return self.number
+
+    def draw(self):
+        self.world_ref.draw_particle(self, color='black', number=self.number)
+
+    def undraw(self):
+        self.world_ref.undraw_particle(self)
+
+    def move(self, motion, motion_params):
+        """ Move particle in a way similar to Robot.move() and save new particle position
+        :param motion:          [v, omega]
+        :param motion_params    [v_max, omega_max, noise_d, noise_theta, noise_drift, time_step]
+        :return:        -
+        """
+
+        v = motion[0]
+        omega = motion[1]
+        v_max, omega_max, noise_d, noise_theta, noise_drift, time_step = motion_params
+
+        # translational and rotational speed is limited:
+        if omega > omega_max:
+            omega = omega_max
+        if omega < -omega_max:
+            omega = -omega_max
+        if v > v_max:
+            v = v_max
+        if v < -v_max:
+            v = -v_max
+
+        # Add noise to v:
+        sigma_v_2 = (noise_d / time_step) * abs(v)
+        v_noisy = v + rnd.gauss(0.0, sqrt(sigma_v_2))
+
+        # Add noise to omega:
+        sigma_omega_tr_2 = (noise_theta / time_step) * abs(omega)  # turning rate noise
+        sigma_omega_drift_2 = (noise_drift / time_step) * abs(v)  # drift noise
+        omega_noisy = omega + rnd.gauss(0.0, sqrt(sigma_omega_tr_2))
+        omega_noisy += rnd.gauss(0.0, sqrt(sigma_omega_drift_2))
+
+        # Move robot in the world (with noise):
+        d_noisy = v_noisy * time_step
+        d_theta_noisy = omega_noisy * time_step
+
+        # Get current particle position
+        x, y, theta = self.get_pos()
+        dx = d_noisy * cos(theta + 0.5 * d_theta_noisy)
+        dy = d_noisy * sin(theta + 0.5 * d_theta_noisy)
+        theta_new = (theta + d_theta_noisy) % (2 * pi)
+
+        # Update particle position
+        self.set_pos(x+dx, y+dy, theta_new)
 
     def calculate_weight(self, landmark_positions, landmark_distances, landmark_angles, debug=False):
         """

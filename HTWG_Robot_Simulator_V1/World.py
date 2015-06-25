@@ -134,7 +134,7 @@ class World:
         :param number:      (int) number, default=None
         :return:            -
         """
-        p_x, p_y = particle.get_pos()
+        p_x, p_y, p_theta = particle.get_pos()
         p = Circle(Point(p_x, p_y),  self._particle_radius)
         p.setFill(color)
         p.draw(self._win)

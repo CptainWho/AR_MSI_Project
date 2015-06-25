@@ -54,6 +54,9 @@ class Robot:
     def setTimeStep(self, T):
         self._T = T
 
+    def getMotionParams(self):
+        return [self._maxSpeed, self._maxOmega, self._k_d, self._k_theta, self._k_drift, self._T]
+
     # --------
     # returns the maximum speed
     #
