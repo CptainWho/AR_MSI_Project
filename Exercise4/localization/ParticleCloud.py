@@ -21,7 +21,7 @@ class ParticleCloud:
 
     """
 
-    def __init__(self, world_ref, robot_ref, draw=False):
+    def __init__(self, world_ref, robot_ref, localization='landmark', draw=False):
         """
         :param world_ref: reference of World
         :param robot_ref: reference of Robot
@@ -32,10 +32,18 @@ class ParticleCloud:
         self.world_ref = world_ref
         self.robot_ref = robot_ref
 
+        if localization == 'distance_field':
+            self.localization = 'distance_field'
+        else:
+            self.localization = 'landmark'
+
         self.draw = draw
 
         # Robot parameters [v_max, omega_max, noise_d, noise_theta, noise_drift, time_step]
         self.motion_params = self.robot_ref.getMotionParams()
+
+        self.sum_weight_particles = 0
+        self.sum_weight_particles_normed = 0
 
     def __iter__(self):
         return iter(self.particles)
@@ -65,6 +73,15 @@ class ParticleCloud:
         if self.draw:
                 # Undraw particle in world
                 particle.undraw()
+
+    def update(self, particles):
+        """ Delete all elements in current particle_cloud and set up new particle_cloud
+        :param particles: (list) particles
+        :return:
+        """
+
+        self.particles = particles
+
 
     def create_particles(self, amount):
         """ Create and randomly place a given amount of particles in given world's boundaries
@@ -98,6 +115,51 @@ class ParticleCloud:
                 # Redraw particle in world
                 particle.undraw()
                 particle.draw()
+
+    def weight_particles(self, landmark_positions=None, sensor_data=None):
+        """ Calculate weight for each particle
+        :param landmark_positions:
+        :param sensor_data:
+        :return:
+        """
+
+        if self.localization == 'landmark' and landmark_positions is not None and sensor_data is not None:
+            landmark_distances, landmark_angles = sensor_data
+            for particle in self.particles:
+                weight = particle.calculate_weight(landmark_positions, landmark_distances, landmark_angles)
+                self.sum_weight_particles += weight
+
+    def get_weight_particles(self):
+        """ Returns the weight of all particles normed between [0...1]
+        Sum of all weights is 1.0
+        :return: (list) weights [w1, w2, ..., w_n]
+        """
+
+        weight_list = []
+        best_weight = 0
+        best_weight_index = 0
+
+        for particle in self.particles:
+            weight = particle.get_weight()
+            # Scale weight
+            weight /= self.sum_weight_particles
+            # Change weight order
+            weight = 1 - weight
+
+            if weight > best_weight:
+                best_weight = weight
+                best_weight_index = len(weight_list)
+
+            self.sum_weight_particles_normed += weight
+
+            # Append weight to weight_list
+            weight_list.append(weight)
+
+        # Close gap to 1.0
+        if self.sum_weight_particles_normed != 1:
+            offset = 1 - self.sum_weight_particles_normed
+            # Add offset to particle with highest weight
+            weight_list[best_weight_index] += offset
 
     def shuffle_particles(self, n):
         """ Shuffle n particles
@@ -139,6 +201,12 @@ class Particle:
 
     def get_number(self):
         return self.number
+
+    def get_weight(self):
+        return self.particle_weight
+
+    def set_weight(self, weight):
+        self.particle_weight = weight
 
     def draw(self):
         self.world_ref.draw_particle(self, color='black', number=self.number)
@@ -209,8 +277,8 @@ class Particle:
             rel_angle_to_landmark = Calc.diff(est_angle_to_landmark, self.theta)
 
             # Calculate particle_weight
-            self.particle_weight = self.particle_weight * (landmark_distances[i] - est_dist_to_landmark) * \
-                                   Calc.add_angles(landmark_angles[i], -rel_angle_to_landmark)
+            self.particle_weight = abs(self.particle_weight * (landmark_distances[i] - est_dist_to_landmark) * \
+                                   Calc.add_angles(landmark_angles[i], -rel_angle_to_landmark))
 
             if debug:
                 print '\test dist to landmark %d: %0.2f' % (i, est_dist_to_landmark),
