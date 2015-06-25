@@ -29,7 +29,7 @@ set_robot_opt['theta'] = 0
 myWorld.setRobot(**set_robot_opt)
 
 # Set up particle cloud
-particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot)
+particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw=True)
 # particle_cloud.create_particles(10)
 particle_cloud.add_particle(9.5, 7, 0, number=0)
 particle_cloud.add_particle(9.5, 7, pi, number=1)
