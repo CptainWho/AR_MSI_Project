@@ -9,6 +9,8 @@
 
 # Changelog:
 # 19.06.2015: (Phil) Added support for landmark detection
+# 24.06.2015: (Ecki) Refactored sense_landmark to sense_landmarks_in_range, created new function for sense_landmarks
+
 
 
 from math import *
@@ -44,6 +46,11 @@ class Robot:
         self._odoX = 0.0
         self._odoY = 0.0
         self._odoTheta = pi / 2
+
+        # Added 25.06.2015
+        # Landmarks data
+        self._lmrk_dist_noise = 0.01
+        self._lmrk_angle_noise = 0.01
 
     def getFrontSensors(self):
         return self._frontSensors
@@ -196,8 +203,31 @@ class Robot:
 
     # Added 24.06.2015
     def sense_landmarks(self):
+        # get distances from world
         landmarks = self._world.sense_landmarks()
-        return landmarks
+        lmrk_indexes = landmarks[0]
+        lmrk_dist = landmarks[1]
+        lmrk_angles = landmarks[2]
+
+        # add noise to measured distances
+        lmrk_dist_noisy = []
+        for dist in lmrk_dist:
+            if dist is not None:
+                # print "d: ", d
+                sigma2 = self._lmrk_dist_noise ** 2 * dist
+                dist += random.gauss(0.0, sqrt(sigma2))
+            lmrk_dist_noisy.append(dist)
+
+        # add noise to measured angles
+        lmrk_angles_noisy = []
+        for angle in lmrk_angles:
+            if angle is not None:
+                # print "d: ", d
+                sigma2 = self._lmrk_angle_noise ** 2 * angle
+                angle += random.gauss(0.0, sqrt(sigma2))
+            lmrk_angles_noisy.append(angle)
+
+        return [lmrk_indexes, lmrk_dist_noisy, lmrk_angles_noisy]
 
     # --------
     # set world
