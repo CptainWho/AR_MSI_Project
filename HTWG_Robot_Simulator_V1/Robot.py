@@ -216,9 +216,15 @@ class Robot:
             lmrk_dist_noisy.append(dist)
 
         # add noise to measured angles
+        lmrk_angles_noisy = []
+        for angle in lmrk_angles:
+            if angle is not None:
+                # print "d: ", d
+                sigma2 = self._lmrk_angle_noise ** 2 * angle
+                angle += random.gauss(0.0, sqrt(sigma2))
+            lmrk_angles_noisy.append(angle)
 
-
-        return [lmrk_indexes, lmrk_dist_noisy, lmrk_angles]
+        return [lmrk_indexes, lmrk_dist_noisy, lmrk_angles_noisy]
 
     # --------
     # set world
