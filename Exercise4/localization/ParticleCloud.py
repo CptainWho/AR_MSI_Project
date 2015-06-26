@@ -12,6 +12,7 @@ __version__ = '0.1'
 # Standard library imports
 from math import pi, sqrt, sin, cos
 import random as rnd
+import numpy as np
 # Local imports
 from Exercise4.util import Calculations as Calc
 
@@ -44,6 +45,8 @@ class ParticleCloud:
 
         self.sum_weight_particles = 0
         self.sum_weight_particles_normed = 0
+
+
 
     def __iter__(self):
         return iter(self.particles)
@@ -116,7 +119,7 @@ class ParticleCloud:
                 particle.undraw()
                 particle.draw()
 
-    def weight_particles(self, landmark_positions=None, sensor_data=None):
+    def weight_particles(self, landmark_positions=None, sensor_data=None, laser_sensor_data=None, likelihoodfield=None):
         """ Calculate weight for each particle
         :param landmark_positions:
         :param sensor_data:
@@ -127,6 +130,10 @@ class ParticleCloud:
             landmark_distances, landmark_angles = sensor_data
             for particle in self.particles:
                 weight = particle.calculate_weight(landmark_positions, landmark_distances, landmark_angles)
+                self.sum_weight_particles += weight
+        elif self.localization == 'distance_field' and laser_sensor_data is not None and laser_sensor_data is not None:
+            for particle in self.particles:
+                weight = particle.calculate_weight_beams(laser_sensor_data, likelihoodfield)
                 self.sum_weight_particles += weight
 
     def get_weight_particles(self):
@@ -189,6 +196,9 @@ class Particle:
         self.world_ref = world_ref
 
         self.particle_weight = 1
+
+        # noises
+        self.likelihood_dist_noise = 0.01
 
     def get_pos(self):
         return [self.x, self.y, self.theta]
@@ -288,3 +298,32 @@ class Particle:
                 print '\t\t--> resulting weight: %0.2f' % self.particle_weight
 
         return self.particle_weight
+
+    def calculate_weight_beams(self, laser_sensor_data, likelihoodfield):
+        """
+
+        :param laser_sensor_data:   data from the laser sensors (distance and angle)
+        :param likelihoodfield:     the brushfire grid that is used for the distance to next wall
+        :return:                    calculated weight in reverse (0 => highest weight)
+        """
+        p=1
+        # go through all data points
+        for [distance, angle] in laser_sensor_data:
+            # obstacle point from particle position
+            lokal_obstacle_point = Calc.polar_2_cartesian(distance, angle)
+            x_z = lokal_obstacle_point[0] + self.x
+            y_z = lokal_obstacle_point[1] + self.y
+            obstacle_point = [x_z, y_z]
+            # get distance value from likelihoodfield
+            dist_val = 1.0 - likelihoodfield.getValue(obstacle_point)
+            # apply gauss curve
+            sigma2 = self.likelihood_dist_noise ** 2 * dist_val
+            dist_val += rnd.gauss(0.0, sqrt(sigma2))
+            p = p * dist_val
+
+        self.particle_weight = 1 - p
+        return self.particle_weight
+
+
+
+
