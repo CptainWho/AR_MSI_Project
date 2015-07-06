@@ -14,32 +14,38 @@ import numpy as np
 from math import pi
 # Local imports
 from HTWG_Robot_Simulator_V1 import Robot, officeWorld as World
-from Exercise4.localization import ParticleCloud
+from Exercise4.util import RobotLocation
+from Exercise4.localization import ParticleCloud, MCL
+
+debug = False
 
 
 # Create obstacleWorld and new Robot
 myWorld = World.buildWorld()
 myRobot = Robot.Robot()
+robot_loc = RobotLocation.RobotLocation(myRobot)
 # Place Robot in World
+robot_position = [4, 7, 0]
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-set_robot_opt['x'] = 9
-set_robot_opt['y'] = 7
-set_robot_opt['theta'] = 0
+set_robot_opt['x'] = robot_position[0]
+set_robot_opt['y'] = robot_position[1]
+set_robot_opt['theta'] = robot_position[2]
 myWorld.setRobot(**set_robot_opt)
 
-# Set up particle cloud
-particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw=True)
-# particle_cloud.create_particles(10)
-particle_cloud.add_particle(9.5, 7, 0, number=0)
-particle_cloud.add_particle(9.5, 7, pi, number=1)
-particle_cloud.add_particle(8, 6, 0, number=2)
-particle_cloud.add_particle(8, 6, pi, number=3)
+# Set up particle cloud and add particles
+particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw=False)
+if debug:
+    particle_cloud.add_particle(9.5, 7, 0, number=0)
+    particle_cloud.add_particle(9.5, 7, pi, number=1)
+    particle_cloud.add_particle(8, 6, 0, number=2)
+    particle_cloud.add_particle(8, 6, pi, number=3)
+else:
+    particle_cloud.create_particles(500, position=robot_position)
 
-# Place landmarks
-myWorld.draw_landmark(10, 7)
-myWorld.draw_landmark(9, 9)
-
+# Place landmarks and return their positions
+myWorld.draw_landmark(9, 0)
+myWorld.draw_landmark(9, 14)
 landmark_positions = myWorld.get_landmark_positions()
 
 print 'Landmark positions:'
@@ -47,25 +53,30 @@ if landmark_positions is not None:
     for pos in landmark_positions:
         print '\t' + str(pos)
 
-for j in xrange(1):
-    myRobot.move([0, -pi])
+# Set up MCL localization
+mcl = MCL.MCL(particle_cloud, robot_loc=robot_loc, draw=True)
+
+# Define movement
+movement = [0.5, 0]
+
+for j in xrange(100):
+    myRobot.move(movement)
     number_dist_angles = myRobot.sense_landmarks()
-    print number_dist_angles
-    print 'Robot:'
-    for i in xrange(len(number_dist_angles[0])):
-        print '\tdist to landmark %d: %0.2f' % (i, number_dist_angles[1][i])
-        print '\tangle to landmark %d: %0.2f' % (i, number_dist_angles[2][i] / pi * 180.0)
+    if debug:
+        print number_dist_angles
+        print 'Robot:'
+        for i in xrange(len(number_dist_angles[0])):
+            print '\tdist to landmark %d: %0.2f' % (i, number_dist_angles[1][i])
+            print '\tangle to landmark %d: %0.2f' % (i, number_dist_angles[2][i] / pi * 180.0)
 
-    for particle in particle_cloud:
-        weight = particle.calculate_weight(landmark_positions, number_dist_angles[1], number_dist_angles[2], debug=True)
+    # Run MCL
+    est_x, est_y, est_theta = mcl.mcl_landmark(movement, landmark_positions, sensor_data=number_dist_angles)
 
-# Change color of particles and increment their numbers by 1
-for particle in particle_cloud:
-    p_x, p_y = particle.get_pos()
-    p_number = particle.get_number()
-    p_theta = particle.get_theta()
-    particle(p_x, p_y, p_theta, color='red', number=p_number)
-
-# particle(10, 2, color='red', number=0)
+    # real_x, real_y, real_theta = robot_loc.get_robot_position()
+    #
+    # print 'Real robot location:'
+    # print '\tx=%0.2f y=%0.2f theta=%0.2f' % (real_x, real_y, real_theta)
+    # print ' Estimated robot location:'
+    # print '\tx=%0.2f y=%0.2f theta=%0.2f' % (est_x, est_y, est_theta)
 
 myWorld.close()

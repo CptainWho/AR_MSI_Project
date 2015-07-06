@@ -15,6 +15,12 @@ class RobotLocation:
         """
         return self.robot.getTrueRobotPose()
 
+    def get_time_step(self):
+        """
+        :return: time step
+        """
+        return self.robot.getTimeStep()
+
     def get_robot_point(self):
         """
         :return: robots x and y value in global coordinate system

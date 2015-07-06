@@ -127,15 +127,22 @@ class World:
     def get_size(self):
         return [self._width, self._height]
 
-    def draw_particle(self, particle, color='black', number=None):
+    def draw_particle(self, particle, color='black', radius=None, number=None):
         """ Draw given particle
         :param particle:    particle_ref
         :param color:       (string) color
+        :param radius:      (float) radius, default=None
         :param number:      (int) number, default=None
         :return:            -
         """
+
+        if radius is None:
+            p_radius = self._particle_radius
+        else:
+            p_radius = radius
+
         p_x, p_y, p_theta = particle.get_pos()
-        p = Circle(Point(p_x, p_y),  self._particle_radius)
+        p = Circle(Point(p_x, p_y),  p_radius)
         p.setFill(color)
         p.draw(self._win)
         if number is not None:
@@ -401,6 +408,31 @@ class World:
         # show all
         self._udateWindow()
         return True
+
+    # # Added 03.07.2015 (Phil)
+    # def move_particle(self, particle, d, d_theta, dt):
+    #     """
+    #     :param particle:    particle object
+    #     :param d:           driven distance
+    #     :param d_theta:     relative rotation
+    #     :param dt:          time step
+    #     :return:            -
+    #     """
+    #
+    #     # Get current particle position
+    #     x, y, theta = particle.get_pos()
+    #     dx = d * cos(theta + 0.5 * d_theta)
+    #     dy = d * sin(theta + 0.5 * d_theta)
+    #     theta_new = (theta + d_theta) % (2 * pi)
+    #
+    #     # Move particle and draw article:
+    #     self.undraw_particle(particle)
+    #     self._robotCircle.move(dx,dy)
+    #     self._robotTheta = (self._robotTheta + dTheta)%(2*pi)
+    #     p = Point(x+dx+r*cos(self._robotTheta),y+dy+r*sin(self._robotTheta))
+    #     self._robotLine = Line(nc,p)
+    #     self._robotLine.draw(self._win)
+    #     self._robotLine.setWidth(3)
 
     # --------
     # Compute distance values in the given direction of the robot sensors

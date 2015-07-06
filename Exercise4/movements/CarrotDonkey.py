@@ -124,7 +124,7 @@ class CarrotDonkey:
         #return self.space
 
     # returns [v, omega] for one time step. With v and omega as move input for the robot to follow a point (the carrot)
-    def followCarrot(self):
+    def followCarrot(self, robot_pos):
 
         # when robot has reached carrot, don't anything
         if self.location.robot_inside_tolerance(self.carrot_pos, self.tolerance):
@@ -132,12 +132,13 @@ class CarrotDonkey:
 
         carrot = self.carrot_pos
 
-        [x, y, theta] = self.robot.getTrueRobotPose()
+        # [x, y, theta] = self.robot.getTrueRobotPose()
+        [x, y, theta] = robot_pos
         del_x = carrot[0] - x
         del_y = carrot[1] - y
 
         # get omega
-        [v, omega] = self.rotateToCarrot()
+        [v, omega] = self.rotateToCarrot(robot_pos)
 
         #### PID for v
         # calculate distance error
@@ -160,9 +161,10 @@ class CarrotDonkey:
 
         return [v, omega]
 
-    def rotateToCarrot(self):
+    def rotateToCarrot(self, robot_pos):
         carrot = self.carrot_pos
-        [x, y, theta] = self.robot.getTrueRobotPose()
+        # [x, y, theta] = self.robot.getTrueRobotPose()
+        [x, y, theta] = robot_pos
         del_x = carrot[0] - x
         del_y = carrot[1] - y
 

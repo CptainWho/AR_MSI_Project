@@ -5,35 +5,107 @@
 __project__ = 'Exercise 4'
 __module__  = 'MCL'
 __author__  = 'Philipp Lohrer'
-__date__    = '21.06.2015'
+__date__    = '03.07.2015'
 
 __version__ = '0.1'
 
 # Standard library imports
-import numpy as np
+import matplotlib.pyplot as plt
+from math import pi
 # Local imports
 
+class MCL():
+    """ class description:
 
+    """
 
-def MCL(particle_cloud, movement, landmark_positions, sensor_data):
+    def __init__(self, particle_cloud, robot_loc=None, draw=False):
+        """
+        :param particle_cloud:      (ref) particle_cloud
+        :param robot_loc:           (ref) robot_location, default=None
+        :param draw:                default=False
+        :return:
+        """
 
-    # 0. Set up empty particle_cloud
-    particles_resampled = []
+        self.particle_cloud = particle_cloud
+        self.robot_loc = robot_loc
+        self.draw = draw
 
-    # 1. Move particles
-    particle_cloud.move_particles(movement)
+        if self.draw and self.robot_loc is not None:
+            # Error functions
+            self.e_x = []
+            self.e_y = []
+            self.e_theta = []
+            self.e_fcns = [self.e_x, self.e_y, self.e_theta]
+            # Time
+            self.time_step = self.robot_loc.get_time_step()
+            self.T = []
 
-    # 2. Calculate weight of each particle and save it as list
-    particle_cloud.weight_particles(landmark_positions=landmark_positions, sensor_data=sensor_data)
-    weights = particle_cloud.get_weight_particles()
+            # Pyplot: enable interactive (= non-blocking) mode
+            plt.ion()
+            # Pyplot: create 3 subplots for error functions
+            fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(nrows=3, ncols=1)
+            self.plt_axes = [self.ax1, self.ax2, self.ax3]
+            self.ax1.set_title('Error x_est - x_real')
+            self.ax2.set_title('Error y_est - y_real')
+            self.ax3.set_title('Error theta_est - theta_real')
+            # Create plot-objects for continuous data updates
+            self.plt_plot_e_x = None
+            self.plt_plot_e_y = None
+            self.plt_plot_e_theta = None
+            self.plt_plots = [self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta]
 
-    # 3. Resampling
-    for i in xrange(len(particle_cloud)):
-        # 3.1 Pick one particle randomly via weighted choice
-        particle = np.random.choice(particle_cloud, p=weights)
-        # 3.2 Append particle to resampled particle_cloud
-        particles_resampled.append(particle)
+    def init_plots(self):
 
-    # 4. Update particle_cloud
-    particle_cloud.update(particles_resampled)
+        for i, plt_plot in enumerate(self.plt_plots):
+            plt_plot = self.plt_axes[i].plot(self.T, self.e_fcns[i])
+
+    def draw_plots(self):
+
+        if not all([self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta, self.T]):
+            self.init_plots()
+        else:
+            for i, plt_plot in enumerate(self.plt_plots):
+                plt_plot.set_data(self.T, self.e_fcns[i])
+                # plt_plot.autoscale()
+                plt.draw()
+        plt.show()
+
+    def mcl_landmark(self, movement, landmark_positions, sensor_data):
+        """
+        :param movement:            [v, omega]
+        :param landmark_positions:  list([x1, y1], [x2, y2], ..., [x_n, y_n])
+        :param sensor_data:         [indexes, distances, angles]
+        :return:                    estimated position [x, y, theta]
+        """
+
+        # 1. Move particles
+        self.particle_cloud.move_particles(movement)
+
+        # 2. Calculate weight of each particle and save it as list
+        self.particle_cloud.weight_particles(landmark_positions=landmark_positions, sensor_data=sensor_data)
+
+        # 3. Resampling
+        self.particle_cloud.resample()
+
+        # 4. Get estimated robot location and return it
+        est_robot_location = self.particle_cloud.get_est_location()
+
+        # 5. Draw
+        if self.draw and self.robot_loc is not None:
+
+            real_x, real_y, real_theta = self.robot_loc.get_robot_position()
+            est_x, est_y, est_theta = est_robot_location
+            print 'Real robot location: x=%0.2f y=%0.2f theta=%0.2f' % (real_x, real_y, real_theta * 180.0 / pi)
+            print 'Estimated robot location: x=%0.2f y=%0.2f theta=%0.2f' % (est_x, est_y, est_theta * 180.0 / pi)
+            print '###############################################################################################'
+            self.e_x.append(real_x - est_x)
+            self.e_y.append(real_y - est_y)
+            self.e_theta.append(real_theta - est_theta)
+            t_old = self.T[len(self.T)-1] if self.T else 0
+            self.T.append(self.time_step + t_old)
+
+            self.draw_plots()
+
+        return est_robot_location
 
