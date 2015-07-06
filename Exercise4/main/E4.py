@@ -59,7 +59,7 @@ myWorld.drawPolyline(polyline)
 
 # Set up particle cloud and add particles
 particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw=False)
-particle_cloud.create_particles(100, position=robot_position)
+particle_cloud.create_particles(10, position=robot_position)
 
 # Set up MCL localization
 mcl = MCL.MCL(particle_cloud, robot_loc=robot_loc, draw=True)

@@ -3,7 +3,7 @@ __author__ = 'Ecki'
 
 from math import *
 import numpy as np
-from Exercise2.util import RobotLocation
+from Exercise4.util import RobotLocation
 
 class CarrotDonkey:
     def __init__(self, my_robot, my_world):
@@ -127,7 +127,7 @@ class CarrotDonkey:
     def followCarrot(self, robot_pos):
 
         # when robot has reached carrot, don't anything
-        if self.location.robot_inside_tolerance(self.carrot_pos, self.tolerance):
+        if self.location.robot_inside_tolerance(self.carrot_pos, self.tolerance, robot_pos):
             return [0, 0]
 
         carrot = self.carrot_pos

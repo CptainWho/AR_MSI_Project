@@ -50,14 +50,15 @@ class RobotLocation:
         return Calc.angle_in_tol(self.get_robot_angle(),
                                  Calc.get_angle_from_point_to_point(self.get_robot_point(), point), tolerance)
 
-    def robot_inside_tolerance(self, p_target, tolerance):
+    def robot_inside_tolerance(self, p_target, tolerance, robot_pos):
         """
         check whether robot in within tolerance of target point
         :param p_target: the target point [x, y]
         :param tolerance: tolaerance radius around the point
+        :param robot_pos: [x, y, theta]
         :return: True or False
         """
-        p = self.get_robot_point()
+        p = robot_pos[0:2]
         return Calc.point_in_tol(p, p_target, tolerance)
 
     def get_angle_from_robot_to_point(self, point):
