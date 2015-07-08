@@ -11,8 +11,8 @@ __version__ = '0.1'
 
 # Standard library imports
 from math import pi, sqrt, sin, cos
-import random as rnd
-import numpy as np
+import bisect
+import random
 # Local imports
 from Exercise4.util import Calculations as Calc
 
@@ -22,7 +22,7 @@ class ParticleCloud:
 
     """
 
-    def __init__(self, world_ref, robot_ref, localization='landmark', draw=False):
+    def __init__(self, world_ref, robot_ref, localization='landmark', draw=None):
         """
         :param world_ref: reference of World
         :param robot_ref: reference of Robot
@@ -38,7 +38,19 @@ class ParticleCloud:
         else:
             self.localization = 'landmark'
 
-        self.draw = draw
+        self.draw_particle = False
+        self.draw_number = False
+        self.draw_estimation = False
+        if draw == 'particle':
+            self.draw_particle = True
+        elif draw == 'particle_number':
+            self.draw_particle = True
+            self.draw_number = True
+        elif draw == 'estimation':
+            self.draw_estimation = True
+        elif draw == 'particle_estimation':
+            self.draw_particle = True
+            self.draw_estimation = True
 
         # Robot parameters [v_max, omega_max, noise_d, noise_theta, noise_drift, time_step]
         self.motion_params = self.robot_ref.getMotionParams()
@@ -67,14 +79,14 @@ class ParticleCloud:
     def append(self, particle):
         self.particles.append(particle)
         # Draw Particle in world
-        if self.draw:
-                # Draw particle in world
-                particle.draw()
+        if self.draw_particle:
+            # Draw particle in world
+            particle.draw(draw_number=self.draw_number)
 
     def remove(self, particle):
         self.particles.remove(particle)
         # Undraw particle in world
-        if self.draw:
+        if self.draw_particle:
                 # Undraw particle in world
                 particle.undraw()
 
@@ -83,15 +95,15 @@ class ParticleCloud:
         :param particles: (list) particles
         :return:
         """
-        if self.draw:
+        if self.draw_particle:
             for particle in self.particles:
                 particle.undraw()
 
         self.particles = particles
 
-        if self.draw:
+        if self.draw_particle:
             for particle in self.particles:
-                particle.draw()
+                particle.draw(draw_number=self.draw_number)
 
     def create_particles(self, amount, position=None):
         """ Create and randomly place a given amount of particles in given world's boundaries
@@ -106,9 +118,9 @@ class ParticleCloud:
         for n in xrange(int(amount)):
             if position is None:
                 # Random particle position
-                p_x = round(rnd.random() * size_world[0], 2)
-                p_y = round(rnd.random() * size_world[1], 2)
-                p_theta = rnd.random() * 2 * pi
+                p_x = round(random.random() * size_world[0], 2)
+                p_y = round(random.random() * size_world[1], 2)
+                p_theta = random.random() * 2 * pi
                 if p_theta > pi:
                     p_theta -= 2 * pi
             else:
@@ -125,14 +137,18 @@ class ParticleCloud:
         :return:        -
         """
 
+        # counter = 0
+
         for particle in self.particles:
-            particle.move(motion, self.motion_params)
-            if self.draw:
+            # rnd = True if counter % 5 == 0 else False
+            # counter += 1
+            particle.move(motion, self.motion_params, random_movement=False)
+            if self.draw_particle:
                 # Redraw particle in world
                 particle.undraw()
-                particle.draw()
+                particle.draw(draw_number=self.draw_number)
 
-    def weight_particles(self, landmark_positions=None, sensor_data=None, laser_sensor_data=None, likelihoodfield=None):
+    def weight_particles(self, landmark_positions=None, sensor_data=None, laser_sensor_data=None, likelihoodfield=None, debug=False):
         """ Calculate weight for each particle
         :param landmark_positions:
         :param sensor_data:
@@ -142,7 +158,7 @@ class ParticleCloud:
         if self.localization == 'landmark' and landmark_positions is not None and sensor_data is not None:
             landmark_numbers, landmark_distances, landmark_angles = sensor_data
             for particle in self.particles:
-                weight = particle.calculate_weight_landmarks(landmark_positions, landmark_distances, landmark_angles)
+                weight = particle.calculate_weight_landmarks(landmark_positions, landmark_distances, landmark_angles, debug=debug)
                 self.sum_weight_particles += weight
         elif self.localization == 'distance_field' and laser_sensor_data is not None and laser_sensor_data is not None:
             for particle in self.particles:
@@ -156,8 +172,8 @@ class ParticleCloud:
         """
 
         weight_list = []
-        best_weight = 0
-        best_weight_index = 0
+        # best_weight = 0
+        # best_weight_index = 0
         self.sum_weight_particles_normed = 0
 
         for particle in self.particles:
@@ -167,42 +183,52 @@ class ParticleCloud:
             # Change weight order
             weight = (1 - weight) / float(len(self.particles))
 
-            if weight > best_weight:
-                best_weight = weight
-                best_weight_index = len(weight_list)
+            # if weight > best_weight:
+            #     best_weight = weight
+            #     best_weight_index = len(weight_list)
 
-            self.sum_weight_particles_normed += weight
+            # self.sum_weight_particles_normed += weight
 
             # Append weight to weight_list
             weight_list.append(weight)
 
-        # Close gap to 1.0
-        if self.sum_weight_particles_normed != 1:
-            offset = 1 - self.sum_weight_particles_normed
-            # Add offset to particle with highest weight
-            weight_list[best_weight_index] += offset
+        # # Close gap to 1.0
+        # if self.sum_weight_particles_normed != 1:
+        #     offset = 1 - self.sum_weight_particles_normed
+        #     # Add offset to particle with highest weight
+        #     weight_list[best_weight_index] += offset
 
         return weight_list
 
-    def resample(self):
+    def resample(self, debug=False):
         """
+        :param debug:   default=False
         :return:
         """
 
         # 1. Set up empty particle_cloud
         particles_resampled = []
 
-        # 2.
+        # 2. Calculate weight for each particle
         weights = self.get_weight_particles()
+        if debug:
+            for i, weight in enumerate(weights):
+                print '\tWeight particle %d: %0.5f' % (i, weight)
 
-        # 3.
+        # 3. Initialize WeightedRandomGenerator with weights
+        wrg = WeightedRandomGenerator(weights)
+
+        # 4. Resample particles
         for i in xrange(len(self)):
-            # 3.1 Pick one particle randomly via weighted choice
-            particle = np.random.choice(self.particles, p=weights)
-            # 3.2 Create new particle with parameters of selected particle
+            # 4.1 Pick one particle randomly via weighted choice
+            # particle = np.random.choice(self.particles, p=weights)
+            particle = self.particles[wrg()]
+            if debug:
+                print '\tResampling: selected particle: %d' % particle.get_number()
+            # 4.2 Create new particle with parameters of selected particle
             p_x, p_y, p_theta = particle.get_pos()
             particle_new = Particle(i, p_x, p_y, p_theta, self.world_ref)
-            # 3.3 Append new particle to resampled particle_cloud
+            # 4.3 Append new particle to resampled particle_cloud
             particles_resampled.append(particle_new)
 
         # 4. Update particles
@@ -224,6 +250,9 @@ class ParticleCloud:
         x_est /= float(len(self.particles))
         y_est /= float(len(self.particles))
         theta_est = (theta_est / float(len(self.particles))) % (2 * pi)
+
+        if self.draw_estimation:
+            self.world_ref.draw_estimated_position(x_est, y_est, theta_est)
 
         return [x_est, y_est, theta_est]
 
@@ -269,50 +298,55 @@ class Particle:
     def set_weight(self, weight):
         self.particle_weight = weight
 
-    def draw(self):
-        self.world_ref.draw_particle(self, color='black', number=self.number)
+    def draw(self, draw_number=False):
+        number = None
+        if draw_number:
+            number = self.get_number()
+        self.world_ref.draw_particle(self, color='black', number=number)
 
     def undraw(self):
         self.world_ref.undraw_particle(self)
 
-    def move(self, motion, motion_params):
+    def move(self, motion, motion_params, random_movement=False):
         """ Move particle in a way similar to Robot.move() and save new particle position
         :param motion:          [v, omega]
         :param motion_params    [v_max, omega_max, noise_d, noise_theta, noise_drift, time_step]
+        :param random_movement: default=False
         :return:        -
         """
 
         v_max, omega_max, noise_d, noise_theta, noise_drift, time_step = motion_params
 
-        # v_noisy = rnd.random() * v_max
-        # omega_noisy = rnd.random() * omega_max
-        # if rnd.random() < 0.5:
-        #     omega_noisy *= -1.0
+        if random_movement:
+            v_noisy = random.random() * v_max
+            omega_noisy = random.random() * omega_max
+            if random.random() < 0.5:
+                omega_noisy *= -1.0
+        else:
+            v = motion[0]
+            omega = motion[1]
 
-        v = motion[0]
-        omega = motion[1]
+            # translational and rotational speed is limited:
+            if omega > omega_max:
+                omega = omega_max
+            if omega < -omega_max:
+                omega = -omega_max
+            if v > v_max:
+                v = v_max
+            if v < -v_max:
+                v = -v_max
 
-        # translational and rotational speed is limited:
-        if omega > omega_max:
-            omega = omega_max
-        if omega < -omega_max:
-            omega = -omega_max
-        if v > v_max:
-            v = v_max
-        if v < -v_max:
-            v = -v_max
+            # Add noise to v:
+            sigma_v_2 = (noise_d / time_step) * abs(v)
+            v_noisy = v + random.gauss(0.0, sqrt(sigma_v_2))
 
-        # Add noise to v:
-        sigma_v_2 = (noise_d / time_step) * abs(v)
-        v_noisy = v + rnd.gauss(0.0, sqrt(sigma_v_2))
+            # Add noise to omega:
+            sigma_omega_tr_2 = (noise_theta / time_step) * abs(omega)  # turning rate noise
+            sigma_omega_drift_2 = (noise_drift / time_step) * abs(v)  # drift noise
+            omega_noisy = omega + random.gauss(0.0, sqrt(sigma_omega_tr_2))
+            omega_noisy += random.gauss(0.0, sqrt(sigma_omega_drift_2))
 
-        # Add noise to omega:
-        sigma_omega_tr_2 = (noise_theta / time_step) * abs(omega)  # turning rate noise
-        sigma_omega_drift_2 = (noise_drift / time_step) * abs(v)  # drift noise
-        omega_noisy = omega + rnd.gauss(0.0, sqrt(sigma_omega_tr_2))
-        omega_noisy += rnd.gauss(0.0, sqrt(sigma_omega_drift_2))
-
-        # Move robot in the world (with noise):
+        # Move particle in the world (with noise):
         d_noisy = v_noisy * time_step
         d_theta_noisy = omega_noisy * time_step
 
@@ -321,6 +355,12 @@ class Particle:
         dx = d_noisy * cos(theta + 0.5 * d_theta_noisy)
         dy = d_noisy * sin(theta + 0.5 * d_theta_noisy)
         theta_new = (theta + d_theta_noisy) % (2 * pi)
+
+        ### Test
+        # rnd_x = random.random() * 0.05
+        # dx += rnd_x if random.random() > 0.5 else (- 1.0 * rnd_x)
+        # rnd_y = random.random() * 0.01
+        # dy += rnd_y if random.random() > 0.5 else (- 1.0 * rnd_y)
 
         # Update particle position
         self.set_pos(x+dx, y+dy, theta_new)
@@ -357,7 +397,7 @@ class Particle:
                 print '--> diff = %0.2f' % (landmark_distances[i] - est_dist_to_landmark)
                 print '\test angle to landmark %d: %0.2f' % (i, rel_angle_to_landmark / pi * 180.0),
                 print '--> diff = %0.2f' % (Calc.add_angles(landmark_angles[i], -rel_angle_to_landmark) / pi * 180)
-                print '\t\t--> resulting weight: %0.2f' % self.particle_weight
+                print '\t\t--> resulting weight: %0.8f' % self.particle_weight
 
         return self.particle_weight
 
@@ -380,11 +420,32 @@ class Particle:
             dist_val = 1.0 - likelihoodfield.getValue(obstacle_point)
             # apply gauss curve
             sigma2 = self.likelihood_dist_noise ** 2 * dist_val
-            dist_val += rnd.gauss(0.0, sqrt(sigma2))
-            p = p * dist_val
+            dist_val += random.gauss(0.0, sqrt(sigma2))
+            p *= dist_val
 
         self.particle_weight = 1 - p
         return self.particle_weight
+
+
+class WeightedRandomGenerator(object):
+    """
+    source: http://eli.thegreenplace.net/2010/01/22/weighted-random-generation-in-python
+    """
+
+    def __init__(self, weights):
+        self.totals = []
+        running_total = 0
+
+        for w in weights:
+            running_total += w
+            self.totals.append(running_total)
+
+    def next(self):
+        rnd = random.random() * self.totals[-1]
+        return bisect.bisect_right(self.totals, rnd)
+
+    def __call__(self):
+        return self.next()
 
 
 

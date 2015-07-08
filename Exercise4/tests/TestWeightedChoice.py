@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-""" Module TestWeightedChoise
+""" Module TestWeightedChoice
+-> WeightedRandomGenerator is about 10-15 times faster than numpy.random.choice() !!!
 """
 
 __project__ = 'Exercise 4'
-__module__  = 'TestWeightedChoise'
+__module__  = 'TestWeightedChoice'
 __author__  = 'Philipp Lohrer'
 __date__    = '25.06.2015'
 
@@ -97,6 +98,6 @@ elements = ['one', 'two', 'three', 'four']
 weights = [0.15, 0.25, 0.5, 0.1]
 n = 100000
 
-# numpy_weighted_choice(elements, weights, n)
+numpy_weighted_choice(elements, weights, n)
 
 weighted_random_generator(elements, weights, n)

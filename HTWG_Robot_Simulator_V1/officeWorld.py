@@ -69,4 +69,5 @@ def buildWorld():
     world.addBox(3.2,5.8)
     world.addBox(7.2,10.8)
     world.addBox(13.2,6.8)
+    world.addBox(10,4)
     return world

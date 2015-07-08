@@ -79,6 +79,11 @@ class World:
         self._robotTheta = None # robot's global orientation
         self._robotLine = None # local x-axis of the robot
 
+        # Added 08.07.2015 Estimated position
+        self._estimation_circle = None
+        self._estimation_theta = None
+        self._estimation_line = None
+
         # Sensor values:
         self._sensorShow = True # Sensor values are shown
         self._sensorDist = [] # Distances to obstacles
@@ -238,7 +243,6 @@ class World:
             c.undraw()
         self._drawnCircles = []
 
-
     # --------
     # add new a new line from point (x0,y0) to (x1,y1)
     #
@@ -297,6 +301,34 @@ class World:
             return self._landmark_positions
         else:
             return None
+
+    # Added 08.07.2015 (Phil)
+    def draw_estimated_position(self, x, y, theta):
+        """
+        :param x:           x_position
+        :param y:           y_position
+        :param theta:       theta
+        :return:            -
+        """
+
+        # Undraw old estimated position
+        if self._estimation_circle is not None:
+            self._estimation_circle.undraw()
+        if self._estimation_line is not None:
+            self._estimation_line.undraw()
+
+        # Set estimated position and draw estimated position:
+        c = Point(x,y)
+        r = self._robot.getSize()/2
+        self._estimation_circle = Circle(c, r)
+        self._estimation_circle.setFill('yellow')
+        self._estimation_theta = theta
+        p = Point(x+r*cos(theta), y+r*sin(theta))
+        self._estimation_line = Line(c, p) # line shows the estimation's orientation
+        self._estimation_line.setFill('black')
+        self._estimation_circle.draw(self._win)
+        self._estimation_line.draw(self._win)
+        self._estimation_line.setWidth(3)
 
     # --------
     # set the robot at pose (x,y,theta) and draw it.

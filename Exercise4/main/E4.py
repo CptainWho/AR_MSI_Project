@@ -24,7 +24,7 @@ from Exercise4.movements import CarrotDonkey
 myWorld = World.buildWorld()
 myRobot = Robot.Robot()
 # Place Robot in World
-robot_position = [4, 7, 0]
+robot_position = [15, 5, 0]  # [4, 7, 0]
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
 set_robot_opt['x'] = robot_position[0]
@@ -46,7 +46,7 @@ a_star = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
 # Define start and end points
 start_point = robot_loc.get_robot_point()
-end_point = [10, 4]
+end_point = [4, 7]  # [15, 5]
 myWorld.addBox(end_point[0], end_point[1])
 
 # Find shortest path from start_point to end_point
@@ -58,11 +58,11 @@ myWorld.drawPolyline(polyline)
 ######################################################################################
 
 # Set up particle cloud and add particles
-particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw=False)
-particle_cloud.create_particles(50, position=robot_position)
+particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw='estimation')
+particle_cloud.create_particles(1000, position=robot_position)
 
 # Set up MCL localization
-mcl = MCL.MCL(particle_cloud, robot_loc=robot_loc, draw=True)
+mcl = MCL.MCL(particle_cloud, robot_loc=robot_loc, draw=False)
 
 # Place landmarks and return their positions
 landmarks = 2
@@ -74,6 +74,13 @@ elif landmarks == 4:
     myWorld.draw_landmark(19, 0)
     myWorld.draw_landmark(0, 14)
     myWorld.draw_landmark(19, 14)
+elif landmarks == 6:
+    myWorld.draw_landmark(0, 0)
+    myWorld.draw_landmark(9, 0)
+    myWorld.draw_landmark(19, 0)
+    myWorld.draw_landmark(0, 14)
+    myWorld.draw_landmark(9, 14)
+    myWorld.draw_landmark(19, 14)
 landmark_positions = myWorld.get_landmark_positions()
 
 print 'Landmark positions:'
@@ -84,12 +91,13 @@ if landmark_positions is not None:
 # Follow polyline via carrot-donkey
 carrot_donkey.setCarrotPosition(polyline[0])
 for p_next in polyline:
+    # while not Calc.point_in_tol(robot_position[0:2], end_point, tol=0.2):
     while carrot_donkey.carrot_pos != p_next:
         carrot_donkey.moveCarrotToPoint(p_next, 0.5)
         movement = carrot_donkey.followCarrot(robot_position)
         myRobot.move(movement)
         number_dist_angles = myRobot.sense_landmarks()
         # Run MCL
-        robot_position = mcl.mcl_landmark(movement, landmark_positions, sensor_data=number_dist_angles)
+        robot_position = mcl.mcl_landmark(movement, landmark_positions, sensor_data=number_dist_angles, debug=False)
 
 myWorld.close()

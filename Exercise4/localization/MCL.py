@@ -71,11 +71,12 @@ class MCL():
                 plt.draw()
         plt.show()
 
-    def mcl_landmark(self, movement, landmark_positions, sensor_data):
+    def mcl_landmark(self, movement, landmark_positions, sensor_data, debug=False):
         """
         :param movement:            [v, omega]
         :param landmark_positions:  list([x1, y1], [x2, y2], ..., [x_n, y_n])
         :param sensor_data:         [indexes, distances, angles]
+        :param debug:               default=False
         :return:                    estimated position [x, y, theta]
         """
 
@@ -83,10 +84,25 @@ class MCL():
         self.particle_cloud.move_particles(movement)
 
         # 2. Calculate weight of each particle and save it as list
-        self.particle_cloud.weight_particles(landmark_positions=landmark_positions, sensor_data=sensor_data)
+        self.particle_cloud.weight_particles(landmark_positions=landmark_positions, sensor_data=sensor_data, debug=False)
+
+        if debug:
+            for particle in self.particle_cloud:
+                number = particle.get_number()
+                p_x, p_y, p_theta = particle.get_pos()
+                print 'Particle %d: x=%0.2f y=%0.2f theta=%0.2f' % (number, p_x, p_y, p_theta),
+                print 'weight=%0.2f' % particle.get_weight()
 
         # 3. Resampling
-        self.particle_cloud.resample()
+        self.particle_cloud.resample(debug=debug)
+
+        if debug:
+            for particle in self.particle_cloud:
+                number = particle.get_number()
+                p_x, p_y, p_theta = particle.get_pos()
+                print 'Particle %d: x=%0.2f y=%0.2f theta=%0.2f' % (number, p_x, p_y, p_theta)
+
+            print '########################################################################'
 
         # 4. Get estimated robot location and return it
         est_robot_location = self.particle_cloud.get_est_location()
@@ -96,9 +112,9 @@ class MCL():
 
             real_x, real_y, real_theta = self.robot_loc.get_robot_position()
             est_x, est_y, est_theta = est_robot_location
-            print 'Real robot location: x=%0.2f y=%0.2f theta=%0.2f' % (real_x, real_y, real_theta * 180.0 / pi)
-            print 'Estimated robot location: x=%0.2f y=%0.2f theta=%0.2f' % (est_x, est_y, est_theta * 180.0 / pi)
-            print '###############################################################################################'
+            # print 'Real robot location: x=%0.2f y=%0.2f theta=%0.2f' % (real_x, real_y, real_theta * 180.0 / pi)
+            # print 'Estimated robot location: x=%0.2f y=%0.2f theta=%0.2f' % (est_x, est_y, est_theta * 180.0 / pi)
+            # print '###############################################################################################'
             self.e_x.append(real_x - est_x)
             self.e_y.append(real_y - est_y)
             self.e_theta.append(real_theta - est_theta)
