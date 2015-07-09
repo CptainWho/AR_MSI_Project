@@ -5,7 +5,7 @@ from HTWG_Robot_Simulator_V1 import Robot as Robot, officeWorld as loadedWorld
 from Exercise5.util import RobotLocation
 from Exercise5.util import Calculations as Calc
 from Exercise5.obstacle_avoidance import Watchdog
-from Exercise5.old_versions import CarrotDonkey_V1 as CarrotDonkey
+from Exercise5.movements import CarrotDonkey as CarrotDonkey
 
 # Create obstacleWorld and new Robot
 myWorld = loadedWorld.buildWorld()
@@ -33,18 +33,10 @@ polyline = [[3, 7], [6.5, 4.5], [9, 4.5], [10, 2], [12, 0], [17, 4]]
 
 myWorld.drawPolyline(polyline)
 
-
-# Follow polyline via carrot-donkey
-carrot_donkey.setCarrotPosition(polyline[0])
-for p_next in polyline:
-    while carrot_donkey.carrot_pos != p_next:
-        carrot_donkey.moveCarrotToPoint(p_next, 0.5)
-        movement_commands = carrot_donkey.followCarrot()
-        movement_commands = w_dog.apply_watchdog(movement_commands, robot_loc.get_angle_from_robot_to_point(p_next))
-        myRobot.move(movement_commands)
+carrot_donkey.set_polyline(polyline, 0.5)
 
 while not Calc.point_in_tol(robot_loc.get_robot_point(), polyline[-1], 0.2):
-    movement_commands = carrot_donkey.followCarrot()
+    movement_commands = carrot_donkey.next_movement_commands()
     movement_commands = w_dog.apply_watchdog(movement_commands)
     myRobot.move(movement_commands)
 

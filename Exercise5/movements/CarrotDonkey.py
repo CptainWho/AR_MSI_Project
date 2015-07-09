@@ -3,28 +3,30 @@ __author__ = 'Ecki'
 
 from math import *
 import numpy as np
-from Exercise2.util import RobotLocation
+from Exercise5.util import RobotLocation
+from Exercise5.util import PID
+from Exercise5.util import Calculations as Calc
 
 class CarrotDonkey:
     def __init__(self, my_robot, my_world):
-        self.e_omega_old = 0
-        self.e_dist_old = 0
-        self.int_e_omega_dt = 0
-        self.int_e_dist_dt = 0
         self.robot = my_robot
         self.world = my_world
         self.dt = self.robot.getTimeStep()
-        self.location = RobotLocation.RobotLocation(my_robot)
+        self.robot_loc = RobotLocation.RobotLocation(my_robot)
         # PID Regler für Omega
-        self.k_p_omega = 0.2
+        self.k_p_omega = 2.5
         self.k_i_omega = 0.00
-        self.k_d_omega = 0.2
+        self.k_d_omega = 0.4
+        self.pid_omega = PID.PID(self.k_p_omega, self.k_i_omega, self.k_d_omega)
         # PID Regler für v
-        self.k_p_v = 0.2
+        self.k_p_v = 1.2
         self.k_i_v = 0.00
-        self.k_d_v = 0.3
+        self.k_d_v = 0.1
+        self.pid_v = PID.PID(self.k_p_v, self.k_i_v, self.k_d_v)
         # distance to keep from dot
-        self.space = 0.5
+        self.space = 0.3
+        # distance where carrot waits for robot
+        self.max_space = 1.5
         # offset on v if its zero
         self.v_off = 0.0
         # define position of carrot
@@ -32,16 +34,44 @@ class CarrotDonkey:
         self.carrot_pos_old = self.carrot_pos
         # define minimum tolerance to carrot
         self.tolerance = 0.01
+        # the polyline to follow
+        self._polyline = None
+        # the speed of the carrot
+        self.v_carrot = 0
+        # index from the polyline
+        self.line_index = 0
+        # next point
+        self.p_next = None
+        # last point
+        self.p_last = None
 
+    def set_polyline(self, polyline, v):
+        # sets the polyline and the speed to follow it
+        self._polyline = polyline
+        self.v_carrot = Calc.limit_value(v, self.robot.getMaxSpeed())
+        # set index from polyline
+        if len(polyline) > 1:
+            self.line_index = 1
+            self.p_next = polyline[1]
+        else:
+            self.line_index = 0
+        # place carrot at start point
+        self.p_last = polyline[0]
+        self.set_carrot_position(self.p_last)
 
     # calculate the angle difference from theta to theta_target
     # positive is defined as counterclockwise
     def diff(self, theta, theta_target):
         return (theta_target - theta + pi) % (2 * pi) - pi
 
+    def get_next_point(self):
+        return self.p_next
+
+    def get_last_point(self):
+        return self.p_last
 
     # sets a point as carrot to specified coordiantes
-    def setCarrotPosition(self, p):
+    def set_carrot_position(self, p):
         self.carrot_pos = p
         self.world.drawCircle(p)
 
@@ -58,34 +88,8 @@ class CarrotDonkey:
         """
         self.space = space
 
-
-    # returns a list of coordinates so that a point can travel on the line with v
-    # (last point not included)
-    def getLinePoints(self, p_start, p_end, v):
-
-        # total distances
-        del_x = p_end[0] - p_start[0]
-        del_y = p_end[1] - p_start[1]
-        d = sqrt(del_y**2 + del_x**2)
-        steps = int(np.round(d / (v * self.dt), decimals=0))
-
-        diff_x = del_x / steps
-        diff_y = del_y / steps
-
-        linePoints = []
-        x_val = p_start[0]
-        y_val = p_start[1]
-
-        linePoints.append([x_val, y_val])
-        for i in range(steps - 1):
-            x_val += diff_x
-            y_val += diff_y
-            linePoints.append([x_val, y_val])
-
-        return linePoints
-
     # moves carrot in a straight line to specified point with v
-    def moveCarrotToPoint(self, p, v):
+    def move_carrot_to_point(self, p, v):
         # driving distance
         d_diff = v * self.dt
         # distance to point
@@ -103,13 +107,13 @@ class CarrotDonkey:
 
             # stop if point is within tolerance
             if d_new < d_diff/2:
-                self.setCarrotPosition(p)
+                self.set_carrot_position(p)
             # stop if distance gets bigger again
             elif d_new > d:
-                self.setCarrotPosition(p)
+                self.set_carrot_position(p)
             # else renew position
             else:
-                self.setCarrotPosition(p_new)
+                self.set_carrot_position(p_new)
 
     def __get_internal_space(self):
         """
@@ -124,10 +128,10 @@ class CarrotDonkey:
         #return self.space
 
     # returns [v, omega] for one time step. With v and omega as move input for the robot to follow a point (the carrot)
-    def followCarrot(self):
+    def follow_carrot(self):
 
         # when robot has reached carrot, don't anything
-        if self.location.robot_inside_tolerance(self.carrot_pos, self.tolerance):
+        if self.robot_loc.robot_inside_point_tolerance(self.carrot_pos, self.tolerance):
             return [0, 0]
 
         carrot = self.carrot_pos
@@ -137,7 +141,7 @@ class CarrotDonkey:
         del_y = carrot[1] - y
 
         # get omega
-        [v, omega] = self.rotateToCarrot()
+        [v, omega] = self.rotate_to_carrot()
 
         #### PID for v
         # calculate distance error
@@ -146,12 +150,8 @@ class CarrotDonkey:
             e_dist = 0
         else:
             e_dist = self.__get_internal_space() - dist
-        # build derivative
-        de_dist_dt = (e_dist - self.e_dist_old) / self.dt
-        # build integral
-        self.int_e_dist_dt -= (e_dist + self.e_dist_old) * self.dt / 2
-        # apply closed-loop
-        v = - self.k_p_v * e_dist - self.k_d_v * de_dist_dt - self.k_i_v * self.int_e_dist_dt
+        # apply pid control
+        v = self.pid_v.control(e_dist)
         # add offset
         v += self.v_off
 
@@ -160,7 +160,7 @@ class CarrotDonkey:
 
         return [v, omega]
 
-    def rotateToCarrot(self):
+    def rotate_to_carrot(self):
         carrot = self.carrot_pos
         [x, y, theta] = self.robot.getTrueRobotPose()
         del_x = carrot[0] - x
@@ -170,12 +170,79 @@ class CarrotDonkey:
         # calculate theta error
         theta_target = atan2(del_y, del_x)
         e_theta = -self.diff(theta, theta_target)
-        # build derivative
-        de_omega_dt = (e_theta - self.e_omega_old) / self.dt
-        # build integral
-        self.int_e_omega_dt += (e_theta + self.e_omega_old) * self.dt / 2
-        # apply closed-loop
-        omega = - self.k_p_omega * e_theta - self.k_d_omega * de_omega_dt - self.k_i_omega * self.int_e_omega_dt
+        # apply pid control
+        omega = self.pid_omega.control(e_theta)
         # return omega
         v = 0
         return [v, omega]
+
+    def robot_too_far_away(self):
+        """
+        checks if robot is too far away
+        :return: True/False
+        """
+        carrot_pos = self.carrot_pos
+        robot_pos = self.robot_loc.get_robot_point()
+        distance = Calc.get_dist_from_point_to_point(carrot_pos, robot_pos)
+        if distance > self.max_space:
+            return True
+        else:
+            return False
+
+    def robot_close_to_line(self):
+        """
+        checks if robot is close to to the given line
+        :return:
+        """
+        dist = Calc.get_signed_distance_from_line_to_point(self.p_last, self.p_next, self.robot_loc.get_robot_point())
+        if abs(dist) < self.max_space:
+            return True
+        else:
+            return False
+
+    def robot_closer_than_carrot(self, point):
+        """
+        checks if robot is closer to a certain point than the carrot
+        :param point:
+        :return: True/False
+        """
+        robot_dist = Calc.get_dist_from_point_to_point(point, self.robot_loc.get_robot_point())
+        carrot_dist = Calc.get_dist_from_point_to_point(point, self.get_carrot_position())
+        if robot_dist < carrot_dist:
+            return True
+        else:
+            return False
+
+    def next_movement_commands(self):
+
+        robot_too_far_away = self.robot_too_far_away()
+
+        # when robot is closer to target point, than carrot itself, set carrot to projection of robot on the line
+        if self.robot_closer_than_carrot(self.p_next):
+            # when robot is still close to carrot, add offset
+            if self.robot_close_to_line():
+                offset = self.space*2
+            else:
+                offset = 0
+            # Calculate new point for carrot
+            rel_point = Calc.get_orthogonal_point_on_line(self.p_last, self.p_next, self.robot_loc.get_robot_point(), offset)
+            point = [self.p_last[0] + rel_point[0], self.p_last[1] + rel_point[1]]
+            self.set_carrot_position(point)
+
+        # carrot waits if robot is too far away
+        if robot_too_far_away:
+            movement_commands = self.follow_carrot()
+            return movement_commands
+
+        # move carrot as long as end of polyline is not reached
+        if self.line_index < len(self._polyline):
+            self.p_next = self._polyline[self.line_index]
+            self.move_carrot_to_point(self.p_next, self.v_carrot)
+            # when next point reached increase index
+            if self.carrot_pos == self.p_next:
+                self.line_index += 1
+                self.p_last = self.p_next
+
+        movement_commands = self.follow_carrot()
+        return movement_commands
+

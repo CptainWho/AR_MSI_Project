@@ -15,18 +15,21 @@ from Exercise2.util import RobotLocation
 # Local imports
 from Exercise2.util import Calculations as Calc
 
+
+
+
 class Transitions():
     """ Class description:
     Transitions for StateMachine
     """
 
-    def __init__(self, robot, polyline):
+    def __init__(self, robot, carrot_donkey):
         """ Initialization
         :param robot: robot reference
         :param polyline: polyline reference
         :return: -
         """
-        self.polyline = polyline
+        self.carrot_donkey = carrot_donkey
         self.robot = robot
         self.robot_loc = RobotLocation.RobotLocation(self.robot)
         # Tolerances to reach point / angle
@@ -45,7 +48,7 @@ class Transitions():
         front_sensors = self.robot.getFrontSensors()
 
         # Calculate distance to next point -> threshold
-        next_point = self.polyline.get_next_point()
+        next_point = self.carrot_donkey.get_next_point()
         robot_point = self.robot_loc.get_robot_point()
         target_dist = Calc.get_dist_from_point_to_point(robot_point, next_point)
 
@@ -58,19 +61,4 @@ class Transitions():
 
         return obstacle_detected
 
-    def set_polyline_object(self, polyline):
-        self.polyline = polyline
 
-    def next_point_reached(self):
-        return self.polyline.next_point_reached(self.robot_loc.get_robot_point())
-
-    def end_point_reached(self):
-        return self.polyline.end_point_reached(self.robot_loc.get_robot_point())
-
-    def aiming_to_next_point(self):
-        """ Check if robot directly looks to the next point with angle tolerance
-        :return: True / False
-        """
-        return self.robot_loc.aiming_to_point(self.polyline.get_next_point(), self.tol_angle)
-    
-    

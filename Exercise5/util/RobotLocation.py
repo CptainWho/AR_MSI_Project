@@ -61,6 +61,17 @@ class RobotLocation:
         p = robot_pos[0:2]
         return Calc.point_in_tol(p, p_target, tolerance)
 
+    def robot_inside_point_tolerance(self, p_target, tolerance):
+        """
+        check whether robot in within tolerance of target point
+        :param p_target: the target point [x, y]
+        :param tolerance: tolaerance radius around the point
+        :param robot_pos: [x, y, theta]
+        :return: True or False
+        """
+        p = self.get_robot_point()
+        return Calc.point_in_tol(p, p_target, tolerance)
+
     def get_angle_from_robot_to_point(self, point):
         """
         returns the angle between robot position and a point
@@ -93,6 +104,30 @@ class RobotLocation:
     def get_max_robot_omega(self):
         return self.robot.getMaxOmega()
 
+    def get_sensor_data_polar(self):
+        angles = self.robot.getSensorDirections()
+        distances = self.robot.sense()
+        sensor_data = [distances, angles]
+        return sensor_data
+
+    def get_sensor_data_above_threshold(self, threshold):
+        """
+        returns robots polar sensor data
+        but just the data where distance lies above specified threshold
+        :return: list with [distances, angles]
+        """
+        new_data = []
+        [distances, angles] = self.get_sensor_data_polar()
+
+        for i in xrange(len(distances)):
+            distance = distances[i]
+            angle = angles[i]
+            if distance > threshold or distance is None:
+                new_data.append([distance, angle])
+
+        return new_data
+
+
     def get_relative_obstacle_points(self):
         """
         returns alls points where the robot detects an obstacle
@@ -100,8 +135,8 @@ class RobotLocation:
         this means robot is always seen at point [0, 0] in coordinate system
         :return: a list of points
         """
-        angles = self.robot.getSensorDirections()
-        distances = self.robot.sense()
+        sensor_data = self.get_sensor_data_polar()
+        [distances, angles] = sensor_data
 
         # list of of obstacle point
         obstacle_points = []

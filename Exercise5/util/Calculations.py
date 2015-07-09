@@ -266,6 +266,114 @@ def get_positive_angle_of_line(p1, p2):
     theta = get_angle_of_line(p1, p2) % (2*pi)
     return theta
 
+def limit_value(value, limit):
+    """
+    limit a value to a certain limit
+    e.g. if limit = 1, the value is limited from -1...+1
+    :param value:
+    :param limit:
+    """
+    abs_limit = abs(limit)
+    if value > abs_limit:
+        value = abs_limit
+    if value < -abs_limit:
+        value = -abs_limit
+    return value
+
+def get_projected_distance_on_line(start, end, point):
+    """
+    calculates the distance of a_b from picture at:
+    http://www.gymbase.de/index/themeng13/ma/orthogonal_03.php
+    :param start:
+    :param end:
+    :param point:
+    :return:
+    """
+    # calculate line distances
+    line_del_x = end[0] - start[0]
+    line_del_y = end[1] - start[1]
+    norm_a = get_dist_from_point_to_point(start, end)
+    vect_a = np.asarray([line_del_x, line_del_y])
+    vect_b = np.asarray([point[0]-start[0], point[1]-start[1]])
+
+    a_b = np.dot(vect_a, vect_b) / float(norm_a)
+
+    return a_b
+
+def get_orthogonal_point_on_line(line_start, line_end, point, offset=0):
+    """
+    returns a point that lies on the line and is orthogonal to the given point
+    :param line_start:
+    :param line_end:
+    :param point:
+    :return:
+    """
+    dist_new = get_projected_distance_on_line(line_start, line_end, point)
+    dist_old = get_dist_from_point_to_point(line_start, line_end)
+    line_del_x = line_end[0] - line_start[0]
+    line_del_y = line_end[1] - line_start[1]
+    x_new = line_del_x * (dist_new + offset) / dist_old
+    y_new = line_del_y * (dist_new + offset) / dist_old
+    p_new = [x_new, y_new]
+    return p_new
+
+def get_signed_distance_from_line_to_point(start, end, point):
+    """
+    calculates the distance of the dashed line from picture at:
+    http://www.gymbase.de/index/themeng13/ma/orthogonal_03.php
+    positive is on the left side of the line when you stand on start and look to end
+    :param start:
+    :param end:
+    :param point:
+    :return:
+    """
+    # calculate line distances
+    line_del_x = end[0] - start[0]
+    line_del_y = end[1] - start[1]
+    line_len = get_dist_from_point_to_point(start, end)
+
+    # orthogonal vector on line
+    ortho_vect = np.asarray([-line_del_y, line_del_x])
+    # vector from start to point
+    point_vect = np.asarray([point[0] - start[0], point[1] - start[1]])
+
+    distance = np.dot(ortho_vect, point_vect) / float(line_len)
+    return distance
+
+def douglas_peucker(polyline, epsilon):
+    """
+    algorithm for reducing the number of points in a curve that is approximated by a series of points
+    https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
+    :param polyline: the polyline to simplify
+    :param epsilon: tolerance factor
+    :return: simplified polyline
+    """
+    # Find the point with the maximum distance
+    d_max = 0
+    index = 0
+    for i in range(1, len(polyline)-1):
+        point = polyline[i]
+        d = abs(get_signed_distance_from_line_to_point(polyline[0], polyline[-1], point))
+        if d > d_max:
+            index = i
+            d_max = d
+
+    # If max distance is greater than epsilon, recursively simplify
+    if d_max >= epsilon:
+        # Recusive call
+        rec_results_1 = douglas_peucker(polyline[0:index], epsilon)
+        rec_results_2 = douglas_peucker(polyline[index:len(polyline)], epsilon)
+
+        # Build the result list
+        result_list = rec_results_1[0:len(rec_results_1)-1]
+        result_list.extend(rec_results_2[0:len(rec_results_2)])
+
+    else:
+        result_list = [polyline[0], polyline[-1]]
+
+    # Return the result
+    return result_list
+
 # OBSOLET
 # # returns selected column from list (beginning at 0)
 # def getColumnFromList(self, column_number, list):

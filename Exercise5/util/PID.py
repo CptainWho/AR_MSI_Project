@@ -7,7 +7,7 @@ class PID:
     Closed-loop PID controller
     """
 
-    def __init__(self, k_p, k_i, k_d, dt):
+    def __init__(self, k_p, k_i, k_d, dt=0.1):
         """
         :param k_p: proportional parameter
         :param k_i: integral parameter
