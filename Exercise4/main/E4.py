@@ -24,7 +24,7 @@ from Exercise4.movements import CarrotDonkey
 myWorld = World.buildWorld()
 myRobot = Robot.Robot()
 # Place Robot in World
-robot_position = [15, 5, 0]  # [4, 7, 0]
+robot_position = [4, 7, 0]  # [15, 5, 0]  # [4, 7, 0]
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
 set_robot_opt['x'] = robot_position[0]
@@ -46,7 +46,7 @@ a_star = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
 # Define start and end points
 start_point = robot_loc.get_robot_point()
-end_point = [4, 7]  # [15, 5]
+end_point = [15, 5]  # [4, 7]  # [15, 5]
 myWorld.addBox(end_point[0], end_point[1])
 
 # Find shortest path from start_point to end_point
@@ -58,8 +58,8 @@ myWorld.drawPolyline(polyline)
 ######################################################################################
 
 # Set up particle cloud and add particles
-particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw='particle_number')
-particle_cloud.create_particles(10, position=robot_position)
+particle_cloud = ParticleCloud.ParticleCloud(myWorld, myRobot, draw='particle')
+particle_cloud.create_particles(100, position=robot_position)
 
 # Set up MCL localization
 mcl = MCL.MCL(particle_cloud, robot_loc=robot_loc, draw=False)

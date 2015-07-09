@@ -95,9 +95,9 @@ def numpy_weighted_choice(elements, weights, n):
 
 
 elements = ['one', 'two', 'three', 'four']
-weights = [0.15, 0.25, 0.5, 0.1]
-n = 100000
+weights = [0.15, 0.25, 0.5, 0.2]
+n = 10
 
-numpy_weighted_choice(elements, weights, n)
+# numpy_weighted_choice(elements, weights, n)
 
 weighted_random_generator(elements, weights, n)

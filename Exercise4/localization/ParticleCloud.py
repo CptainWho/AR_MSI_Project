@@ -155,6 +155,8 @@ class ParticleCloud:
         :return:
         """
 
+        self.sum_weight_particles = 0
+
         if self.localization == 'landmark' and landmark_positions is not None and sensor_data is not None:
             landmark_numbers, landmark_distances, landmark_angles = sensor_data
             for particle in self.particles:
@@ -178,25 +180,10 @@ class ParticleCloud:
 
         for particle in self.particles:
             weight = particle.get_weight()
-            # Scale weight
-            weight /= self.sum_weight_particles
             # Change weight order
-            weight = (1 - weight) / float(len(self.particles))
+            weight = (1 - weight)
 
-            # if weight > best_weight:
-            #     best_weight = weight
-            #     best_weight_index = len(weight_list)
-
-            # self.sum_weight_particles_normed += weight
-
-            # Append weight to weight_list
             weight_list.append(weight)
-
-        # # Close gap to 1.0
-        # if self.sum_weight_particles_normed != 1:
-        #     offset = 1 - self.sum_weight_particles_normed
-        #     # Add offset to particle with highest weight
-        #     weight_list[best_weight_index] += offset
 
         return weight_list
 
@@ -320,6 +307,11 @@ class Particle:
 
         v_max, omega_max, noise_d, noise_theta, noise_drift, time_step = motion_params
 
+        # Add gain to noise
+        noise_d *= 2.0
+        noise_theta *= 2.0
+        noise_drift *= 2.0
+
         if random_movement:
             v_noisy = random.random() * v_max
             omega_noisy = random.random() * omega_max
@@ -389,11 +381,14 @@ class Particle:
             # Calculate estimated distance and angle from particle to given landmark
             est_dist_to_landmark = Calc.get_dist_from_point_to_point([self.x, self.y], landmark_positions[i])
             est_angle_to_landmark = Calc.get_angle_from_point_to_point([self.x, self.y], landmark_positions[i])
-            rel_angle_to_landmark = Calc.diff(est_angle_to_landmark, self.theta)
+            rel_angle_to_landmark = Calc.diff(self.theta, est_angle_to_landmark)
 
             # Calculate particle_weight
-            self.particle_weight = abs(self.particle_weight * (landmark_distances[i] - est_dist_to_landmark) * \
-                                   Calc.add_angles(landmark_angles[i], -rel_angle_to_landmark))
+            dist = abs(landmark_distances[i] - est_dist_to_landmark)
+            dist += random.gauss(0.0, sqrt(0.01 ** 2 * dist))
+            d_theta = abs(Calc.add_angles(landmark_angles[i], -rel_angle_to_landmark))
+            d_theta += random.gauss(0.0, sqrt(0.01 ** 2 * d_theta))
+            self.particle_weight = self.particle_weight * dist * d_theta
 
             if debug:
                 print '\test dist to landmark %d: %0.2f' % (i, est_dist_to_landmark),
@@ -445,7 +440,8 @@ class WeightedRandomGenerator(object):
 
     def next(self):
         rnd = random.random() * self.totals[-1]
-        return bisect.bisect_right(self.totals, rnd)
+        index = bisect.bisect_right(self.totals, rnd)
+        return index  # len(self.totals) - 1 if index >= len(self.totals) else index
 
     def __call__(self):
         return self.next()
