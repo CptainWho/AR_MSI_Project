@@ -218,11 +218,14 @@ class ParticleCloud:
         # 3. Initialize WeightedRandomGenerator with weights
         wrg = WeightedRandomGenerator(weights)
 
+        indexes = []
         # 4. Resample particles
         for i in xrange(len(self)):
             # 4.1 Pick one particle randomly via weighted choice
             # particle = np.random.choice(self.particles, p=weights)
-            particle = self.particles[wrg()]
+            index = wrg()
+            indexes.append(index)
+            particle = self.particles[index]
             if debug:
                 print '\tResampling: selected particle: %d' % particle.get_number()
             # 4.2 Create new particle with parameters of selected particle

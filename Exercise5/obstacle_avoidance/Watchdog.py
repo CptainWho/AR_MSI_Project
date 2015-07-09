@@ -83,8 +83,8 @@ class Watchdog:
         if impact_point is not None:
 
             # function for rotation selection
-            omega = self.rotate_towards_target_direction(target_direction)
-            #omega = self.rotate_to_next_free_edge()
+            #omega = self.rotate_towards_target_direction(target_direction)
+            omega = self.rotate_to_next_free_edge()
 
             # mark that there was an emergency rotation in the last time step
             self.emergency_rotation = omega

@@ -14,7 +14,7 @@ __version__ = '1.0'
 import numpy as np
 from math import pi
 # Local imports
-from HTWG_Robot_Simulator_V1 import Robot, officeWorld as World
+from HTWG_Robot_Simulator_V1 import Robot, emptyWorld as World
 from Exercise4.util import RobotLocation, Calculations as Calc
 from Exercise4.localization import ParticleCloud, MCL
 from Exercise4.navigation import AStarAlgo as AStarAlgo, Brushfire
