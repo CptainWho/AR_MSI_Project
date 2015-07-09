@@ -33,11 +33,10 @@ polyline = [[3, 7], [6.5, 4.5], [9, 4.5], [10, 2], [12, 0], [17, 4]]
 
 myWorld.drawPolyline(polyline)
 
-carrot_donkey.set_polyline(polyline, 0.5)
+carrot_donkey.set_polyline(polyline, 0.8)
 
 while not Calc.point_in_tol(robot_loc.get_robot_point(), polyline[-1], 0.2):
     movement_commands = carrot_donkey.next_movement_commands()
-    movement_commands = w_dog.apply_watchdog(movement_commands)
-    myRobot.move(movement_commands)
+    w_dog.move_robot(myRobot, movement_commands)
 
 myWorld.close()

@@ -83,8 +83,8 @@ class Watchdog:
         if impact_point is not None:
 
             # function for rotation selection
-            #omega = self.rotate_towards_target_direction(target_direction)
             omega = self.rotate_to_next_free_edge()
+            #omega = self.rotate_towards_target_direction(target_direction)
 
             # mark that there was an emergency rotation in the last time step
             self.emergency_rotation = omega
@@ -93,6 +93,17 @@ class Watchdog:
 
         return [v, omega]
 
+    def move_robot(self, robot, movement_commands):
+        # watchdog function to move robot
+        [v, omega] = self.apply_watchdog(movement_commands)
+        stalled = not robot.move([v, omega])
+
+        # if robot is stalled rotate by ca 180 degrees
+        if stalled:
+            n = int(1/self.dT)
+            for i in xrange(n):
+                robot.move([0, self.omega_max])
+            #robot.move([-self.v_max, omega])
 
 
     def rotate_towards_target_direction(self, target_angle):

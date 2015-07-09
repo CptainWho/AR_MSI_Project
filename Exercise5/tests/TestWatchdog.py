@@ -38,14 +38,14 @@ myWorld.drawPolyline(polyline)
 carrot_donkey.setCarrotPosition(polyline[0])
 for p_next in polyline:
     while carrot_donkey.carrot_pos != p_next:
-        carrot_donkey.moveCarrotToPoint(p_next, 0.5)
+        carrot_donkey.moveCarrotToPoint(p_next, 0.8)
         movement_commands = carrot_donkey.followCarrot()
-        movement_commands = w_dog.apply_watchdog(movement_commands, robot_loc.get_angle_from_robot_to_point(p_next))
-        myRobot.move(movement_commands)
+        #movement_commands = w_dog.apply_watchdog(movement_commands, robot_loc.get_angle_from_robot_to_point(p_next))
+        #myRobot.move(movement_commands)
+        w_dog.move_robot(myRobot, movement_commands)
 
 while not Calc.point_in_tol(robot_loc.get_robot_point(), polyline[-1], 0.2):
     movement_commands = carrot_donkey.followCarrot()
-    movement_commands = w_dog.apply_watchdog(movement_commands)
-    myRobot.move(movement_commands)
+    w_dog.move_robot(myRobot, movement_commands)
 
 myWorld.close()
