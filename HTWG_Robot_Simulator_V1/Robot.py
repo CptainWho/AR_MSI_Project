@@ -38,7 +38,7 @@ class Robot:
         self._numberOfSensors = 36
         dTheta = 360.0 / self._numberOfSensors
         self._sensorDirections = [(-90.0 + dTheta * i) * pi / 180 for i in range(self._numberOfSensors)]
-        self._frontSensors = np.arange(4, 14)  # Define frontSensor indexes (-50°...+50°)
+        self._frontSensors = np.arange(3, 15)  # Define frontSensor indexes (-50°...+50°)
         self._maxSenseValue = 5.0  # Maximum sensor value for each sensor beam
         self._sensorNoise = 0.01  # standard deviation of distance measurement for 1m
 

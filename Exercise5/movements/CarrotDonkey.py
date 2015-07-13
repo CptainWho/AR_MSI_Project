@@ -9,7 +9,7 @@ from Exercise5.util import Calculations as Calc
 from Exercise5.util import Polyline
 
 class CarrotDonkey:
-    def __init__(self, my_robot, my_world):
+    def __init__(self, my_robot, my_world, move_backwards=True):
         self.robot = my_robot
         self.world = my_world
         self.dt = self.robot.getTimeStep()
@@ -34,6 +34,8 @@ class CarrotDonkey:
         self.tolerance = 0.01
         # the carrot
         self.carrot = Carrot(my_robot, my_world, space=self.space*1.8)
+        # give the carrot the permission to move backwards, when robot does
+        self.move_backwards = move_backwards
 
 
     def set_polyline(self, polyline, v):
@@ -139,7 +141,7 @@ class CarrotDonkey:
             return False
 
     def place_carrot_above_robot(self):
-        self.carrot.place_carrot_above_robot()
+        self.carrot.place_carrot_above_robot(self.move_backwards)
         self.reset_pid_controllers()
 
     def reset_pid_controllers(self):
@@ -154,7 +156,7 @@ class CarrotDonkey:
 
         # when robot is closer to target point, than carrot itself, set carrot to projection of robot on the line
         if self.robot_closer_than_carrot(self.carrot.p_next(), carrot_point):
-            self.carrot.place_carrot_above_robot()
+            self.carrot.place_carrot_above_robot(self.move_backwards)
 
         # # when robot comes too close to carrot
         # if self.robot_too_close_to_carrot():
@@ -285,7 +287,7 @@ class Carrot:
             else:
                 self.set_carrot_position(p_new)
 
-    def place_carrot_above_robot(self):
+    def place_carrot_above_robot(self, move_backwards=True):
         """
         always use when robot is moved without carrot donkey
         moves the carrot onto the polyline parallel to the robot
@@ -295,6 +297,13 @@ class Carrot:
         new_carrot_pos = self.get_point_orthogonal_to_robot()
         carrot_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), new_carrot_pos)
         line_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), self.poly.p_next())
+
+        # check if carrot would move backwards (comes closer to last point)
+        if not move_backwards:
+            carrot_dist_old = Calc.get_dist_from_point_to_point(self.poly.p_last(), self.carrot_pos)
+            if carrot_dist_old > carrot_dist:
+                # if so don't move carrot
+                new_carrot_pos = self.carrot_pos
 
         # if carrot would get past next point update the polyline and check again
         while carrot_dist > line_dist or self.poly.p_next() == new_carrot_pos:

@@ -14,7 +14,7 @@ class Watchdog:
         # information about the robot
         self.robot_location = robot_location
         # safety distance is simply added to robots radius to clear measurement faults
-        self.safety_distance = 0.1
+        self.safety_distance = 0.05
         # the robots radius
         self.robot_radius = self.robot_location.get_robot_radius()
         # the robots maximum speed

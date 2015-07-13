@@ -8,12 +8,17 @@ class RobotLocation:
     def __init__(self, robot):
         self.robot = robot
         self.angle_tol = 0*pi/180
+        # set True to use particle cloud instead of true robot position
+        self.use_particle_cloud = False
 
     def get_robot_position(self):
         """
         :return: the robots position
         """
-        return self.robot.getTrueRobotPose()
+        if not self.use_particle_cloud:
+            return self.robot.getTrueRobotPose()
+        else:
+            pass
 
     def get_robot(self):
         """

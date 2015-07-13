@@ -32,6 +32,10 @@ class PathScheduler:
         self.polyline_to_room = None
         self.next_room_center = None
 
+        # indicate to drive a circle at each room
+        self.drive_circle = True
+
+
     def find_nearest_room(self, robot_position):
         shortest_lenght = float("inf")
 
@@ -64,7 +68,7 @@ class PathScheduler:
         x = self.next_room_center[0]
         y = self.next_room_center[1]
 
-        if Calc.point_in_tol(robot_position, [x, y], 0.1):
+        if Calc.point_in_tol(robot_position, [x, y], 0.15):
             if not self.all_rooms_visited():
                 room_string = self.next_room
                 self.remove_from_open_list([room_string, x, y])

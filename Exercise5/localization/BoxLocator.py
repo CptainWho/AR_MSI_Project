@@ -5,8 +5,10 @@ from Exercise5.util import Calculations as Calc
 
 class BoxLocator:
 
-    def __init__(self, robot_location):
+    def __init__(self, robot_location, world):
         self.robot_loc = robot_location
+        self.world = world
+        self.grid = world.getOccupancyGrid()
         self.robot = robot_location.get_robot()
         # tolerance in which a box is defined
         self.box_tol = 0.5
@@ -84,10 +86,10 @@ class BoxLocator:
             print "Box", number, "at", point
             number += 1
 
-    def draw_found_boxes(self, world):
+    def draw_found_boxes(self):
         points = self.get_found_box_points()
         for point in points:
-            world.draw_found_box(point)
+            self.world.draw_found_box(point)
 
 
 class Box:

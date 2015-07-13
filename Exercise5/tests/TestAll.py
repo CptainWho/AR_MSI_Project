@@ -38,7 +38,7 @@ myWorld.setRobot(**set_robot_opt)
 
 
 # Set up StateMachine
-carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld)
+carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, move_backwards=False)
 
 robot_loc = RobotLocation.RobotLocation(myRobot)
 #histogram = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0)
@@ -48,7 +48,7 @@ w_dog = Watchdog.Watchdog(robot_loc)
 path_sched = PathScheduler.PathScheduler(myWorld)
 transitions = Transitions.Transitions(myRobot, carrot_donkey, path_sched)
 state_machine = StateMachine.StateMachine(transitions)
-box_loc = BoxLocator.BoxLocator(robot_loc)
+box_loc = BoxLocator.BoxLocator(robot_loc, myWorld)
 
 polyline = path_sched.find_nearest_room(robot_loc.get_robot_point())
 myWorld.drawPolyline(polyline)
@@ -69,8 +69,8 @@ while not target_reached:
 
         if state == 'Obstacle':
             carrot_pos = carrot_donkey.carrot.get_pos()
-            #[v, omega] = polar_hist.avoid_obstacle(carrot_pos)
-            [v, omega] = hist_grid.avoid_obstacle(robot_loc, carrot_pos)
+            [v, omega] = polar_hist.avoid_obstacle(carrot_pos)
+            #[v, omega] = hist_grid.avoid_obstacle(robot_loc, carrot_pos)
             carrot_donkey.place_carrot_above_robot()
 
             #[v, omega] = histogram.avoid_obstacle(robot_loc, carrot_donkey.get_next_point())
@@ -88,7 +88,7 @@ while not target_reached:
         box_loc.update_boxes()
 
 box_loc.print_found_boxes()
-box_loc.draw_found_boxes(myWorld)
+box_loc.draw_found_boxes()
 
 # close world by clicking
 myWorld.close()

@@ -50,7 +50,7 @@ class Transitions():
         """
 
         sensor_dist = np.asarray(self.robot.sense(), dtype=np.float)
-        threshold = self.robot.getSize()*2.0
+        threshold = self.robot.getSize()*4.0
 
         # Get front sensors of the robot
         front_sensors = self.robot.getFrontSensors()
@@ -60,9 +60,11 @@ class Transitions():
         robot_point = self.robot_loc.get_robot_point()
         target_dist = Calc.get_dist_from_point_to_point(robot_point, next_point)
 
+
         # check if there is a obstacle in front of robot
         # if target is nearer than obstacle -> ignore obstacle
         if np.any((sensor_dist[front_sensors] * 2.0) < target_dist + threshold):
+        #if np.any((sensor_dist[front_sensors]) < threshold):
             obstacle_detected = True
         else:
             obstacle_detected = False

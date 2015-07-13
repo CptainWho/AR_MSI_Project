@@ -10,14 +10,15 @@ class PolarHistogram:
     def __init__(self, robot, robot_location):
         self.robot = robot
         self.robot_loc = robot_location
-        self.threshold = 0.05
-        self.angle_threshold = 10*pi/180
+        self.threshold = 3.0
+        self.angle_threshold = 20*pi/180
         # angle distance the robot keeps away from an edge
-        self.angle_edge_offset = 20*pi/180
+        self.angle_edge_offset = 30*pi/180
         self.histogram = None
-        self.k_p_omega = 1.6
+        self.k_p_omega = 2.0
         # maximum distance for object recognition
-        self.detection_dist = self.robot.getMaxSenseValue()/2.0
+        #self.detection_dist = self.robot.getMaxSenseValue()/2.0
+        self.detection_dist = self.robot.getMaxSenseValue()
 
     def avoid_obstacle(self, target_point):
         direction_angle = self.robot_loc.get_angle_from_robot_to_point(target_point)
@@ -26,9 +27,9 @@ class PolarHistogram:
         #closest_angle = self.robotNav.searchClosestAngle(direction_angle, self.robotNav.getColumnFromList(2, minima))
         closest_angle = self.compute_closest_angle(direction_angle, minima)
 
-        closest_angle_grad = closest_angle *180/pi
-        if abs(closest_angle_grad) > 120:
-            print closest_angle_grad
+        # closest_angle_grad = closest_angle *180/pi
+        # if abs(closest_angle_grad) > 120:
+        #     print closest_angle_grad
 
 
         # hist = np.asarray(self.histogram)
@@ -45,8 +46,8 @@ class PolarHistogram:
             omega = np.sign(omega) * self.robot.getMaxOmega()
 
 
-        #v = self.robot.getMaxSpeed()/1.0 * (1 - (omega/float(self.robot.getMaxOmega())))
-        v = self.robot.getMaxSpeed()/2.0 * (1 - (omega/float(self.robot.getMaxOmega())))
+        v = self.robot.getMaxSpeed()/1.0 * (1 - (omega/float(self.robot.getMaxOmega())))
+        #v = self.robot.getMaxSpeed()/2.0 * (1 - (omega/float(self.robot.getMaxOmega())))
         return [v, omega]
 
     def compute_closest_angle(self, target_angle, minima):
@@ -81,6 +82,8 @@ class PolarHistogram:
         if Calc.angle_in_range(
                 start_angle, end_angle, target_angle, True, self.angle_threshold):
             return target_angle
+        else:
+            return mid_angle
 
         # when minima window is too small, choose middle
         if Calc.diff_custom(start_angle, end_angle) < 2*self.angle_edge_offset:

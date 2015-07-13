@@ -208,93 +208,93 @@ class HistogramGrid:
         #print 'v = %0.2f, omega = %0.2f' % (v, omega)
         return [v, omega]
 
-    def avoid_obstacle_backup(self, robot_loc, target_point, debug=False):
-        """ Calculates nearest way in regard of given target point around detected obstacles
-        :param robot_pos: [x,y,theta]
-        :param target_point: [x,y]
-        :return: speed, angular velocity ([v,omega])
-        """
-
-        # Get direction to target_point
-        target_angle = Calc.get_angle_from_point_to_point(robot_loc.get_robot_point(), target_point)
-        # Create polar histogram
-        sector_angles, sector_occupancy = self.create_histogram(debug=False)
-        # Search for occupancy values below threshold and return indexes
-        min_indexes = np.where(sector_occupancy < self.hist_threshold)[1]
-        # Group all found min_indexes to valleys (check for neighborhood indexes)
-        min_valleys = []
-        valley_temp = np.array([min_indexes[0]])
-        for i in xrange(1, np.size(min_indexes)):
-            if min_indexes[i-1] + 1 == min_indexes[i]:
-                # Direct neighbor found -> add index to valley_temp
-                valley_temp = np.hstack((valley_temp, min_indexes[i]))
-            else:
-                # Next index is not direct neighbor -> add valley_temp to min_valleys and start a new valley_temp
-                min_valleys.append(valley_temp)
-                valley_temp = min_indexes[i]
-        min_valleys.append(valley_temp)
-        # Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
-        # If so concat the first and the last min_valley
-        if min_indexes[0] == 0 \
-                and min_indexes[np.size(min_indexes) - 1] == np.size(sector_angles) - 1:
-            min_valleys = [np.hstack((min_valleys[len(min_valleys) - 1], min_valleys[0]))] + min_valleys[1:-1]
-            # Subtract 360° from the sector angles at index[valley_temp] so that they become negative
-            sector_angles[0, valley_temp] -= 360.0
-
-        # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
-        min_valley_angles = np.empty(0, dtype=np.float)
-        min_valley_weights = np.empty(0, dtype=np.float)
-        for min_valley in min_valleys:
-            min_valley_angle = np.mean(sector_angles[0, min_valley])
-            min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
-            min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
-
-        # Search angle closest to target_angle
-        # TODO Optimize search
-        closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, (min_valley_angles / 180.0 * pi))
-
-        # TODO add weight to each min_valley: the more sectors a valley has, the more weight it gets \
-        # (singular min_valleys shall get a very low weight --> quadratic weighting of sector amount? )
-
-        choose_best_valley = False
-
-        if choose_best_valley:
-            # Choose best valley according to min_valley_weight and angle_diffs
-            # Best valley = max(min_valley_weight / angle_diffs)
-            best_valley_index = np.argmax(min_valley_weights / angle_diffs)
-
-            # closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
-            best_valley = min_valleys[best_valley_index]
-            best_angle = min_valley_angles[best_valley_index] / 180.0 * pi
-
-            # Set omega proportional to diff(target_angle, closest_angle)
-            k = 1.0
-            omega = k * Calc.diff(robot_loc.get_robot_angle(), best_angle)
-            omega_max = pi  # TODO get omega_max directly from robot
-
-            # Set speed v anti-proportional to occupancy value of chosen valley and omega
-            v = 0.8 * (1 - np.sum(sector_occupancy[0, best_valley]) / np.sum(sector_occupancy[0])) * \
-                (1 - omega / omega_max)
-        else:
-            closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
-
-            # Set omega proportional to diff(target_angle, closest_angle)
-            k = 1.0
-            omega = k * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
-            omega_max = pi  # TODO get omega_max directly from robot
-
-            # Set speed v anti-proportional to occupancy value of chosen valley and omega
-            v = 0.8 * (1 - np.sum(sector_occupancy[0, closest_valley]) / np.sum(sector_occupancy[0])) * \
-                (1 - omega / omega_max)
-
-        if debug:
-            print 'DEBUG: avoid_obstacle()'
-            print '\tminimum valleys mean angles'
-            print min_valley_angles
-            print '\ttarget angle: %0.2f' % (target_angle * 180.0 / pi)
-            print '\tclosest angle: %0.2f' % (closest_angle * 180.0 / pi)
-
-        return [v, omega]
+    # def avoid_obstacle_backup(self, robot_loc, target_point, debug=False):
+    #     """ Calculates nearest way in regard of given target point around detected obstacles
+    #     :param robot_pos: [x,y,theta]
+    #     :param target_point: [x,y]
+    #     :return: speed, angular velocity ([v,omega])
+    #     """
+    #
+    #     # Get direction to target_point
+    #     target_angle = Calc.get_angle_from_point_to_point(robot_loc.get_robot_point(), target_point)
+    #     # Create polar histogram
+    #     sector_angles, sector_occupancy = self.create_histogram(debug=False)
+    #     # Search for occupancy values below threshold and return indexes
+    #     min_indexes = np.where(sector_occupancy < self.hist_threshold)[1]
+    #     # Group all found min_indexes to valleys (check for neighborhood indexes)
+    #     min_valleys = []
+    #     valley_temp = np.array([min_indexes[0]])
+    #     for i in xrange(1, np.size(min_indexes)):
+    #         if min_indexes[i-1] + 1 == min_indexes[i]:
+    #             # Direct neighbor found -> add index to valley_temp
+    #             valley_temp = np.hstack((valley_temp, min_indexes[i]))
+    #         else:
+    #             # Next index is not direct neighbor -> add valley_temp to min_valleys and start a new valley_temp
+    #             min_valleys.append(valley_temp)
+    #             valley_temp = min_indexes[i]
+    #     min_valleys.append(valley_temp)
+    #     # Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
+    #     # If so concat the first and the last min_valley
+    #     if min_indexes[0] == 0 \
+    #             and min_indexes[np.size(min_indexes) - 1] == np.size(sector_angles) - 1:
+    #         min_valleys = [np.hstack((min_valleys[len(min_valleys) - 1], min_valleys[0]))] + min_valleys[1:-1]
+    #         # Subtract 360° from the sector angles at index[valley_temp] so that they become negative
+    #         sector_angles[0, valley_temp] -= 360.0
+    #
+    #     # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
+    #     min_valley_angles = np.empty(0, dtype=np.float)
+    #     min_valley_weights = np.empty(0, dtype=np.float)
+    #     for min_valley in min_valleys:
+    #         min_valley_angle = np.mean(sector_angles[0, min_valley])
+    #         min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
+    #         min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
+    #
+    #     # Search angle closest to target_angle
+    #     # TODO Optimize search
+    #     closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, (min_valley_angles / 180.0 * pi))
+    #
+    #     # TODO add weight to each min_valley: the more sectors a valley has, the more weight it gets \
+    #     # (singular min_valleys shall get a very low weight --> quadratic weighting of sector amount? )
+    #
+    #     choose_best_valley = False
+    #
+    #     if choose_best_valley:
+    #         # Choose best valley according to min_valley_weight and angle_diffs
+    #         # Best valley = max(min_valley_weight / angle_diffs)
+    #         best_valley_index = np.argmax(min_valley_weights / angle_diffs)
+    #
+    #         # closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
+    #         best_valley = min_valleys[best_valley_index]
+    #         best_angle = min_valley_angles[best_valley_index] / 180.0 * pi
+    #
+    #         # Set omega proportional to diff(target_angle, closest_angle)
+    #         k = 1.0
+    #         omega = k * Calc.diff(robot_loc.get_robot_angle(), best_angle)
+    #         omega_max = pi  # TODO get omega_max directly from robot
+    #
+    #         # Set speed v anti-proportional to occupancy value of chosen valley and omega
+    #         v = 0.8 * (1 - np.sum(sector_occupancy[0, best_valley]) / np.sum(sector_occupancy[0])) * \
+    #             (1 - omega / omega_max)
+    #     else:
+    #         closest_valley = min_valleys[np.argwhere(min_valley_angles / 180.0 * pi == closest_angle)]
+    #
+    #         # Set omega proportional to diff(target_angle, closest_angle)
+    #         k = 1.0
+    #         omega = k * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
+    #         omega_max = pi  # TODO get omega_max directly from robot
+    #
+    #         # Set speed v anti-proportional to occupancy value of chosen valley and omega
+    #         v = 0.8 * (1 - np.sum(sector_occupancy[0, closest_valley]) / np.sum(sector_occupancy[0])) * \
+    #             (1 - omega / omega_max)
+    #
+    #     if debug:
+    #         print 'DEBUG: avoid_obstacle()'
+    #         print '\tminimum valleys mean angles'
+    #         print min_valley_angles
+    #         print '\ttarget angle: %0.2f' % (target_angle * 180.0 / pi)
+    #         print '\tclosest angle: %0.2f' % (closest_angle * 180.0 / pi)
+    #
+    #     return [v, omega]
 
     def move_grid(self, dx, dy, debug=False):
         """ Shift grid values according to robot motion dx, dy
