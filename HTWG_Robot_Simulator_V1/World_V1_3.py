@@ -25,6 +25,7 @@
 # 21.06.2015: (Phil) Updated draw_particle() and draw_number(), added functions to directly undraw a single particle /
 #                    number
 # 24.06.2015: (Ecki) Refactored sense_landmark to sense_landmarks_in_range, created new function for sense_landmarks
+# 13.07.2015: (Ecki) Possiblity to draw the found boxes
 
 from math import *
 import numpy as np
@@ -128,6 +129,10 @@ class World:
         self._particle_radius = 0.05
         self._drawn_numbers = []
 
+        # Added 13.07.2015
+        self._found_box_radius = 0.04
+        self._found_box_color = 'green'
+
         self._landmarks = []  # [[number1, landmark1, nr1], ..., [number_n, landmark_n, nr_n]]
         self._landmark_positions = []
         self._landmark_radius = 0.2
@@ -175,6 +180,8 @@ class World:
                     self.undraw_number(p[2])
                 self._particles.remove(p)
 
+
+
     def undraw_partciles(self):
         """ Undraw all particles and clear particle list
         :return: -
@@ -203,6 +210,17 @@ class World:
         for number in self._drawn_numbers:
             number.undraw()
         self._drawn_numbers = []
+
+    def draw_found_box(self, position):
+        """
+        marks at the world, where a box was found
+        :return:
+        """
+        p_x = position[0]
+        p_y = position[1]
+        b = Circle(Point(p_x, p_y), self._found_box_radius)
+        b.setFill(self._found_box_color)
+        b.draw(self._win)
 
     # --------
     # Draw a polyline.

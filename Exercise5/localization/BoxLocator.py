@@ -55,7 +55,6 @@ class BoxLocator:
                 new_box = Box(point)
                 self.boxes.append(new_box)
 
-
     def update_boxes(self):
         """
         makes a new measurement and updates all boxes
@@ -85,6 +84,10 @@ class BoxLocator:
             print "Box", number, "at", point
             number += 1
 
+    def draw_found_boxes(self, world):
+        points = self.get_found_box_points()
+        for point in points:
+            world.draw_found_box(point)
 
 
 class Box:

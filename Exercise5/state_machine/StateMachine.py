@@ -37,7 +37,13 @@ class StateMachine:
                 self.current_state = 'RoomReached'
 
         elif self.current_state == 'RoomReached':
-            self.current_state = 'NoObstacle'
+            if not self.transitions.all_rooms_visited():
+                self.current_state = 'NoObstacle'
+            else:
+                self.current_state = 'Finished'
+
+        elif self.current_state == 'Finished':
+            pass
 
         # DEBUG
         if debug:

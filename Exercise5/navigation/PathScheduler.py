@@ -54,14 +54,21 @@ class PathScheduler:
         [room_string, x, y] = room
         self.closed_list.append([room_string, x, y])
 
+    def all_rooms_visited(self):
+        if len(self.open_list) < 1:
+            return True
+        else:
+            return False
+
     def next_room_reached(self, robot_position):
         x = self.next_room_center[0]
         y = self.next_room_center[1]
 
         if Calc.point_in_tol(robot_position, [x, y], 0.1):
-            room_string = self.next_room
-            self.remove_from_open_list([room_string, x, y])
-            self.add_to_closed_list([room_string, x, y])
+            if not self.all_rooms_visited():
+                room_string = self.next_room
+                self.remove_from_open_list([room_string, x, y])
+                self.add_to_closed_list([room_string, x, y])
             return True
         else:
             return False

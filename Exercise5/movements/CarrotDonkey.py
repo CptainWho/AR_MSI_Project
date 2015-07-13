@@ -33,7 +33,7 @@ class CarrotDonkey:
         # define minimum tolerance to carrot
         self.tolerance = 0.01
         # the carrot
-        self.carrot = Carrot(my_robot, my_world, space=self.space*1.5)
+        self.carrot = Carrot(my_robot, my_world, space=self.space*1.8)
 
 
     def set_polyline(self, polyline, v):

@@ -41,6 +41,9 @@ class Transitions():
         robot_position = self.robot_loc.get_robot_point()
         return self.path_sched.next_room_reached(robot_position)
 
+    def all_rooms_visited(self):
+        return self.path_sched.all_rooms_visited()
+
     def obstacle_in_sight(self):
         """ Checks whether there is a obstacle in robots line of sight
         :return: True / False

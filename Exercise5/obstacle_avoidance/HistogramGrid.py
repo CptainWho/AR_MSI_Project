@@ -9,6 +9,8 @@ __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
 __date__ = '09.06.2015'
 
+# Edited 13.07.15 Daniel Eckstein
+
 __version__ = '1.0'
 
 # Imports
@@ -20,7 +22,7 @@ from numbers import Number
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 # Local imports
-from Exercise2.util import Calculations as Calc
+from Exercise5.util import Calculations as Calc
 #################################################################
 
 
@@ -32,7 +34,7 @@ class HistogramGrid:
     Furthermore the histogram and the histogram grid can be dynamically displayed via matplotlib.
     """
 
-    def __init__(self, width, height, cell_size=0.1, hist_resolution=10.0, hist_threshold=2.0):
+    def __init__(self, width, height, cell_size=0.1, hist_resolution=10.0, hist_threshold=2.0, plot_grid=False):
         """ Initialize grid
         :param width: int
         :param height: int
@@ -58,14 +60,21 @@ class HistogramGrid:
         self.hist_resolution = hist_resolution
         self.hist_threshold = hist_threshold
 
-        # Pyplot: enable interactive (= non-blocking) mode
-        plt.ion()
-        # Pyplot: create 2 subplots for histogram grid and polar histogram
-        fig, (self.ax1, self.ax2) = plt.subplots(nrows=2, ncols=1)
-        # Create plt-obj of matshow for faster data updating
-        self.plt_grid = None
-        # Initialize histogram with empty data
-        self.plt_hist = None
+        if plot_grid:
+            # Pyplot: enable interactive (= non-blocking) mode
+            plt.ion()
+            # Pyplot: create 2 subplots for histogram grid and polar histogram
+            fig, (self.ax1, self.ax2) = plt.subplots(nrows=2, ncols=1)
+            # Create plt-obj of matshow for faster data updating
+            self.plt_grid = None
+            # Initialize histogram with empty data
+            self.plt_hist = None
+
+        # values for closed loop
+        self.kp_v = 0.7
+        self.kp_omega = 1.2
+        #self.kp_v = 0.7
+        #self.kp_omega = 0.7
 
     def _init_grid(self, axis):
         """ Initialize HistogramGrid
@@ -109,7 +118,6 @@ class HistogramGrid:
         # TODO get v_max, omega_max directly from robot
         v_max = 1.0
         omega_max = pi
-        k = 0.7  # 0.7
         valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
         closest_angle = None
 
@@ -123,7 +131,7 @@ class HistogramGrid:
         # Check if polar histogram is empty. If so, no obstacle is around -> use target_angle directly
         if not np.any(sector_occupancy):
             # Set omega proportional to diff(target_angle, closest_angle)
-            omega = k * Calc.diff(robot_loc.get_robot_angle(), target_angle)
+            omega = self.kp_omega * Calc.diff(robot_loc.get_robot_angle(), target_angle)
 
             # Set speed v to v_max
             v = v_max
@@ -182,10 +190,10 @@ class HistogramGrid:
                         closest_min_valley = min_valleys[i]
 
             # 5. Set omega proportional to diff(target_angle, closest_angle)
-            omega = k * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
+            omega = self.kp_omega * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
 
             # 6. Set speed v anti-proportional to occupancy value of chosen valley and omega
-            v = k * (1 - np.sum(sector_occupancy[closest_min_valley]) /
+            v = self.kp_v * (1 - np.sum(sector_occupancy[closest_min_valley]) /
                        (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
 
         if debug:
@@ -197,7 +205,7 @@ class HistogramGrid:
 
         # print 'sum valley_occu = %0.2f' % np.sum(sector_occupancy[closest_min_valley])
         # print 'sum all_occu = %0.2f' % np.sum(sector_occupancy)
-        print 'v = %0.2f, omega = %0.2f' % (v, omega)
+        #print 'v = %0.2f, omega = %0.2f' % (v, omega)
         return [v, omega]
 
     def avoid_obstacle_backup(self, robot_loc, target_point, debug=False):
