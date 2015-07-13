@@ -15,6 +15,13 @@ class RobotLocation:
         """
         return self.robot.getTrueRobotPose()
 
+    def get_robot(self):
+        """
+        returns the robot object for other functions
+        :return:
+        """
+        return self.robot
+
     def get_time_step(self):
         """
         :return: time step

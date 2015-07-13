@@ -37,6 +37,9 @@ class AStarAlgorithm():
         self.end_point = None
         self.start_point = None
 
+        # total length of the last created polyline
+        self.last_poly_length = None
+
         # Open List
         self.open_list = OpenList()
         # Closed List
@@ -47,6 +50,13 @@ class AStarAlgorithm():
                             for j in (-self.cell_size, 0, self.cell_size) if not (i == -1 * j or i == j)]  # skip middle + diagonal
         self.adjacency_8 = [(i, j) for i in (-self.cell_size, 0, self.cell_size)
                             for j in (-self.cell_size, 0, self.cell_size) if not (i == j == 0)]  # skip middle
+
+    def get_polyline_length(self):
+        """
+        returns the total lenght of the last created polyline
+        :return:
+        """
+        return self.last_poly_length
 
     def get_heuristic_dist_to_end(self, point):
         """ Returns heuristic (direct) distance between start- and end-point
@@ -95,14 +105,24 @@ class AStarAlgorithm():
         :param last_point:  [x, y]
         :return:            polyline
         """
-
+        self.last_poly_length = 0
         polyline = []
         predecessor = self.closed_list[self.match_in_grid(last_point)]
         while predecessor != self.start_point:
+            last_predecessor = predecessor
             polyline.append(predecessor)
             predecessor = self.closed_list[self.match_in_grid(predecessor)]
+            # collect distances for total distance
+            if last_predecessor[0] == predecessor[0] or last_predecessor[1] == predecessor[1]:
+                self.last_poly_length += self.cell_size
+            else:
+                self.last_poly_length += self.cell_size * sqrt(2.0)
         polyline.append(self.start_point)
         polyline.reverse()
+
+        # Add end point if not in polyline
+        if polyline[-1] != last_point:
+            polyline.append(last_point)
 
         return polyline
 
@@ -113,6 +133,9 @@ class AStarAlgorithm():
         :param end_point:   [x1, y1]
         :return:            polyline for shortest path
         """
+        # clear lists
+        self.open_list.clear_all()
+        self.closed_list.clear_all()
 
         # Save end and start point
         self.end_point = end_point
@@ -157,7 +180,8 @@ class AStarAlgorithm():
                         # Neighbour is already in open_list, check if update is necessary
                         if d_w < self.open_list.get_dist(w_point):
                             self.open_list.update_entry(w_point, priority_w, d_w, p_w)
-
+        polyline = self.create_polyline(end_point)
+        return polyline
 
 class OpenList():
     """ Class description:
@@ -178,6 +202,9 @@ class OpenList():
 
     def __iter__(self):
         return iter(self.values)
+
+    def clear_all(self):
+        self.values = []
 
     def pop(self):
         hq.heapify(self.values)
@@ -211,7 +238,12 @@ class ClosedList():
     """
 
     def __init__(self, grid_width, grid_height):
+        self.grid_width = grid_width
+        self.grid_height = grid_height
         self.closed_map = [[None for x in xrange(grid_height)] for x in xrange(grid_width)]
+
+    def clear_all(self):
+        self.closed_map = [[None for x in xrange(self.grid_height)] for x in xrange(self.grid_width)]
 
     def __len__(self):
         return np.size(self.closed_map)

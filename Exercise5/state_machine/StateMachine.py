@@ -24,13 +24,20 @@ class StateMachine:
 
         if self.current_state == 'NoObstacle':
             # First check if any obstacle is in sight
-            if self.transitions.obstacle_in_sight():
+            if self.transitions.next_room_reached():
+                self.current_state = 'RoomReached'
+            elif self.transitions.obstacle_in_sight():
                 self.current_state = 'Obstacle'
 
         elif self.current_state == 'Obstacle':
             # First check if obstacle is still in sight
             if not self.transitions.obstacle_in_sight():
                 self.current_state = 'NoObstacle'
+            elif self.transitions.next_room_reached():
+                self.current_state = 'RoomReached'
+
+        elif self.current_state == 'RoomReached':
+            self.current_state = 'NoObstacle'
 
         # DEBUG
         if debug:

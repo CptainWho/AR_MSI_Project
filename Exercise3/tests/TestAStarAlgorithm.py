@@ -22,7 +22,7 @@ myWorld.setRobot(**set_robot_opt)
 
 # create instances
 robot_loc = RobotLocation.RobotLocation(myRobot)
-occupancy_grid = myWorld.getOccupancyGrid(0.5)
+occupancy_grid = myWorld.getOccupancyGrid(0.125)
 brushfire = Brushfire.Brushfire(occupancy_grid, myRobot)
 brushfire.apply_brushfire(adjacency=4, safety_distance=0.5)
 occupancy_grid.drawGrid()

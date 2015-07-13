@@ -45,7 +45,7 @@ class Transitions():
         front_sensors = self.robot.getFrontSensors()
 
         # Calculate distance to next point -> threshold
-        next_point = self.polyline.get_next_point()
+        next_point = self.polyline.p_next()
         robot_point = self.robot_loc.get_robot_point()
         target_dist = Calc.get_dist_from_point_to_point(robot_point, next_point)
 
@@ -71,6 +71,6 @@ class Transitions():
         """ Check if robot directly looks to the next point with angle tolerance
         :return: True / False
         """
-        return self.robot_loc.aiming_to_point(self.polyline.get_next_point(), self.tol_angle)
+        return self.robot_loc.aiming_to_point(self.polyline.p_next(), self.tol_angle)
     
     

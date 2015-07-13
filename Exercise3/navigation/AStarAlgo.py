@@ -48,6 +48,7 @@ class AStarAlgorithm():
         self.adjacency_8 = [(i, j) for i in (-self.cell_size, 0, self.cell_size)
                             for j in (-self.cell_size, 0, self.cell_size) if not (i == j == 0)]  # skip middle
 
+
     def get_heuristic_dist_to_end(self, point):
         """ Returns heuristic (direct) distance between start- and end-point
         :param point:   [x, y]

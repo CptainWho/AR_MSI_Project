@@ -33,7 +33,8 @@ class PID:
         # build derivative
         d_error_dt = (error - self.error_old) / self.dt
         # build integral
-        self.int_error_dt += (error + self.error_old) * self.dt / 2
+        area = (error + self.error_old) * self.dt / 2.0
+        self.int_error_dt += area
         # apply closed-loop
         output = - self.k_p * error - self.k_d * d_error_dt - self.k_i * self.int_error_dt
         # refresh old value

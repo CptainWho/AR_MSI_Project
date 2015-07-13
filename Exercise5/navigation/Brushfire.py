@@ -19,7 +19,7 @@ class Brushfire():
 
     """
 
-    def __init__(self, occupancy_grid, robot):
+    def __init__(self, occupancy_grid, robot_radius):
         """ Initialize Brushfire-Algorithm
         :param occupancy_grid:  OccupancyGrid reference
         :param robot:           robot reference
@@ -27,7 +27,7 @@ class Brushfire():
         """
 
         self.occupancy_grid = occupancy_grid
-        self.robot_radius = robot.getSize()
+        self.robot_radius = robot_radius
 
         # Iterator matrices for generator get_neighbours()
         self.adjacency_4 = [(i, j) for i in (-1, 0, 1) for j in (-1, 0, 1) if not (i == -1 * j or i == j)]  # skip middle + diagonal

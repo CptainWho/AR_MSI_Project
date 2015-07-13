@@ -122,7 +122,7 @@ def add_angles(angle1, angle2):
     """ Add given angles
     :param angle1: -
     :param angle2: -
-    :return: angle [0...2*pi]
+    :return: angle [-pi...+pi]
     """
 
     return (angle1 + angle2 + pi) % (2*pi) - pi
@@ -373,6 +373,26 @@ def douglas_peucker(polyline, epsilon):
 
     # Return the result
     return result_list
+
+# def get_closest_line_to_point(polyline, target_point):
+#     """
+#     returns the closest line
+#     :param point_list:
+#     :return: [first, second]
+#     """
+#     # when list is too small
+#     if len(point_list) < 2:
+#         return [point_list[0], point_list[0]]
+#
+#     # closest distance
+#     first_dist = float("inf")
+#     # second closest distance
+#     second_dist = float("inf")
+#
+#     # go though all points
+#     for i in xrange(len(point_list)):
+#         dist = get_dist_from_point_to_point(point_list[i], target_point)
+
 
 # OBSOLET
 # # returns selected column from list (beginning at 0)

@@ -23,18 +23,23 @@ class Transitions():
     Transitions for StateMachine
     """
 
-    def __init__(self, robot, carrot_donkey):
+    def __init__(self, robot, carrot_donkey, path_sched):
         """ Initialization
         :param robot: robot reference
         :param polyline: polyline reference
         :return: -
         """
         self.carrot_donkey = carrot_donkey
+        self.path_sched = path_sched
         self.robot = robot
         self.robot_loc = RobotLocation.RobotLocation(self.robot)
         # Tolerances to reach point / angle
         self.tol_point = 0.5
         self.tol_angle = 0.1
+
+    def next_room_reached(self):
+        robot_position = self.robot_loc.get_robot_point()
+        return self.path_sched.next_room_reached(robot_position)
 
     def obstacle_in_sight(self):
         """ Checks whether there is a obstacle in robots line of sight
@@ -42,7 +47,7 @@ class Transitions():
         """
 
         sensor_dist = np.asarray(self.robot.sense(), dtype=np.float)
-        threshold = self.robot.getSize()
+        threshold = self.robot.getSize()*2.0
 
         # Get front sensors of the robot
         front_sensors = self.robot.getFrontSensors()

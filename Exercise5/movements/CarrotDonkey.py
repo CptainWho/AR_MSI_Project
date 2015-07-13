@@ -6,6 +6,7 @@ import numpy as np
 from Exercise5.util import RobotLocation
 from Exercise5.util import PID
 from Exercise5.util import Calculations as Calc
+from Exercise5.util import Polyline
 
 class CarrotDonkey:
     def __init__(self, my_robot, my_world):
@@ -15,71 +16,33 @@ class CarrotDonkey:
         self.robot_loc = RobotLocation.RobotLocation(my_robot)
         # PID Regler für Omega
         self.k_p_omega = 2.5
-        self.k_i_omega = 0.00
-        self.k_d_omega = 0.4
+        self.k_i_omega = 0.0
+        self.k_d_omega = 0.5
         self.pid_omega = PID.PID(self.k_p_omega, self.k_i_omega, self.k_d_omega)
         # PID Regler für v
-        self.k_p_v = 1.2
-        self.k_i_v = 0.00
+        self.k_p_v = 1.8
+        self.k_i_v = 0.002
         self.k_d_v = 0.1
         self.pid_v = PID.PID(self.k_p_v, self.k_i_v, self.k_d_v)
         # distance to keep from dot
         self.space = 0.3
         # distance where carrot waits for robot
-        self.max_space = 1.5
+        self.max_space = self.space*3.0
         # offset on v if its zero
         self.v_off = 0.0
-        # define position of carrot
-        self.carrot_pos = [10, 10]
-        self.carrot_pos_old = self.carrot_pos
         # define minimum tolerance to carrot
         self.tolerance = 0.01
-        # the polyline to follow
-        self._polyline = None
-        # the speed of the carrot
-        self.v_carrot = 0
-        # index from the polyline
-        self.line_index = 0
-        # next point
-        self.p_next = None
-        # last point
-        self.p_last = None
+        # the carrot
+        self.carrot = Carrot(my_robot, my_world, space=self.space*1.5)
+
 
     def set_polyline(self, polyline, v):
-        # sets the polyline and the speed to follow it
-        self._polyline = polyline
-        self.v_carrot = Calc.limit_value(v, self.robot.getMaxSpeed())
-        # set index from polyline
-        if len(polyline) > 1:
-            self.line_index = 1
-            self.p_next = polyline[1]
-        else:
-            self.line_index = 0
-        # place carrot at start point
-        self.p_last = polyline[0]
-        self.set_carrot_position(self.p_last)
+        self.carrot.set_polyline(polyline, v)
 
     # calculate the angle difference from theta to theta_target
     # positive is defined as counterclockwise
     def diff(self, theta, theta_target):
         return (theta_target - theta + pi) % (2 * pi) - pi
-
-    def get_next_point(self):
-        return self.p_next
-
-    def get_last_point(self):
-        return self.p_last
-
-    # sets a point as carrot to specified coordiantes
-    def set_carrot_position(self, p):
-        self.carrot_pos = p
-        self.world.drawCircle(p)
-
-    def get_carrot_position(self):
-        """
-        :return: the carrots current position
-        """
-        return self.carrot_pos
 
     def set_space(self, space):
         """
@@ -88,80 +51,45 @@ class CarrotDonkey:
         """
         self.space = space
 
-    # moves carrot in a straight line to specified point with v
-    def move_carrot_to_point(self, p, v):
-        # driving distance
-        d_diff = v * self.dt
-        # distance to point
-        del_x = p[0] - self.carrot_pos[0]
-        del_y = p[1] - self.carrot_pos[1]
-        d = sqrt(del_y**2 + del_x**2)
-        # if distance is not zero
-        if not d == 0:
-            # new point
-            p_new = [self.carrot_pos[0] + del_x * d_diff / d, self.carrot_pos[1] + del_y * d_diff / d]
-            # new distance
-            del_x = p[0] - p_new[0]
-            del_y = p[1] - p_new[1]
-            d_new = sqrt(del_y**2 + del_x**2)
-
-            # stop if point is within tolerance
-            if d_new < d_diff/2:
-                self.set_carrot_position(p)
-            # stop if distance gets bigger again
-            elif d_new > d:
-                self.set_carrot_position(p)
-            # else renew position
-            else:
-                self.set_carrot_position(p_new)
-
-    def __get_internal_space(self):
-        """
-        check if carrot pos is changing.
-        if not carrot is stationary and robot dirves directly to it
-        :return:
-        """
-        if self.carrot_pos == self.carrot_pos_old:
-            return 0
-        else:
-            return self.space
-        #return self.space
-
     # returns [v, omega] for one time step. With v and omega as move input for the robot to follow a point (the carrot)
     def follow_carrot(self):
 
+        carrot = self.carrot.get_pos()
+
         # when robot has reached carrot, don't anything
-        if self.robot_loc.robot_inside_point_tolerance(self.carrot_pos, self.tolerance):
+        if self.robot_loc.robot_inside_point_tolerance(carrot, self.tolerance):
             return [0, 0]
 
-        carrot = self.carrot_pos
-
-        [x, y, theta] = self.robot.getTrueRobotPose()
+        [x, y] = self.robot_loc.get_robot_point()
         del_x = carrot[0] - x
         del_y = carrot[1] - y
 
         # get omega
         [v, omega] = self.rotate_to_carrot()
 
+        # when carrot has reached end of polyline, drive to carrot
+        if self.carrot.end_point_reached():
+            space = 0
+        else:
+            space = self.space
+
         #### PID for v
         # calculate distance error
         dist = sqrt(del_x**2 + del_y**2)
-        if dist < self.__get_internal_space():
+        # if too close to carrot wait
+        if dist < space:
             e_dist = 0
         else:
-            e_dist = self.__get_internal_space() - dist
+            e_dist = space - dist
         # apply pid control
         v = self.pid_v.control(e_dist)
         # add offset
         v += self.v_off
 
-        # save old carrot position
-        self.carrot_pos_old = self.carrot_pos
-
         return [v, omega]
 
     def rotate_to_carrot(self):
-        carrot = self.carrot_pos
+        carrot = self.carrot.get_pos()
         [x, y, theta] = self.robot.getTrueRobotPose()
         del_x = carrot[0] - x
         del_y = carrot[1] - y
@@ -181,7 +109,7 @@ class CarrotDonkey:
         checks if robot is too far away
         :return: True/False
         """
-        carrot_pos = self.carrot_pos
+        carrot_pos = self.carrot.get_pos()
         robot_pos = self.robot_loc.get_robot_point()
         distance = Calc.get_dist_from_point_to_point(carrot_pos, robot_pos)
         if distance > self.max_space:
@@ -189,45 +117,54 @@ class CarrotDonkey:
         else:
             return False
 
-    def robot_close_to_line(self):
-        """
-        checks if robot is close to to the given line
-        :return:
-        """
-        dist = Calc.get_signed_distance_from_line_to_point(self.p_last, self.p_next, self.robot_loc.get_robot_point())
-        if abs(dist) < self.max_space:
-            return True
-        else:
-            return False
+    def get_next_point(self):
+        return self.carrot.p_next()
 
-    def robot_closer_than_carrot(self, point):
+    def end_point_reached(self, tol):
+        end_point = self.carrot.p_end()
+        robot_point = self.robot_loc.get_robot_point()
+        return Calc.point_in_tol(robot_point, end_point, tol)
+
+    def robot_closer_than_carrot(self, point, carrot_point):
         """
         checks if robot is closer to a certain point than the carrot
         :param point:
         :return: True/False
         """
         robot_dist = Calc.get_dist_from_point_to_point(point, self.robot_loc.get_robot_point())
-        carrot_dist = Calc.get_dist_from_point_to_point(point, self.get_carrot_position())
+        carrot_dist = Calc.get_dist_from_point_to_point(point, carrot_point)
         if robot_dist < carrot_dist:
             return True
         else:
             return False
 
+    def place_carrot_above_robot(self):
+        self.carrot.place_carrot_above_robot()
+        self.reset_pid_controllers()
+
+    def reset_pid_controllers(self):
+        self.pid_omega.clear_storage()
+        self.pid_v.clear_storage()
+
     def next_movement_commands(self):
 
         robot_too_far_away = self.robot_too_far_away()
 
+        carrot_point = self.carrot.get_pos()
+
         # when robot is closer to target point, than carrot itself, set carrot to projection of robot on the line
-        if self.robot_closer_than_carrot(self.p_next):
-            # when robot is still close to carrot, add offset
-            if self.robot_close_to_line():
-                offset = self.space*2
-            else:
-                offset = 0
-            # Calculate new point for carrot
-            rel_point = Calc.get_orthogonal_point_on_line(self.p_last, self.p_next, self.robot_loc.get_robot_point(), offset)
-            point = [self.p_last[0] + rel_point[0], self.p_last[1] + rel_point[1]]
-            self.set_carrot_position(point)
+        if self.robot_closer_than_carrot(self.carrot.p_next(), carrot_point):
+            self.carrot.place_carrot_above_robot()
+
+        # # when robot comes too close to carrot
+        # if self.robot_too_close_to_carrot():
+        #     rel_point = Calc.get_orthogonal_point_on_line(self.carrot_pos, self.p_next, self.robot_loc.get_robot_point(), self.space*1.4)
+        #     new_carrot_pos = [self.carrot_pos[0] + rel_point[0], self.carrot_pos[1] + rel_point[1]]
+        #     self.set_carrot_position(new_carrot_pos)
+
+        # if robot is far away from line, just place carrot below robot on the line
+        # if not robot_close_to_line:
+        #     self.set_carrot_position(Calc.get_orthogonal_point_on_line(self.p_last, self.p_next, self.robot_loc.get_robot_point(), offset=0))
 
         # carrot waits if robot is too far away
         if robot_too_far_away:
@@ -235,14 +172,190 @@ class CarrotDonkey:
             return movement_commands
 
         # move carrot as long as end of polyline is not reached
-        if self.line_index < len(self._polyline):
-            self.p_next = self._polyline[self.line_index]
-            self.move_carrot_to_point(self.p_next, self.v_carrot)
+        if not self.carrot.end_point_reached():
+            self.carrot.move_carrot_to_point(self.carrot.p_next(), 0.8)
             # when next point reached increase index
-            if self.carrot_pos == self.p_next:
-                self.line_index += 1
-                self.p_last = self.p_next
+            if self.carrot.get_pos() == self.carrot.p_next():
+                self.carrot.update_polyline()
 
         movement_commands = self.follow_carrot()
         return movement_commands
+
+class Carrot:
+
+    def __init__(self, robot, world, space=0.5, draw_carrot=True):
+        self.robot_loc = RobotLocation.RobotLocation(robot)
+        self.world = world
+        # Time difference
+        self.dt = robot.getTimeStep()
+        # carrot speed limit
+        self.v_max = robot.getMaxSpeed()
+        # define position of carrot
+        self.carrot_pos = [10, 10]
+        # the polyline to follow
+        self.poly = Polyline.Polyline(None)
+        # speed of carrot
+        self.v_carrot = 0
+        # carrot visible?
+        self.draw_carrot = draw_carrot
+        # distance the carrot keeps to robot
+        self.space = space
+
+    def set_carrot_position(self, point):
+        """
+        sets a point as carrot to specified coordiantes
+        :param point:
+        :return:
+        """
+        self.carrot_pos = point
+        if self.draw_carrot:
+            self.world.drawCircle(point, color="orange")
+
+    def get_pos(self):
+        """
+        :return: the carrots current position
+        """
+        return self.carrot_pos
+
+    def p_next(self):
+        return self.poly.p_next()
+
+    def p_last(self):
+        return self.poly.p_last()
+
+    def p_end(self):
+        return self.poly.p_end()
+
+    def last_point_reached(self):
+        if self.carrot_pos == self.poly.p_last():
+            return True
+        else:
+            return False
+
+    def end_point_reached(self):
+        if self.carrot_pos == self.poly.p_end():
+            return True
+        else:
+            return False
+
+    def set_polyline(self, polyline, v):
+        """
+        sets the polyline and the speed to follow it
+        :param polyline:
+        :param v:
+        :return:
+        """
+        self.poly.set_polyline(polyline)
+        self.v_carrot = Calc.limit_value(v, self.v_max)
+        # place carrot at start point
+        self.set_carrot_position(self.poly.p_last())
+
+    def update_polyline(self):
+        self.poly.update_points()
+
+    def move_carrot_to_point(self, p, v):
+        """
+        moves carrot in a straight line to specified point with v
+        :param p:
+        :param v:
+        :return:
+        """
+        # driving distance
+        d_diff = v * self.dt
+        # distance to point
+        del_x = p[0] - self.carrot_pos[0]
+        del_y = p[1] - self.carrot_pos[1]
+        d = sqrt(del_y**2 + del_x**2)
+        # if distance is not zero
+        if not d == 0:
+            # new point
+            p_new = [self.carrot_pos[0] + del_x * d_diff / d, self.carrot_pos[1] + del_y * d_diff / d]
+            # new distance
+            del_x_new = p[0] - p_new[0]
+            del_y_new = p[1] - p_new[1]
+            d_new = sqrt(del_y_new**2 + del_x_new**2)
+
+            # stop if point is reached
+            if d_new < d_diff/2:
+                self.set_carrot_position(p)
+            # stop if distance gets bigger again
+            elif d_new > d:
+                self.set_carrot_position(p)
+            # else renew position
+            else:
+                self.set_carrot_position(p_new)
+
+    def place_carrot_above_robot(self):
+        """
+        always use when robot is moved without carrot donkey
+        moves the carrot onto the polyline parallel to the robot
+        :return:
+        """
+
+        new_carrot_pos = self.get_point_orthogonal_to_robot()
+        carrot_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), new_carrot_pos)
+        line_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), self.poly.p_next())
+
+        # if carrot would get past next point update the polyline and check again
+        while carrot_dist > line_dist or self.poly.p_next() == new_carrot_pos:
+            # update to next point
+            self.poly.update_points()
+            new_carrot_pos = self.get_point_orthogonal_to_robot()
+            carrot_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), new_carrot_pos)
+            line_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), self.poly.p_next())
+
+        # if carrot is ahead of last point, move it to last point
+        carrot_dist_end = Calc.get_dist_from_point_to_point(new_carrot_pos, self.poly.p_next())
+        if carrot_dist_end > line_dist:
+            new_carrot_pos = self.poly.p_last()
+
+        # set the carrot position
+        self.set_carrot_position(new_carrot_pos)
+
+    def get_point_orthogonal_to_robot(self):
+        p_last = self.poly.p_last()
+        p_next = self.poly.p_next()
+        p_robot = self.robot_loc.get_robot_point()
+        rel_point = Calc.get_orthogonal_point_on_line(p_last, p_next, p_robot, offset=self.space)
+        new_point = [p_last[0] + rel_point[0], p_last[1] + rel_point[1]]
+        return new_point
+
+    def adjust_carrot_pos(self, suggested_pos):
+        # check if carrot would be at or beyond point
+        line_dist = self.poly.get_dist_between_points()
+        carrot_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), suggested_pos)
+        if carrot_dist > line_dist or self.poly.p_next() == suggested_pos:
+            # update to next point
+            self.poly.update_points()
+            # set carrot to start
+            self.set_carrot_position(self.poly.p_last())
+
+    # OBSOLETE
+    # def carrot_move_with_robot(self):
+    #     """
+    #     always use when robot is moved without carrot donkey
+    #     moves the carrot onto the polyline parallel to the robot
+    #     :return:
+    #     """
+    #
+    #     new_carrot_pos = self.get_point_orthogonal_to_robot()
+    #     carrot_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), new_carrot_pos)
+    #     line_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), self.poly.p_next())
+    #
+    #     # if carrot would get past next point update the polyline and check again
+    #     while carrot_dist > line_dist or self.poly.p_next() == new_carrot_pos:
+    #         # update to next point
+    #         self.poly.update_points()
+    #         new_carrot_pos = self.get_point_orthogonal_to_robot()
+    #         carrot_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), new_carrot_pos)
+    #         line_dist = Calc.get_dist_from_point_to_point(self.poly.p_last(), self.poly.p_next())
+    #
+    #     # if carrot is ahead of last point, move it to last point
+    #     carrot_dist_end = Calc.get_dist_from_point_to_point(new_carrot_pos, self.poly.p_next())
+    #     if carrot_dist_end > line_dist:
+    #         new_carrot_pos = self.poly.p_last()
+    #
+    #     # set the carrot position
+    #     self.set_carrot_position(new_carrot_pos)
+
 

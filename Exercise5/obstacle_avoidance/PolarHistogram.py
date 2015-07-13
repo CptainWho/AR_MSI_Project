@@ -15,7 +15,7 @@ class PolarHistogram:
         # angle distance the robot keeps away from an edge
         self.angle_edge_offset = 20*pi/180
         self.histogram = None
-        self.k_p_omega = 0.8
+        self.k_p_omega = 1.6
         # maximum distance for object recognition
         self.detection_dist = self.robot.getMaxSenseValue()/2.0
 
@@ -45,7 +45,7 @@ class PolarHistogram:
             omega = np.sign(omega) * self.robot.getMaxOmega()
 
 
-        #v = self.robot._maxSpeed * 1 * (1 - omega/self.robot._maxOmega)
+        #v = self.robot.getMaxSpeed()/1.0 * (1 - (omega/float(self.robot.getMaxOmega())))
         v = self.robot.getMaxSpeed()/2.0 * (1 - (omega/float(self.robot.getMaxOmega())))
         return [v, omega]
 
