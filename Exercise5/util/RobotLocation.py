@@ -1,15 +1,19 @@
 __author__ = 'Ecki'
 
 from math import *
-from Exercise2.util import Calculations as Calc
+from Exercise5.util import Calculations as Calc
+from Exercise4.localization import ParticleCloud, MCL
 
 class RobotLocation:
 
     def __init__(self, robot):
+
         self.robot = robot
         self.angle_tol = 0*pi/180
         # set True to use particle cloud instead of true robot position
         self.use_particle_cloud = False
+
+        self.robot_position_est = None
 
     def get_robot_position(self):
         """

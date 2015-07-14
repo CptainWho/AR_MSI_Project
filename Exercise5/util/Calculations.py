@@ -174,6 +174,24 @@ def get_medial_angle_custom(start_angle, end_angle, counterclock=True):
     return mid_angle
 
 
+def get_average_angle(list_angles):
+    """ Calculate average angle of all given angles and return it.
+    For this the unit vectors of all angles are computed and summed.
+    If average_angle is not defined (x,y = 0) return None
+    :param list_angles: (list) angles (0..2*pi)
+    :return:            average angle (0..2*pi) or None if average_angle not defined
+    """
+
+    x, y = [0, 0]
+    for angle in list_angles:
+        x += cos(angle)
+        y += sin(angle)
+    if x == 0 and y == 0:
+        return None
+    average_angle = atan2(y, x)
+    return average_angle % (2 * pi)
+
+
 def search_closest_angle(target_angle, list_of_angles):
     """ Searches inside given list of angles for the closest one and returns it
     :param target_angle: -

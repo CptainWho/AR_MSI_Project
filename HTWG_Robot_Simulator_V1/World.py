@@ -430,7 +430,6 @@ class World:
         self._landmark_sensed_indexes = []
         self._landmark_sensed_dist = []
         self._landmark_sensed_angles = []
-        self.sense_landmarks_in_range()
 
         # Update clock and status bar
         self._clockTime += dT

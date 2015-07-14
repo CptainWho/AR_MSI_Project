@@ -5,7 +5,7 @@
 __project__ = 'Exercise 4'
 __module__  = 'ParticleCloud'
 __author__  = 'Philipp Lohrer'
-__date__    = '03.07.2015'
+__date__    = '014.07.2015'
 
 __version__ = '0.1'
 
@@ -60,6 +60,7 @@ class ParticleCloud:
 
         # Estimated robot location
         self.est_robot_pos = None
+        self.theta_est_old = 0
 
     def __iter__(self):
         return iter(self.particles)
@@ -140,7 +141,7 @@ class ParticleCloud:
         # counter = 0
 
         for particle in self.particles:
-            # rnd = True if counter % 5 == 0 else False
+            # rnd = True if counter % 50 == 0 else False
             # counter += 1
             particle.move(motion, self.motion_params, random_movement=False)
             if self.draw_particle:
@@ -230,16 +231,22 @@ class ParticleCloud:
         """
 
         x_est, y_est, theta_est = [0, 0, 0]
+        list_angle = []
 
         for particle in self.particles:
             p_x, p_y, p_theta = particle.get_pos()
             x_est += p_x
             y_est += p_y
-            theta_est += p_theta
+            list_angle.append(p_theta)
+
+        # Calculate average angle
+        theta_est = Calc.get_average_angle(list_angle)
+        # If average_angle is None (= not defined), use old theta_est
+        if theta_est is None:
+            theta_est = self.theta_est_old
 
         x_est /= float(len(self.particles))
         y_est /= float(len(self.particles))
-        theta_est = (theta_est / float(len(self.particles))) % (2 * pi)
 
         if self.draw_estimation:
             self.world_ref.draw_estimated_position(x_est, y_est, theta_est)

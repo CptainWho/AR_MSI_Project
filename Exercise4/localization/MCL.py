@@ -5,7 +5,7 @@
 __project__ = 'Exercise 4'
 __module__  = 'MCL'
 __author__  = 'Philipp Lohrer'
-__date__    = '03.07.2015'
+__date__    = '14.07.2015'
 
 __version__ = '0.1'
 
@@ -46,6 +46,9 @@ class MCL():
             # Pyplot: create 3 subplots for error functions
             fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(nrows=3, ncols=1)
             self.plt_axes = [self.ax1, self.ax2, self.ax3]
+            # for axes in self.plt_axes:
+            #     axes.relim()
+            #     axes.autoscale_view(True,True,True)
             self.ax1.set_title('Error x_est - x_real')
             self.ax2.set_title('Error y_est - y_real')
             self.ax3.set_title('Error theta_est - theta_real')
@@ -53,22 +56,26 @@ class MCL():
             self.plt_plot_e_x = None
             self.plt_plot_e_y = None
             self.plt_plot_e_theta = None
-            self.plt_plots = [self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta]
+            # self.plt_plots = [self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta]
 
     def init_plots(self):
 
-        for i, plt_plot in enumerate(self.plt_plots):
-            plt_plot = self.plt_axes[i].plot(self.T, self.e_fcns[i])
+        self.plt_plot_e_x = self.plt_axes[0].plot(self.T, self.e_fcns[0])
+        self.plt_plot_e_y = self.plt_axes[1].plot(self.T, self.e_fcns[1])
+        self.plt_plot_e_theta = self.plt_axes[2].plot(self.T, self.e_fcns[2])
+
+        # for i, plt_plot in enumerate(self.plt_plots):
+        #     plt_plot = self.plt_axes[i].plot(self.T, self.e_fcns[i])
 
     def draw_plots(self):
 
-        if not all([self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta, self.T]):
+        if not all([self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta]):
             self.init_plots()
         else:
-            for i, plt_plot in enumerate(self.plt_plots):
-                plt_plot.set_data(self.T, self.e_fcns[i])
-                # plt_plot.autoscale()
-                plt.draw()
+            self.plt_plot_e_x[0].set_data(self.T, self.e_fcns[0])
+            self.plt_plot_e_y[0].set_data(self.T, self.e_fcns[1])
+            self.plt_plot_e_theta[0].set_data(self.T, self.e_fcns[2])
+            # plt.draw()
         plt.show()
 
     def mcl_landmark(self, movement, landmark_positions, sensor_data, debug=False):
@@ -120,6 +127,19 @@ class MCL():
             self.e_theta.append(real_theta - est_theta)
             t_old = self.T[len(self.T)-1] if self.T else 0
             self.T.append(self.time_step + t_old)
+
+            # Limit plot to 50 elements
+            if len(self.e_x) > 10:
+                    self.e_x = self.e_x[-10:]
+            if len(self.e_y) > 10:
+                self.e_y = self.e_y[-10:]
+            if len(self.e_theta) > 10:
+                self.e_theta = self.e_theta[-10:]
+            # for e_fcn in self.e_fcns:
+            #     if len(e_fcn) > 10:
+            #         e_fcn = e_fcn[-10:]
+            if len(self.T) > 10:
+                self.T = self.T[-10:]
 
             self.draw_plots()
 

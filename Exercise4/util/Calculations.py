@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ Module Description:
 Contains basic calculations
 """
@@ -123,7 +122,7 @@ def add_angles(angle1, angle2):
     """ Add given angles
     :param angle1: -
     :param angle2: -
-    :return: angle [0...2*pi]
+    :return: angle [-pi...+pi]
     """
 
     return (angle1 + angle2 + pi) % (2*pi) - pi
@@ -173,6 +172,24 @@ def get_medial_angle_custom(start_angle, end_angle, counterclock=True):
     diff = diff_custom(start_angle, end_angle, counterclock)
     mid_angle = add_angles_positive(start_angle, diff/2.0)
     return mid_angle
+
+
+def get_average_angle(list_angles):
+    """ Calculate average angle of all given angles and return it.
+    For this the unit vectors of all angles are computed and summed.
+    If average_angle is not defined (x,y = 0) return None
+    :param list_angles: (list) angles (0..2*pi)
+    :return:            average angle (0..2*pi) or None if average_angle not defined
+    """
+
+    x, y = [0, 0]
+    for angle in list_angles:
+        x += cos(angle)
+        y += sin(angle)
+    if x == 0 and y == 0:
+        return None
+    average_angle = atan2(y, x)
+    return average_angle % (2 * pi)
 
 
 def search_closest_angle(target_angle, list_of_angles):
@@ -267,10 +284,62 @@ def get_positive_angle_of_line(p1, p2):
     theta = get_angle_of_line(p1, p2) % (2*pi)
     return theta
 
-def get_distance_from_line_to_point(start, end, point):
+def limit_value(value, limit):
     """
-    calculates the distance a_b from picture at:
+    limit a value to a certain limit
+    e.g. if limit = 1, the value is limited from -1...+1
+    :param value:
+    :param limit:
+    """
+    abs_limit = abs(limit)
+    if value > abs_limit:
+        value = abs_limit
+    if value < -abs_limit:
+        value = -abs_limit
+    return value
+
+def get_projected_distance_on_line(start, end, point):
+    """
+    calculates the distance of a_b from picture at:
     http://www.gymbase.de/index/themeng13/ma/orthogonal_03.php
+    :param start:
+    :param end:
+    :param point:
+    :return:
+    """
+    # calculate line distances
+    line_del_x = end[0] - start[0]
+    line_del_y = end[1] - start[1]
+    norm_a = get_dist_from_point_to_point(start, end)
+    vect_a = np.asarray([line_del_x, line_del_y])
+    vect_b = np.asarray([point[0]-start[0], point[1]-start[1]])
+
+    a_b = np.dot(vect_a, vect_b) / float(norm_a)
+
+    return a_b
+
+def get_orthogonal_point_on_line(line_start, line_end, point, offset=0):
+    """
+    returns a point that lies on the line and is orthogonal to the given point
+    :param line_start:
+    :param line_end:
+    :param point:
+    :return:
+    """
+    dist_new = get_projected_distance_on_line(line_start, line_end, point)
+    dist_old = get_dist_from_point_to_point(line_start, line_end)
+    line_del_x = line_end[0] - line_start[0]
+    line_del_y = line_end[1] - line_start[1]
+    x_new = line_del_x * (dist_new + offset) / dist_old
+    y_new = line_del_y * (dist_new + offset) / dist_old
+    p_new = [x_new, y_new]
+    return p_new
+
+def get_signed_distance_from_line_to_point(start, end, point):
+    """
+    calculates the distance of the dashed line from picture at:
+    http://www.gymbase.de/index/themeng13/ma/orthogonal_03.php
+    positive is on the left side of the line when you stand on start and look to end
     :param start:
     :param end:
     :param point:
@@ -302,7 +371,7 @@ def douglas_peucker(polyline, epsilon):
     index = 0
     for i in range(1, len(polyline)-1):
         point = polyline[i]
-        d = abs(get_distance_from_line_to_point(polyline[0], polyline[-1], point))
+        d = abs(get_signed_distance_from_line_to_point(polyline[0], polyline[-1], point))
         if d > d_max:
             index = i
             d_max = d
@@ -322,6 +391,26 @@ def douglas_peucker(polyline, epsilon):
 
     # Return the result
     return result_list
+
+# def get_closest_line_to_point(polyline, target_point):
+#     """
+#     returns the closest line
+#     :param point_list:
+#     :return: [first, second]
+#     """
+#     # when list is too small
+#     if len(point_list) < 2:
+#         return [point_list[0], point_list[0]]
+#
+#     # closest distance
+#     first_dist = float("inf")
+#     # second closest distance
+#     second_dist = float("inf")
+#
+#     # go though all points
+#     for i in xrange(len(point_list)):
+#         dist = get_dist_from_point_to_point(point_list[i], target_point)
+
 
 # OBSOLET
 # # returns selected column from list (beginning at 0)
