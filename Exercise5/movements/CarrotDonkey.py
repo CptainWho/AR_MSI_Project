@@ -9,11 +9,11 @@ from Exercise5.util import Calculations as Calc
 from Exercise5.util import Polyline
 
 class CarrotDonkey:
-    def __init__(self, my_robot, my_world, move_backwards=True):
+    def __init__(self, my_robot, my_world, robot_loc, move_backwards=True):
         self.robot = my_robot
         self.world = my_world
         self.dt = self.robot.getTimeStep()
-        self.robot_loc = RobotLocation.RobotLocation(my_robot)
+        self.robot_loc = robot_loc
         # PID Regler für Omega
         self.k_p_omega = 2.5
         self.k_i_omega = 0.0
@@ -33,7 +33,7 @@ class CarrotDonkey:
         # define minimum tolerance to carrot
         self.tolerance = 0.01
         # the carrot
-        self.carrot = Carrot(my_robot, my_world, space=self.space*1.8)
+        self.carrot = Carrot(my_robot, my_world, robot_loc, space=self.space*1.8)
         # give the carrot the permission to move backwards, when robot does
         self.move_backwards = move_backwards
 
@@ -185,8 +185,8 @@ class CarrotDonkey:
 
 class Carrot:
 
-    def __init__(self, robot, world, space=0.5, draw_carrot=True):
-        self.robot_loc = RobotLocation.RobotLocation(robot)
+    def __init__(self, robot, world, robot_loc, space=0.5, draw_carrot=True):
+        self.robot_loc = robot_loc
         self.world = world
         # Time difference
         self.dt = robot.getTimeStep()

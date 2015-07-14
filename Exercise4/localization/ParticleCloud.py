@@ -5,7 +5,7 @@
 __project__ = 'Exercise 4'
 __module__  = 'ParticleCloud'
 __author__  = 'Philipp Lohrer'
-__date__    = '014.07.2015'
+__date__    = '14.07.2015'
 
 __version__ = '0.1'
 
@@ -213,7 +213,10 @@ class ParticleCloud:
             # particle = np.random.choice(self.particles, p=weights)
             index = wrg()
             indexes.append(index)
-            particle = self.particles[index]
+            try:
+                particle = self.particles[index]
+            except IndexError as e:
+                print e
             if debug:
                 print '\tResampling: selected particle: %d' % particle.get_number()
             # 4.2 Create new particle with parameters of selected particle

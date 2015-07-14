@@ -117,7 +117,7 @@ class MCL():
         # 5. Draw
         if self.draw and self.robot_loc is not None:
 
-            real_x, real_y, real_theta = self.robot_loc.get_robot_position()
+            real_x, real_y, real_theta = self.robot_loc.get_robot_position(est=False)
             est_x, est_y, est_theta = est_robot_location
             # print 'Real robot location: x=%0.2f y=%0.2f theta=%0.2f' % (real_x, real_y, real_theta * 180.0 / pi)
             # print 'Estimated robot location: x=%0.2f y=%0.2f theta=%0.2f' % (est_x, est_y, est_theta * 180.0 / pi)

@@ -105,6 +105,8 @@ class Watchdog:
                 robot.move([0, self.omega_max])
             #robot.move([-self.v_max, omega])
 
+        return [v, omega]
+
 
     def rotate_towards_target_direction(self, target_angle):
         """

@@ -35,12 +35,19 @@ myWorld.setRobot(**set_robot_opt)
 # polyline = [[3, 5.5], [22, 5.5]]
 # polyline = [[3, 6], [9.5, 6], [11, 2]]
 
+# Place landmarks and return their positions
+myWorld.draw_landmark(9, 0)
+myWorld.draw_landmark(9, 14)
+landmark_positions = myWorld.get_landmark_positions()
+
+# Set up RobotLocation
+robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
 
 
 # Set up StateMachine
-carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, move_backwards=False)
+carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, robot_loc, move_backwards=False)
 
-robot_loc = RobotLocation.RobotLocation(myRobot)
+
 #histogram = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0)
 polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 hist_grid = HistogramGrid.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0)
@@ -84,7 +91,9 @@ while not target_reached:
         if state == 'Finished':
             target_reached = True
 
-        w_dog.move_robot(myRobot, [v, omega])
+        movement = w_dog.move_robot(myRobot, [v, omega])
+        # Update estimated robot position
+        robot_loc.update_robot_position_est(movement)
         box_loc.update_boxes()
 
 box_loc.print_found_boxes()

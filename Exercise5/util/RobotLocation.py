@@ -1,4 +1,17 @@
-__author__ = 'Ecki'
+# -*- coding: utf-8 -*-
+""" Module RobotLocation
+"""
+
+__project__ = 'Exercise 5'
+__module__  = 'RobotLocation'
+__author1__  = 'Daniel Eckstein'
+__author2__  = 'Philipp Lohrer'
+__date__    = '14.07.2015'
+
+__version__ = '1.0'
+
+# Changelog:
+# 14.07.2015:   added localization via particle filter MCL
 
 from math import *
 from Exercise5.util import Calculations as Calc
@@ -6,23 +19,53 @@ from Exercise4.localization import ParticleCloud, MCL
 
 class RobotLocation:
 
-    def __init__(self, robot):
+    def __init__(self, robot, world, landmark_positions):
+        """
+        :param robot:
+        :param world:
+        :param landmark_positions:
+        :return:
+        """
 
         self.robot = robot
+        self.world = world
+        # Landmark positions for MCL
+        self.landmark_positions = landmark_positions
+
+        # Set up particle cloud and add particles
+        particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot, draw='estimation')
+        particle_cloud.create_particles(500, position=self.get_robot_position(est=False))
+
+        # Set up MCL localization
+        self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=False)
+
         self.angle_tol = 0*pi/180
-        # set True to use particle cloud instead of true robot position
-        self.use_particle_cloud = False
 
+        # Update estimated position of the robot
         self.robot_position_est = None
+        self.update_robot_position_est([0, 0])
 
-    def get_robot_position(self):
+    def update_robot_position_est(self, movement):
+        """ Update estimated robot position with given movement
+        :param movement:    [v, omega]
+        :return:            -
         """
-        :return: the robots position
+
+        number_dist_angles = self.robot.sense_landmarks()
+        # Run MCL
+        self.robot_position_est = self.mcl.mcl_landmark(movement, self.landmark_positions,
+                                                        sensor_data=number_dist_angles, debug=False)
+
+    def get_robot_position(self, est=True):
+        """ Return estimated robot position if est id True (localization with MCL), otherwise return true robot position
+        :param movement:    [v, omega], default None, used for MCL solely
+        :return: [x, y, theta]
         """
-        if not self.use_particle_cloud:
-            return self.robot.getTrueRobotPose()
+
+        if est:
+            return self.robot_position_est
         else:
-            pass
+            return self.robot.getTrueRobotPose()
 
     def get_robot(self):
         """
@@ -37,18 +80,18 @@ class RobotLocation:
         """
         return self.robot.getTimeStep()
 
-    def get_robot_point(self):
+    def get_robot_point(self, est=True):
         """
         :return: robots x and y value in global coordinate system
         """
-        [x, y, theta] = self.get_robot_position()
+        [x, y, theta] = self.get_robot_position(est=est)
         return [x, y]
 
-    def get_robot_angle(self):
+    def get_robot_angle(self, est=True):
         """
         :return: robots angle in global coordinate system
         """
-        [x, y, theta] = self.get_robot_position()
+        [x, y, theta] = self.get_robot_position(est=est)
         return theta
 
     def get_positive_robot_angle(self):
@@ -142,7 +185,6 @@ class RobotLocation:
                 new_data.append([distance, angle])
 
         return new_data
-
 
     def get_relative_obstacle_points(self):
         """
