@@ -33,13 +33,11 @@ class RobotLocation:
         self.landmark_positions = landmark_positions
 
         # Set up particle cloud and add particles
-        particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot, draw='estimation')
+        particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot)  # , draw='estimation')
         particle_cloud.create_particles(500, position=self.get_robot_position(est=False))
 
         # Set up MCL localization
         self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=False)
-
-        self.angle_tol = 0*pi/180
 
         # Update estimated position of the robot
         self.robot_position_est = None

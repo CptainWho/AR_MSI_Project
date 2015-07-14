@@ -3,15 +3,17 @@
 Histogram Grid for obstacle avoidance.
 """
 
-__project__ = 'Exercise 2'
+__project__ = 'Exercise 5'
 __module__ = 'HistogramGrid'
 __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
-__date__ = '09.06.2015'
+__date__ = '14.07.2015'
 
-# Edited 13.07.15 Daniel Eckstein
+# Changelog:
+# 13.07.2015 (Ecki):    ?
+# 14.07.2015 (Phil):
 
-__version__ = '1.0'
+__version__ = '1.1'
 
 # Imports
 #################################################################
@@ -19,7 +21,6 @@ __version__ = '1.0'
 import numpy as np
 from math import *
 from numbers import Number
-import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 # Local imports
 from Exercise5.util import Calculations as Calc
@@ -34,7 +35,7 @@ class HistogramGrid:
     Furthermore the histogram and the histogram grid can be dynamically displayed via matplotlib.
     """
 
-    def __init__(self, width, height, cell_size=0.1, hist_resolution=10.0, hist_threshold=2.0, plot_grid=False):
+    def __init__(self, width=5, height=5, cell_size=0.1, hist_resolution=10.0, hist_threshold=2.0, plot_grid=False):
         """ Initialize grid
         :param width: int
         :param height: int
@@ -115,9 +116,8 @@ class HistogramGrid:
         :return: speed, angular velocity ([v,omega])
         """
 
-        # TODO get v_max, omega_max directly from robot
-        v_max = 1.0
-        omega_max = pi
+        v_max = robot_loc.get_max_robot_speed()
+        omega_max = robot_loc.get_max_robot_omega()
         valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
         closest_angle = None
 
@@ -391,6 +391,8 @@ class HistogramGrid:
         if 'resolution' in kwargs:
             if isinstance(kwargs['resolution'], Number):
                 resolution = kwargs['resolution']
+            else:
+                resolution = self.hist_resolution
         else:
             resolution = self.hist_resolution
 
