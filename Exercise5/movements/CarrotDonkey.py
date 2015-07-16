@@ -24,7 +24,7 @@ class CarrotDonkey:
         self.k_d_v = 0.1
         self.pid_v = PID.PID(self.k_p_v, self.k_i_v, self.k_d_v)
         # distance to keep from dot
-        self.space = 0.3
+        self.space = 0.3  # 0.3
         # distance where carrot waits for robot
         self.max_space = self.space*3.0
         # offset on v if its zero

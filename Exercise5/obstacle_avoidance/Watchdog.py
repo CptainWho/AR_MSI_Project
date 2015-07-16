@@ -31,7 +31,8 @@ class Watchdog:
         # the robots maximum omega
         self.omega_max = self.robot_location.get_max_robot_omega()
         # time delta
-        self.dT = 0.1
+        self.dT = self.robot_location.get_time_step()
+
         # indicates if robot is rotating to avoid an obstacle
         # if so this variable has a rotation value, else it is zero
         # if not zero robot should keep this rotation
@@ -56,7 +57,7 @@ class Watchdog:
         if v < -self.v_max:
             v = -self.v_max
 
-        # Calculate position if robot applys move command
+        # Calculate position if robot applies move command
         # this position is relative to robots actual position
         distance = v * self.dT
         theta = omega * self.dT
@@ -82,11 +83,10 @@ class Watchdog:
                 # set velocity to zero
                 v = 0
 
-                # check if robot is alreay in an emergency rotation just keep on rotating
+                # check if robot is already in an emergency rotation just keep on rotating
                 if self.emergency_rotation != 0:
                     omega = self.emergency_rotation
                     return [v, omega]
-
 
         # when an impact point was found
         if impact_point is not None:
@@ -118,10 +118,9 @@ class Watchdog:
 
         return [v, omega]
 
-
     def rotate_towards_target_direction(self, target_angle):
         """
-        robot rotates to the edge whcih is the closest one to target direction
+        robot rotates to the edge which is the closest one to target direction
         :param target_angle:
         :return:
         """
@@ -141,7 +140,6 @@ class Watchdog:
             omega = self.omega_max
 
         return omega
-
 
     def rotate_to_next_free_edge(self):
         """

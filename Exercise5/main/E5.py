@@ -51,7 +51,7 @@ landmark_positions = myWorld.get_landmark_positions()
 robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
 
 # Set up histogram grid for obstacle avoidance
-obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, plot_grid=False)
+obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode='simple', plot_grid=False)
 polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 
 # Set up CarrotDonkey

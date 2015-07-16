@@ -141,13 +141,6 @@ class RobotLocation:
         diff = Calc.diff(theta, theta_target)
         return diff
 
-    def get_diff_from_robot_to_point(self, point):
-        """
-
-        :param point:
-        :return:
-        """
-
     def get_robot_radius(self):
         """
         :return: the robots radius
@@ -186,7 +179,7 @@ class RobotLocation:
 
     def get_relative_obstacle_points(self):
         """
-        returns alls points where the robot detects an obstacle
+        returns all points where the robot detects an obstacle
         the point position is seen relative from robot
         this means robot is always seen at point [0, 0] in coordinate system
         :return: a list of points
@@ -194,7 +187,7 @@ class RobotLocation:
         sensor_data = self.get_sensor_data_polar()
         [distances, angles] = sensor_data
 
-        # list of of obstacle point
+        # list of of obstacle points
         obstacle_points = []
 
         # convert polar to cartesian

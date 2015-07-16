@@ -111,21 +111,22 @@ class HistogramGrid:
 
         return plt_hist
 
-    def avoid_obstacle(self, robot_loc, target_point, path='middle',  debug=False):
+    def avoid_obstacle(self, robot_loc, target_point, mode='simple',  debug=False):
         """ Calculates nearest way in regard of given target point around detected obstacles
         :param robot_loc:       Robot_Location reference
         :param target_point:    [x,y]
-        :param path:            'middle' or 'edge' choose path in min_valley, default=middle
+        :param mode:            'simple', 'middle' or 'edge' choose path in min_valley, default=simple
         :return:                speed, angular velocity ([v,omega])
         """
 
         v_max = robot_loc.get_max_robot_speed()
         omega_max = robot_loc.get_max_robot_omega()
-        valley_edge_offset = 5.0 / 180.0 * pi  # Offset to hold to an edge of a valley
+        valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
         closest_angle = None
 
         # Get direction to target_point [-pi...pi]
         target_angle = Calc.get_angle_from_point_to_point(robot_loc.get_robot_point(), target_point)
+
         # Create polar histogram and transform sector_angles from range [0..2pi] to [-pi...pi]
         sector_angles, sector_occupancy = self.create_histogram(debug=False)
         sector_angles = sector_angles.flatten() / 180.0 * pi
@@ -167,8 +168,37 @@ class HistogramGrid:
                     and min_indexes[np.size(min_indexes) - 1] == np.size(sector_angles) - 1:
                 min_valleys = [np.hstack((min_valleys[len(min_valleys) - 1], min_valleys[0]))] + min_valleys[1:-1]
 
-            # Choose either the middle or an edge of the best min_valley
-            if path == 'edge':
+            # Choose either the simple, middle or an edge of the best min_valley
+            if mode == 'simple' or mode == 'middle':
+                # 3. Check if target_angle is in one of the min_valleys, if so set target_angle directly as closest_angle
+                for min_valley in min_valleys:
+                    min_valley_angles = sector_angles[min_valley]
+                    try:
+                        if Calc.angle_in_range(min_valley_angles[0], min_valley_angles[-1], target_angle, offset=valley_edge_offset):
+                            closest_angle = target_angle
+                            closest_min_valley = min_valley
+                            break
+                    except IndexError:
+                        continue
+                # 4. If target_angle is not in one of the min_valleys -> search min_valley_edge closest to target_angle
+                if closest_angle is None:
+                    # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
+                    min_valley_angles = np.empty(0, dtype=np.float)
+                    min_valley_weights = np.empty(0, dtype=np.float)
+                    for min_valley in min_valleys:
+                        min_valley_angle = Calc.get_average_angle(sector_angles[min_valley])
+                        if min_valley_angle is None:
+                            # Use old angle
+                            min_valley_angle = self.min_valley_angle_old
+                        self.min_valley_angle_old = min_valley_angle
+                        min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
+                        min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
+
+                    # Search angle closest to target_angle
+                    closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, min_valley_angles)
+
+                    closest_min_valley = min_valleys[np.argwhere(min_valley_angles == closest_angle)]
+            if mode == 'edge':
                 # 3. Check if target_angle is in one of the min_valleys, if so set target_angle directly as closest_angle
                 for min_valley in min_valleys:
                     min_valley_angles = sector_angles[min_valley]
@@ -202,24 +232,6 @@ class HistogramGrid:
                     for i, mve in enumerate(min_valley_edges):
                         if closest_angle in mve:
                             closest_min_valley = min_valleys[i]
-
-            else:
-                # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
-                min_valley_angles = np.empty(0, dtype=np.float)
-                min_valley_weights = np.empty(0, dtype=np.float)
-                for min_valley in min_valleys:
-                    min_valley_angle = Calc.get_average_angle(sector_angles[min_valley])  # np.mean(sector_angles[min_valley])
-                    if min_valley_angle is None:
-                        # Use old angle
-                        min_valley_angle = self.min_valley_angle_old
-                    self.min_valley_angle_old = min_valley_angle
-                    min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
-                    min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
-
-                # Search angle closest to target_angle
-                closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, min_valley_angles)
-
-                closest_min_valley = min_valleys[np.argwhere(min_valley_angles == closest_angle)]
 
             # 5. Set omega proportional to diff(target_angle, closest_angle)
             omega = self.kp_omega * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
@@ -321,6 +333,13 @@ class HistogramGrid:
             # print self.grid
 
         return True
+
+    def reset_histogram(self):
+        """ Reset the entire histogram and clear all values
+        :return: -
+        """
+
+        self.grid = np.zeros((self.x_size, self.y_size), dtype=np.int)
 
     # def reset_value(self, theta):
     #     """ Reset all values at angle theta
