@@ -131,8 +131,8 @@ while not target_reached:
         movement_old = movement
         # Update estimated robot position
         robot_loc.update_robot_position_est(movement)
-        box_loc.update_boxes()
         room_scan.update()
+        box_loc.update_boxes(room_scan.get_room(robot_loc.get_robot_point()))
 
 box_loc.print_found_boxes()
 box_loc.draw_found_boxes()

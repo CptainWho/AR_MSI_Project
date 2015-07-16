@@ -11,9 +11,11 @@ class BoxLocator:
         self.grid = world.getOccupancyGrid()
         self.robot = robot_location.get_robot()
         # tolerance in which a box is defined
-        self.box_tol = 0.5
+        self.box_tol = 1.0
         # list of all box objects
         self.boxes = []
+        # tolerance in which a found is accepted to be in the room
+        self.tol_room_borders = 1.5
 
     def sense_box_points(self):
         """
@@ -34,38 +36,43 @@ class BoxLocator:
         else:
             return None
 
-    def add_point(self, point):
+    def add_point(self, point, room):
+        actual_room_name = room.get_name()
         # if list of boxes is empty, create a new box
         if len(self.boxes) < 1:
-            new_box = Box(point)
+            new_box = Box(point, actual_room_name)
             self.boxes.append(new_box)
         else:
-
-            matchting_box_found = False
+            matching_box_found = False
             # go through all defined boxes
             for box in self.boxes:
                 # check if point is close to a box
                 dist = Calc.get_dist_from_point_to_point(point, box.pos)
-                # if so add point to the box and break
                 if dist < self.box_tol:
-                    box.add_point(point)
-                    matchting_box_found = True
-                    break
+                    # next check if the found box is in the same room
+                    if box.get_room_name() == actual_room_name:
+                        # if so add point to the box and break
+                        box.add_point(point)
+                        matching_box_found = True
+                        break
 
             # when no box is matching, create a new box
-            if matchting_box_found == False:
-                new_box = Box(point)
-                self.boxes.append(new_box)
+            if matching_box_found == False:
+                # only create a new box if point is not too far away from room
+                if room.point_inside_borders(point, self.tol_room_borders):
+                    new_box = Box(point, actual_room_name)
+                    self.boxes.append(new_box)
 
-    def update_boxes(self):
+    def update_boxes(self, room):
         """
         makes a new measurement and updates all boxes
         :return:
         """
-        found_box_points = self.sense_box_points()
-        if found_box_points is not None:
-            for point in found_box_points:
-                self.add_point(point)
+        if room is not None:
+            found_box_points = self.sense_box_points()
+            if found_box_points is not None:
+                for point in found_box_points:
+                    self.add_point(point, room)
 
     def get_found_box_points(self):
         """
@@ -94,14 +101,19 @@ class BoxLocator:
 
 class Box:
 
-    def __init__(self, position):
+    def __init__(self, position, room_string=None):
         self.points = []
         self.points.append(position)
         # the center of mass from all points
         self.pos = position
+        # the room where the box was found
+        self.room_string = room_string
 
     def __len__(self):
         return len(self.points)
+
+    def get_room_name(self):
+        return self.room_string
 
     def add_point(self, point):
         """

@@ -14,6 +14,7 @@ class StateMachine:
         self.transitions = transitions
         #self.init_state = 'NoObstacle'
         self.init_state = 'InspectCorners'
+        print self.init_state
         self.current_state = self.init_state
         self.old_state = self.current_state
 

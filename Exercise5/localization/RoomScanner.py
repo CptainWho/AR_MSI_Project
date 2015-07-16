@@ -230,7 +230,7 @@ class Room:
     def corner_down_right(self):
         return self.corners[3]
 
-    def point_inside_borders(self, point):
+    def point_inside_borders(self, point, tolerance=0):
         """
         returns True if given poit is inside the room
         :return:
@@ -238,10 +238,10 @@ class Room:
         x = point[0]
         y = point[1]
         # get room borders
-        top = self.corner_up_left()[1]
-        left = self.corner_up_left()[0]
-        right = self.corner_down_right()[0]
-        bottom = self.corner_down_right()[1]
+        top = self.corner_up_left()[1] + tolerance
+        left = self.corner_up_left()[0] - tolerance
+        right = self.corner_down_right()[0] + tolerance
+        bottom = self.corner_down_right()[1] - tolerance
         if left < x < right and bottom < y < top:
             return True
         else:
