@@ -22,6 +22,8 @@ from Exercise3.util import RobotLocation
 from Exercise3.movements import CarrotDonkey
 from Exercise3.util import Calculations as Calc
 
+from copy import deepcopy
+
 
 # Create obstacleWorld and new Robot
 myWorld = loadedWorld.buildWorld()
@@ -37,7 +39,7 @@ myWorld.setRobot(**set_robot_opt)
 # create instances
 robot_loc = RobotLocation.RobotLocation(myRobot)
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld)
-occupancy_grid = myWorld.getOccupancyGrid(0.25)
+occupancy_grid = deepcopy(myWorld.getOccupancyGrid(0.25))
 brushfire = Brushfire.Brushfire(occupancy_grid, myRobot)
 t_start = datetime.now()
 brushfire.apply_brushfire(adjacency=8, safety_distance=0.25)
@@ -47,6 +49,7 @@ a_star = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
 # Draw occupancy grid with applied brushfire
 occupancy_grid.drawGrid()
+myWorld.getOccupancyGrid(0.5).drawGrid()
 
 # define points
 start_point = robot_loc.get_robot_point()

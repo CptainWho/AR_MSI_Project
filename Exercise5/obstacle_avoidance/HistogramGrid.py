@@ -143,6 +143,7 @@ class HistogramGrid:
 
             # 1. Search for occupancy values below threshold and return indexes
             min_indexes = np.where(sector_occupancy < self.hist_threshold)[0]
+
             # 2. Group all found min_indexes to valleys (check for neighborhood indexes)
             min_valleys = []
             valley_temp = np.array([min_indexes[0]])

@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Ecki'
+""" Module Watchdog
+"""
+
+__project__ = 'Exercise 5'
+__module__  = 'Watchdog'
+__author1__  = 'Philipp Lohrer'
+__author1__  = 'Daniel Eckstein'
+__date__    = '16.07.2015'
+
+__version__ = '1.0'
 
 from math import *
-from Exercise3.util import Calculations as Calc
+from Exercise5.util import Calculations as Calc
 
 #TODO Watchdog sucht sich maxima täler ähnlich polarhistogramm
 
@@ -102,7 +111,9 @@ class Watchdog:
         if stalled:
             n = int(1/self.dT)
             for i in xrange(n):
-                robot.move([0, self.omega_max])
+                movement = [0, self.omega_max]
+                robot.move(movement)
+                self.robot_location.update_robot_position_est(movement)
             #robot.move([-self.v_max, omega])
 
         return [v, omega]
