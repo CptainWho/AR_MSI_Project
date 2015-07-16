@@ -22,7 +22,7 @@ class Transitions:
     Transitions for StateMachine
     """
 
-    def __init__(self, robot, robot_loc, carrot_donkey, path_sched):
+    def __init__(self, robot, robot_loc, carrot_donkey, path_sched, room_scan):
         """ Initialization
         :param robot: robot reference
         :param polyline: polyline reference
@@ -30,6 +30,7 @@ class Transitions:
         """
         self.carrot_donkey = carrot_donkey
         self.path_sched = path_sched
+        self.room_scan = room_scan
         self.robot = robot
         self.robot_loc = robot_loc
         # Tolerances to reach point / angle
@@ -42,6 +43,24 @@ class Transitions:
 
     def all_rooms_visited(self):
         return self.path_sched.all_rooms_visited()
+
+    def all_corners_inspected(self):
+        """
+        returns True if robot has look into every corner of the room
+        :return:
+        """
+        return self.room_scan.all_corners_inspected()
+
+    def aiming_to_carrot(self):
+        """
+        checks if robot is aiming to carrot
+        :return: True/False
+        """
+        carrot = self.carrot_donkey.get_carrot_position()
+        if self.robot_loc.aiming_to_point(carrot, self.tol_angle):
+            return True
+        else:
+            return False
 
     def obstacle_in_sight(self):
         """ Checks whether there is a obstacle in robots line of sight

@@ -146,6 +146,30 @@ class RoomScanner:
         self.last_room = None
         return self.last_room
 
+    def get_open_list(self):
+        room = self.get_room(self.robot_loc.get_robot_point(self.est))
+        return room.get_open_list()
+
+    def all_corners_inspected(self):
+        """
+        returns true if all coerners of the actual room were seen
+        :return:
+        """
+        room = self.get_room(self.robot_loc.get_robot_point(self.est))
+        if len(room.get_open_list()) < 1:
+            return True
+        else:
+            return False
+
+    # def get_closest_corner_via_angle(self):
+    #     """
+    #     returns the corner where to robot has the shortest roation angle to
+    #     :return:
+    #     """
+    #     room = self.get_room(self.robot_loc.get_robot_point(self.est))
+    #     for corner in room.get_open_list():
+
+
     def update(self):
         """
         always use after move command checks if an edge can be seen

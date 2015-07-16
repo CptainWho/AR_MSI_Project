@@ -12,7 +12,8 @@ class StateMachine:
         :return:
         """
         self.transitions = transitions
-        self.init_state = 'NoObstacle'
+        #self.init_state = 'NoObstacle'
+        self.init_state = 'InspectCorners'
         self.current_state = self.init_state
         self.old_state = self.current_state
 
@@ -37,10 +38,19 @@ class StateMachine:
                 self.current_state = 'RoomReached'
 
         elif self.current_state == 'RoomReached':
-            if not self.transitions.all_rooms_visited():
+            self.current_state = 'InspectCorners'
+
+        elif self.current_state == 'InspectCorners':
+            if self.transitions.all_corners_inspected():
+                if not self.transitions.all_rooms_visited():
+                    self.current_state = 'RotateToExit'
+                else:
+                    self.current_state = 'Finished'
+
+        elif self.current_state == 'RotateToExit':
+            if self.transitions.aiming_to_carrot():
                 self.current_state = 'NoObstacle'
-            else:
-                self.current_state = 'Finished'
+
 
         elif self.current_state == 'Finished':
             pass

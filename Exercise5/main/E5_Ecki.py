@@ -16,7 +16,8 @@ from math import *
 from HTWG_Robot_Simulator_V1 import Robot as Robot, officeWorldWithDynObstacles_V1_3 as loadedWorld
 from Exercise5.state_machine import StateMachine, Transitions
 from Exercise5.obstacle_avoidance import Watchdog, ObstacleAvoidance
-from Exercise5.util import RobotLocation, Calculations as Calc
+from Exercise5.util import Calculations as Calc
+from Exercise5.tests import RobotLocationNoEst as RobotLocation
 from Exercise5.movements import CarrotDonkey as CarrotDonkey
 from Exercise5.navigation import PathScheduler
 from Exercise5.localization import BoxLocator
@@ -51,10 +52,10 @@ landmark_positions = myWorld.get_landmark_positions()
 robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
 
 # Set up RoomScanner
-room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=True)
+room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=False)
 
 # Set up histogram grid for obstacle avoidance
-obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode='simple', plot_grid=True)
+obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, plot_grid=False)
 polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 
 # Set up CarrotDonkey
@@ -94,13 +95,13 @@ while not target_reached:
 
         if state == 'Obstacle':
             carrot_pos = carrot_donkey.carrot.get_pos()
-            movement = obstacle_avoidance.avoid_obstacle(carrot_pos)
-            if movement is None:
-                # Use old v and omega
-                [v, omega] = movement_old
-            else:
-                [v, omega] = movement
-            #movement = polar_hist.avoid_obstacle(carrot_pos)
+            # movement = obstacle_avoidance.avoid_obstacle(carrot_pos)
+            # if movement is None:
+            #     # Use old v and omega
+            #     [v, omega] = movement_old
+            # else:
+            #     [v, omega] = movement
+            [v, omega] = polar_hist.avoid_obstacle(carrot_pos)
             carrot_donkey.place_carrot_above_robot()
 
             #[v, omega] = histogram.avoid_obstacle(robot_loc, carrot_donkey.get_next_point())
