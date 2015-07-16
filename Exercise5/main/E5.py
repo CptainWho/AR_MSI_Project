@@ -10,6 +10,9 @@ __date__    = '16.07.2015'
 
 __version__ = '1.0'
 
+# Changelog:
+# 16.07.2015 (Phil):    uses new particle_filter from Exercise5
+
 # Standard library imports
 from math import *
 # Local imports
@@ -48,14 +51,13 @@ myWorld.draw_landmark(9, 14)
 landmark_positions = myWorld.get_landmark_positions()
 
 # Set up RobotLocation
-robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
+robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions, plot_errors=False)
 
 # Set up RoomScanner
 room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=True)
 
 # Set up histogram grid for obstacle avoidance
 obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode='simple', plot_grid=True)
-polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 
 # Set up CarrotDonkey
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, robot_loc, move_backwards=False)
@@ -100,10 +102,7 @@ while not target_reached:
                 [v, omega] = movement_old
             else:
                 [v, omega] = movement
-            #movement = polar_hist.avoid_obstacle(carrot_pos)
             carrot_donkey.place_carrot_above_robot()
-
-            #[v, omega] = histogram.avoid_obstacle(robot_loc, carrot_donkey.get_next_point())
 
         if state == 'RoomReached':
             polyline = path_sched.get_next_polyline()

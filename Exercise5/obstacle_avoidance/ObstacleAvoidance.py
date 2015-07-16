@@ -7,11 +7,13 @@ __project__ = 'Exercise 5'
 __module__ = 'ObstacleAvoidance'
 __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
-__date__ = '15.07.2015'
+__date__ = '16.07.2015'
 
 # Changelog:
+# 16.07.2015 (Phil):    added mode 'simple' for simple obstacle avoidance without past values
+#                       implemented parallel plotting while in simple-mode
 
-__version__ = '1.0'
+__version__ = '1.1'
 
 # Imports
 #################################################################
@@ -54,7 +56,8 @@ class ObstacleAvoidance:
         self.max_sense_dist = 1.5
 
     def avoid_obstacle(self, target_point):
-        """
+        """ While in 'simple' mode, histogram 'forgets' about past values and only current sensor readings are used for
+        obstacle avoidance --> more robust.
         :param target_point:    [x, y]
         :return:                [v, omega] or None if no obstacle was found
         """

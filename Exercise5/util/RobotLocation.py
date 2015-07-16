@@ -6,7 +6,7 @@ __project__ = 'Exercise 5'
 __module__  = 'RobotLocation'
 __author1__  = 'Daniel Eckstein'
 __author2__  = 'Philipp Lohrer'
-__date__    = '14.07.2015'
+__date__    = '16.07.2015'
 
 __version__ = '1.0'
 
@@ -15,15 +15,16 @@ __version__ = '1.0'
 
 from math import *
 from Exercise5.util import Calculations as Calc
-from Exercise4.localization import ParticleCloud, MCL
+from Exercise5.localization import ParticleCloud, MCL
 
 class RobotLocation:
 
-    def __init__(self, robot, world, landmark_positions):
+    def __init__(self, robot, world, landmark_positions, plot_errors=False):
         """
         :param robot:
         :param world:
         :param landmark_positions:
+        :param plot_errors:         plot estimation errors, default=False
         :return:
         """
 
@@ -37,7 +38,7 @@ class RobotLocation:
         particle_cloud.create_particles(500, position=self.get_robot_position(est=False))
 
         # Set up MCL localization
-        self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=False)
+        self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=plot_errors)
 
         # Update estimated position of the robot
         self.robot_position_est = None

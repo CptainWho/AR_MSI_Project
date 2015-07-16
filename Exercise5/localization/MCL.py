@@ -2,7 +2,7 @@
 """ Module MCL
 """
 
-__project__ = 'Exercise 4'
+__project__ = 'Exercise 5'
 __module__  = 'MCL'
 __author__  = 'Philipp Lohrer'
 __date__    = '16.07.2015'
@@ -11,7 +11,6 @@ __version__ = '1.0'
 
 # Standard library imports
 import matplotlib.pyplot as plt
-from math import pi
 # Local imports
 
 class MCL():

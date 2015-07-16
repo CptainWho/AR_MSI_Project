@@ -7,11 +7,13 @@ __project__ = 'Exercise 5'
 __module__ = 'HistogramGrid'
 __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
-__date__ = '14.07.2015'
+__date__ = '16.07.2015'
 
 # Changelog:
 # 13.07.2015 (Ecki):    ?
 # 15.07.2015 (Phil):    implemented path 'edge' and 'middle'
+# 16.07.2015 (Phil):    added mode 'simple' for simple obstacle avoidance without past values
+#                       implemented parallel plotting while in simple-mode
 
 __version__ = '1.1'
 
