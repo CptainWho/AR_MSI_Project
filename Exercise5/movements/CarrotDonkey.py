@@ -93,10 +93,21 @@ class CarrotDonkey:
         return [v, omega]
 
     def rotate_to_carrot(self):
+        """
+        robot rotates until it looks to the carrot
+        :return:
+        """
         carrot = self.carrot.get_pos()
-        [x, y, theta] = self.robot.getTrueRobotPose()
-        del_x = carrot[0] - x
-        del_y = carrot[1] - y
+        return self.rotate_to_point(carrot)
+
+    def rotate_to_point(self, point):
+        """
+        robot rotates until it looks to the given point
+        :return:
+        """
+        [x, y, theta] = self.robot_loc.get_robot_position()
+        del_x = point[0] - x
+        del_y = point[1] - y
 
         #### PID for omega
         # calculate theta error

@@ -15,6 +15,7 @@ from Exercise5.tests import RobotLocationNoEst as RobotLocation
 from Exercise5.movements import CarrotDonkey as CarrotDonkey
 from Exercise5.navigation import PathScheduler
 from Exercise5.localization import BoxLocator
+from Exercise5.localization import RoomScanner
 
 
 # Create obstacleWorld and new Robot
@@ -43,6 +44,9 @@ landmark_positions = myWorld.get_landmark_positions()
 
 # Set up RobotLocation
 robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
+
+room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=False)
+
 
 # Set up PathScheduler
 path_sched = PathScheduler.PathScheduler(myWorld, skip_calculations=True)
@@ -114,6 +118,7 @@ while not target_reached:
         # Update estimated robot position
         #robot_loc.update_robot_position_est(movement)
         box_loc.update_boxes()
+        room_scan.update()
 
 box_loc.print_found_boxes()
 box_loc.draw_found_boxes()

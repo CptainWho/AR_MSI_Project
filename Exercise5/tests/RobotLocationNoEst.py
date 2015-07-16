@@ -54,7 +54,7 @@ class RobotLocation:
         self.robot_position_est = self.mcl.mcl_landmark(movement, self.landmark_positions,
                                                         sensor_data=number_dist_angles, debug=False)
 
-    def get_robot_position(self, est=True):
+    def get_robot_position(self, est=False):
         """ Return estimated robot position if est id True (localization with MCL), otherwise return true robot position
         :param movement:    [v, omega], default None, used for MCL solely
         :return: [x, y, theta]
@@ -78,14 +78,14 @@ class RobotLocation:
         """
         return self.robot.getTimeStep()
 
-    def get_robot_point(self, est=True):
+    def get_robot_point(self, est=False):
         """
         :return: robots x and y value in global coordinate system
         """
         [x, y, theta] = self.get_robot_position(est=est)
         return [x, y]
 
-    def get_robot_angle(self, est=True):
+    def get_robot_angle(self, est=False):
         """
         :return: robots angle in global coordinate system
         """
@@ -118,7 +118,7 @@ class RobotLocation:
         p = robot_pos[0:2]
         return Calc.point_in_tol(p, p_target, tolerance)
 
-    def robot_inside_point_tolerance(self, p_target, tolerance, est=True):
+    def robot_inside_point_tolerance(self, p_target, tolerance, est=False):
         """
         check whether robot in within tolerance of target point
         :param p_target: the target point [x, y]
@@ -129,7 +129,7 @@ class RobotLocation:
         p = self.get_robot_point(est=est)
         return Calc.point_in_tol(p, p_target, tolerance)
 
-    def get_angle_from_robot_to_point(self, point, est=True):
+    def get_angle_from_robot_to_point(self, point, est=False):
         """
         returns the angle between robots direction and a point
         :param point:

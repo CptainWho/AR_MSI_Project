@@ -7,13 +7,18 @@ import numpy as np
 from Queue import PriorityQueue
 from Exercise5.util import Calculations as Calc
 from copy import deepcopy
+from math import pi
 
 class RoomScanner:
 
-    def __init__(self, world):
+    def __init__(self, world, robot_location, est=True):
+        self.world = world
         self.cell_size = 0.1
         self.occupancy_grid = deepcopy(world.getOccupancyGrid(self.cell_size))
         self.grid = self.occupancy_grid.getGrid()
+
+        self.robot_loc = robot_location
+        self.est = est
 
         # Iterator matrices for generator get_neighbours()
         self.adjacency_4 = [(i, j) for i in (-1, 0, 1)
@@ -28,7 +33,11 @@ class RoomScanner:
         # the last room, where robot was inside
         self.last_room = None
 
+        # angle in which the robot can detect a corner (box sensor has 140 degrees)
+        self.sensor_angle = 130 * pi / 180.0
 
+        # if true the corners will be visualized
+        self.show_corners = True
 
     def get_neighbour_values(self, grid_index):
         """
@@ -116,27 +125,50 @@ class RoomScanner:
             room_objects_list.append(new_room)
         return room_objects_list
 
-    def get_room(self, robot_pos):
+    def get_room(self, robot_point):
         """
         returns the actual room, the robot is in
-        :param robot_pos:
+        :param robot_point:
         :return:
         """
         # check if robot is still in the room he was before
         if self.last_room is not None:
-            if self.last_room.point_inside_borders(robot_pos):
+            if self.last_room.point_inside_borders(robot_point):
                 return self.last_room
 
         # else search if robot is in another room
         for room in self.rooms:
-            if room.point_inside_borders(robot_pos):
+            if room.point_inside_borders(robot_point):
                 self.last_room = room
                 return self.last_room
 
-        # if no room was found at all return None to shwo that robot is inside corridor
+        # if no room was found at all return None to show that robot is inside corridor
         self.last_room = None
         return self.last_room
 
+    def update(self):
+        """
+        always use after move command checks if an edge can be seen
+        :return:
+        """
+        room = self.get_room(self.robot_loc.get_robot_point(self.est))
+
+        # if robot not inside a room do nothing
+        if room is not None:
+            corners = deepcopy(room.get_open_list())
+            # check all four corners of the room
+            for corner in corners:
+                angle = abs(self.robot_loc.get_angle_from_robot_to_point(corner, self.est))
+                sensor_angle = abs(self.sensor_angle / 2.0)
+                # if angle is in sensor range remove the corner from open list
+                if angle < sensor_angle:
+                    room.remove_from_open_list(corner)
+
+            # draw the corners
+            if self.show_corners:
+                self.world.undraw_corners()
+                for corner in room.get_open_list():
+                    self.world.draw_corner(corner)
 
 class Room:
 
@@ -144,13 +176,23 @@ class Room:
         [room_name, x, y] = room
         self.center = [x, y]
         self.name = room_name
-        self.corners = corners
+        # define conrers
+        [up_right, up_left, down_left, down_right] = corners
+        self.corners = corners = [up_right, up_left, down_left, down_right]
+        # all corners in this room, the robot has not found
+        self.corners_open_list = deepcopy(corners)
 
     def get_center(self):
         return self.center
 
     def get_name(self):
         return self.name
+
+    def get_open_list(self):
+        return self.corners_open_list
+
+    def remove_from_open_list(self, corner_point):
+        self.corners_open_list.remove(corner_point)
 
     def corner_up_right(self):
         return self.corners[0]

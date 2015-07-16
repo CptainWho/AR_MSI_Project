@@ -26,6 +26,7 @@
 #                    number
 # 24.06.2015: (Ecki) Refactored sense_landmark to sense_landmarks_in_range, created new function for sense_landmarks
 # 13.07.2015: (Ecki) Possiblity to draw the found boxes
+# 16.07.2015: (Ecki) Draw and undraw of corners
 
 from math import *
 import numpy as np
@@ -33,6 +34,7 @@ from graphics import *
 from CursorController import *
 from OccupancyGrid import *
 from numbers import Number
+from copy import deepcopy
 
 import time
 
@@ -133,6 +135,11 @@ class World:
         self._found_box_radius = 0.04
         self._found_box_color = 'green'
 
+        # Added 16.07.2015 Corners
+        self._corner_radius = 0.08
+        self._corner_color = 'yellow'
+        self._drawn_corners = []
+
         self._landmarks = []  # [[number1, landmark1, nr1], ..., [number_n, landmark_n, nr_n]]
         self._landmark_positions = []
         self._landmark_radius = 0.2
@@ -221,6 +228,31 @@ class World:
         b = Circle(Point(p_x, p_y), self._found_box_radius)
         b.setFill(self._found_box_color)
         b.draw(self._win)
+
+    # Added 16.07.2015
+    def undraw_corner(self, position):
+        p_x = position[0]
+        p_y = position[1]
+        for drawn_corner in self._drawn_corners:
+            if drawn_corner[1] == p_x and drawn_corner[2] == p_y:
+                drawn_corner[0].undraw()
+                self._drawn_corners.remove(drawn_corner)
+
+    # Added 16.07.2015
+    def draw_corner(self, position):
+        p_x = position[0]
+        p_y = position[1]
+        c = Circle(Point(p_x, p_y), self._corner_radius)
+        c.setFill(self._corner_color)
+        c.draw(self._win)
+        self._drawn_corners.append([c, p_x, p_y])
+
+    # Added 16.07.2015
+    def undraw_corners(self):
+        if self._drawn_corners != []:
+            for corner in self._drawn_corners:
+                corner[0].undraw()
+            self._drawn_corners = []
 
     # --------
     # Draw a polyline.
@@ -590,6 +622,8 @@ class World:
                 box.draw(self._win)
         #print "senseBox: ", self._boxesSensedDist,self._boxesSensedAngles
         return [self._boxesSensedDist,self._boxesSensedAngles]
+
+    # Added
 
     # Added 19.06.2015
     def sense_landmarks_in_range(self):
