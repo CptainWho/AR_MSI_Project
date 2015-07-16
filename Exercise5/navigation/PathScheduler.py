@@ -14,11 +14,12 @@ class PathScheduler:
         # algorithm for fine path planning
         self.occupancy_grid = world.getOccupancyGrid(0.25)
         brushfire = Brushfire.Brushfire(self.occupancy_grid, 0.4)
+        # brushfire.apply_brushfire(adjacency=8, safety_distance=0.25)
         brushfire.apply_brushfire(adjacency=8, safety_distance=0.25)
         self.a_star = AStarAlgo.AStarAlgorithm(self.occupancy_grid)
 
         # algorithm for fast path planning
-        self.occupancy_grid_rough  = world.getOccupancyGrid(0.5)
+        self.occupancy_grid_rough = world.getOccupancyGrid(0.5)
         self.a_star_fast = AStarAlgo.AStarAlgorithm(self.occupancy_grid_rough)
 
         # list of all rooms to visit
@@ -35,15 +36,14 @@ class PathScheduler:
         # indicate to drive a circle at each room
         self.drive_circle = True
 
-
     def find_nearest_room(self, robot_position):
-        shortest_lenght = float("inf")
+        shortest_length = float("inf")
 
         for [room_string, x, y] in self.open_list:
             polyline = self.a_star_fast.dijkstra_algorithm(robot_position, [x, y])
             length = self.a_star_fast.get_polyline_length()
-            if shortest_lenght > length:
-                shortest_lenght = length
+            if shortest_length > length:
+                shortest_length = length
                 self.polyline_to_room = polyline
                 self.next_room = room_string
                 self.next_room_center = [x, y]
@@ -68,7 +68,7 @@ class PathScheduler:
         x = self.next_room_center[0]
         y = self.next_room_center[1]
 
-        if Calc.point_in_tol(robot_position, [x, y], 0.15):
+        if Calc.point_in_tol(robot_position, [x, y], 0.25):
             if not self.all_rooms_visited():
                 room_string = self.next_room
                 self.remove_from_open_list([room_string, x, y])

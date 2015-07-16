@@ -183,7 +183,7 @@ class AStarAlgorithm():
         polyline = self.create_polyline(end_point)
         return polyline
 
-class OpenList():
+class OpenList:
     """ Class description:
     Creates a container which acts as an open list and is internally sorted after the priority of added items
     """
@@ -232,7 +232,7 @@ class OpenList():
         return True if self.values else False
 
 
-class ClosedList():
+class ClosedList:
     """ Class description:
     Creates a container which acts as a closed list
     """

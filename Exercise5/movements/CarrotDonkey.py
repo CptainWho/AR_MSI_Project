@@ -3,7 +3,6 @@ __author__ = 'Ecki'
 
 from math import *
 import numpy as np
-from Exercise5.util import RobotLocation
 from Exercise5.util import PID
 from Exercise5.util import Calculations as Calc
 from Exercise5.util import Polyline
@@ -37,6 +36,9 @@ class CarrotDonkey:
         # give the carrot the permission to move backwards, when robot does
         self.move_backwards = move_backwards
 
+    # Added 16.07.2015 (Phil)
+    def get_carrot_position(self):
+        return self.carrot.get_pos()
 
     def set_polyline(self, polyline, v):
         self.carrot.set_polyline(polyline, v)

@@ -1,7 +1,7 @@
 __author__ = 'Ecki'
 
 from math import *
-from Exercise2.util import Calculations as Calc
+from Exercise5.util import Calculations as Calc
 
 class Polyline:
 

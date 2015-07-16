@@ -7,11 +7,11 @@ __project__ = 'Exercise 5'
 __module__ = 'ObstacleAvoidance'
 __author__ = 'Philipp Lohrer'
 __email__ = 'plohrer@htwg-konstanz.de'
-__date__ = '14.07.2015'
+__date__ = '15.07.2015'
 
 # Changelog:
 
-__version__ = '0.1'
+__version__ = '1.0'
 
 # Imports
 #################################################################
@@ -36,7 +36,7 @@ class ObstacleAvoidance:
 
         self.robot = robot
         self.robot_loc = robot_loc
-        self.histogram_grid = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0, plot_grid=plot_grid)
+        self.histogram_grid = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=10.0, plot_grid=plot_grid)
         self.plot_grid = plot_grid
 
         # Set start_position for robot
@@ -79,11 +79,13 @@ class ObstacleAvoidance:
                 # Add value to HistogramGrid
                 # print 'Set Histogram value at dist: %0.2f, angle: %0.2f' % (dist, sensor_angles[j])
                 value_set.append(self.histogram_grid.set_value(dist, sensor_angles[j], debug=False))
-
+            # else:
+            #     # No obstacle was detected with the sensor-measurement -> reset corresponding cells
+            #     self.histogram_grid.reset_value(sensor_angles[j])
         # 3. Perform path-finding with the resulting histogram
         # 3.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
         if np.any(value_set):
-            v, omega = self.histogram_grid.avoid_obstacle(self.robot_loc, target_point, debug=False)
+            v, omega = self.histogram_grid.avoid_obstacle(self.robot_loc, target_point, path='edge', debug=False)
         else:
             # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
             return None

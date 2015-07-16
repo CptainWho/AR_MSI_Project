@@ -56,7 +56,7 @@ w_dog = Watchdog.Watchdog(robot_loc)
 path_sched = PathScheduler.PathScheduler(myWorld)
 
 # Set up StateMachine
-transitions = Transitions.Transitions(myRobot, carrot_donkey, path_sched)
+transitions = Transitions.Transitions(myRobot, robot_loc, carrot_donkey, path_sched)
 state_machine = StateMachine.StateMachine(transitions)
 
 # Set up BoxLocator
