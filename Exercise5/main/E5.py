@@ -20,6 +20,7 @@ from Exercise5.util import RobotLocation, Calculations as Calc
 from Exercise5.movements import CarrotDonkey as CarrotDonkey
 from Exercise5.navigation import PathScheduler
 from Exercise5.localization import BoxLocator
+from  Exercise5.obstacle_avoidance import PolarHistogram
 
 
 # Create obstacleWorld and new Robot
@@ -51,6 +52,7 @@ robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
 
 # Set up histogram grid for obstacle avoidance
 obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, plot_grid=False)
+polar_hist = PolarHistogram.PolarHistogram(myRobot, robot_loc)
 
 # Set up CarrotDonkey
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, robot_loc, move_backwards=False)
@@ -59,7 +61,8 @@ carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, robot_loc, move_back
 w_dog = Watchdog.Watchdog(robot_loc)
 
 # Set up PathScheduler
-path_sched = PathScheduler.PathScheduler(myWorld)
+path_sched = PathScheduler.PathScheduler(myWorld, skip_calculations=True)
+path_sched.find_shortest_route(robot_loc.get_robot_point(est=False))
 
 # Set up StateMachine
 transitions = Transitions.Transitions(myRobot, robot_loc, carrot_donkey, path_sched)
@@ -68,7 +71,7 @@ state_machine = StateMachine.StateMachine(transitions)
 # Set up BoxLocator
 box_loc = BoxLocator.BoxLocator(robot_loc, myWorld)
 
-polyline = path_sched.find_nearest_room(robot_loc.get_robot_point())
+polyline = path_sched.get_next_polyline()
 myWorld.drawPolyline(polyline)
 
 
@@ -94,12 +97,13 @@ while not target_reached:
                 [v, omega] = movement_old
             else:
                 [v, omega] = movement
+            #movement = polar_hist.avoid_obstacle(carrot_pos)
             carrot_donkey.place_carrot_above_robot()
 
             #[v, omega] = histogram.avoid_obstacle(robot_loc, carrot_donkey.get_next_point())
 
         if state == 'RoomReached':
-            polyline = path_sched.find_nearest_room(robot_loc.get_robot_point())
+            polyline = path_sched.get_next_polyline()
             polyline = Calc.douglas_peucker(polyline, 0.2)
             myWorld.drawPolyline(polyline)
             carrot_donkey.set_polyline(polyline, 0.8)

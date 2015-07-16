@@ -85,7 +85,7 @@ class ObstacleAvoidance:
         # 3. Perform path-finding with the resulting histogram
         # 3.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
         if np.any(value_set):
-            v, omega = self.histogram_grid.avoid_obstacle(self.robot_loc, target_point, path='middle', debug=False)
+            v, omega = self.histogram_grid.avoid_obstacle(self.robot_loc, target_point, path='edge', debug=False)
         else:
             # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
             return None

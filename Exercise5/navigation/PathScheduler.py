@@ -125,7 +125,8 @@ class PathScheduler:
         """
         if not self.skip_calculations:
             [room_string, x, y] = self.start_room
-            open_list = self.open_list[0:2]
+            #open_list = self.open_list[0:2]
+            open_list = self.open_list
             self.recursive_route_searcher(open_list, [x, y], 0, [], [])
 
         #print self.route_polyline
@@ -154,7 +155,7 @@ class PathScheduler:
             print self.iteration
             self.iteration += 1
             t_delta = (datetime.now() - t_start).total_seconds()
-            print internal_closed_list, room_string
+            print internal_closed_list
             print 'Astar in: %0.5f seconds' % t_delta
 
 

@@ -44,7 +44,7 @@ landmark_positions = myWorld.get_landmark_positions()
 robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
 
 # Set up PathScheduler
-path_sched = PathScheduler.PathScheduler(myWorld, skip_calculations=False)
+path_sched = PathScheduler.PathScheduler(myWorld, skip_calculations=True)
 path_sched.find_shortest_route(robot_loc.get_robot_point())
 
 # Set up histogram grid for obstacle avoidance
@@ -59,7 +59,7 @@ w_dog = Watchdog.Watchdog(robot_loc)
 
 
 # Set up StateMachine
-transitions = Transitions.Transitions(myRobot, carrot_donkey, path_sched)
+transitions = Transitions.Transitions(myRobot, robot_loc, carrot_donkey, path_sched)
 state_machine = StateMachine.StateMachine(transitions)
 
 # Set up BoxLocator
