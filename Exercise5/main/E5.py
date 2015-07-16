@@ -106,7 +106,7 @@ while not target_reached:
 
         if state == 'RoomReached':
             polyline = path_sched.get_next_polyline()
-            polyline = Calc.douglas_peucker(polyline, 0.2)
+            polyline = Calc.douglas_peucker(polyline, 0.1)
             myWorld.drawPolyline(polyline)
             carrot_donkey.set_polyline(polyline, 0.8)
 

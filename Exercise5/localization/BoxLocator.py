@@ -15,7 +15,7 @@ class BoxLocator:
         # list of all box objects
         self.boxes = []
         # tolerance in which a found is accepted to be in the room
-        self.tol_room_borders = 1.5
+        self.tol_room_borders = 1.0
 
     def sense_box_points(self):
         """
@@ -40,8 +40,10 @@ class BoxLocator:
         actual_room_name = room.get_name()
         # if list of boxes is empty, create a new box
         if len(self.boxes) < 1:
-            new_box = Box(point, actual_room_name)
-            self.boxes.append(new_box)
+            # only create a new box if point is not too far away from room
+            if room.point_inside_borders(point, self.tol_room_borders):
+                new_box = Box(point, actual_room_name)
+                self.boxes.append(new_box)
         else:
             matching_box_found = False
             # go through all defined boxes
@@ -85,19 +87,44 @@ class BoxLocator:
                 points.append(box.pos)
         return points
 
+    def get_found_boxes(self):
+        """
+        returns all found boxes
+        :return:
+        """
+        boxes = []
+        if len(self.boxes) > 0:
+            for box in self.boxes:
+                boxes.append(box)
+        return boxes
+
     def print_found_boxes(self):
-        points = self.get_found_box_points()
+        boxes = self.get_found_boxes()
         print "Found", len(self.boxes), "boxes:"
         number = 0
-        for point in points:
-            print "Box", number, "at", point
+        for box in boxes:
+            print "Box", number, "at", box.pos, "in", box.get_room_name()
             number += 1
+
+
+
+    # OBSOLETE
+    # def print_found_boxes(self):
+    #     points = self.get_found_box_points()
+    #     print "Found", len(self.boxes), "boxes:"
+    #     number = 0
+    #     for point in points:
+    #         print "Box", number, "at", point, "in",
+    #         number += 1
 
     def draw_found_boxes(self):
         points = self.get_found_box_points()
         for point in points:
             self.world.draw_found_box(point)
 
+        #REMOVE
+        # self.world.draw_found_box([3, 3])
+        # self.world.draw_found_box([4, 3])
 
 class Box:
 
