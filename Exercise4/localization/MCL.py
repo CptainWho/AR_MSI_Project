@@ -78,7 +78,7 @@ class MCL():
             # plt.draw()
         plt.show()
 
-    def mcl_landmark(self, movement, landmark_positions, sensor_data, debug=False):
+    def mcl_landmark(self, movement, landmark_positions, sensor_data, debug=True):
         """
         :param movement:            [v, omega]
         :param landmark_positions:  list([x1, y1], [x2, y2], ..., [x_n, y_n])

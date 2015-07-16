@@ -366,6 +366,10 @@ def douglas_peucker(polyline, epsilon):
     :param epsilon: tolerance factor
     :return: simplified polyline
     """
+    # if polyline empty do nothing
+    if len(polyline) < 2:
+        return []
+
     # Find the point with the maximum distance
     d_max = 0
     index = 0
