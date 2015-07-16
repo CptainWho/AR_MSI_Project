@@ -88,7 +88,7 @@ class ObstacleAvoidance:
                 # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
                 return None
 
-        elif self.mode == 'middle' or self.mode == 'edge':
+        if self.mode == 'middle' or self.mode == 'edge' or self.plot_grid:
             # 1. Shift HistogramGrid according to relative movements of robot
 
             # 1.1. Calculate dx & dy
@@ -110,11 +110,16 @@ class ObstacleAvoidance:
                     value_set.append(self.histogram_grid.set_value(dist, sensor_angles[j], debug=False))
             # 3. Perform path-finding with the resulting histogram
             # 3.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
-            if np.any(value_set):
-                v, omega = self.histogram_grid.avoid_obstacle(self.robot_loc, target_point, mode=self.mode, debug=False)
+            if self.mode == 'simple':
+                # Create histogram for plotting
+                self.histogram_grid.create_histogram()
             else:
-                # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
-                return None
+                # Run normal avoid_obstacle()
+                if np.any(value_set):
+                    v, omega = self.histogram_grid.avoid_obstacle(self.robot_loc, target_point, mode=self.mode, debug=False)
+                else:
+                    # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
+                    return None
 
             # 4. Optional: Visualize HistogramGrid and/or Histogram
             if self.plot_grid:
