@@ -6,25 +6,20 @@ from Exercise5.navigation import AStarAlgo
 from Exercise5.util import Calculations as Calc
 from Exercise5.navigation import Brushfire
 from datetime import datetime
-import copy
+from copy import deepcopy
 
 class PathScheduler:
 
-    def __init__(self, world, start_room=None, skip_calculations=False):
-        self.world = world
-
-        # algorithm for fine path planning
-        self.occupancy_grid = world.getOccupancyGrid(0.25)
-        brushfire = Brushfire.Brushfire(self.occupancy_grid, 0.4)
-        brushfire.apply_brushfire(adjacency=8, safety_distance=0.25)
-        self.a_star = AStarAlgo.AStarAlgorithm(self.occupancy_grid)
+    def __init__(self, world, occupancy_grid, start_room=None, skip_calculations=False):
 
         # algorithm for fast path planning
-        self.occupancy_grid_rough  = world.getOccupancyGrid(0.5)
-        self.a_star_fast = AStarAlgo.AStarAlgorithm(self.occupancy_grid_rough)
+        brushfire = Brushfire.Brushfire(occupancy_grid, 0.4)
+        brushfire.apply_brushfire(adjacency=4, safety_distance=0.25)
+        self.a_star_fast = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
+        self.all_rooms = world.getRooms()
         # list of all rooms to visit
-        self.open_list = OpenListRooms(copy.deepcopy(world.getRooms()))
+        self.open_list = OpenListRooms(deepcopy(world.getRooms()))
 
         # set start room (here Room 01)
         if start_room == None:
@@ -66,6 +61,14 @@ class PathScheduler:
         if self.skip_calculations:
             self.route_polyline = self.standard_route
             self.closed_list = ['Room 02', 'Room 04', 'Room 03', 'Room 05', 'Room 06']
+
+        # create a path matrix
+        room_count = len(self.all_rooms)
+        self.path_matrix = PathMatrix(room_count)
+
+        # list of all possible room combinations
+        self.possible_routes = []
+
 
 
     def find_nearest_room(self, robot_position, open_list=None):
@@ -113,8 +116,6 @@ class PathScheduler:
         else:
             polyline = [self.next_room_center, self.next_room_center]
 
-
-
         self.poly_index += 1
         return polyline
 
@@ -124,59 +125,115 @@ class PathScheduler:
         :return:
         """
         if not self.skip_calculations:
-            [room_string, x, y] = self.start_room
-            #open_list = self.open_list[0:2]
-            open_list = self.open_list
-            self.recursive_route_searcher(open_list, [x, y], 0, [], [])
+        #if True:
 
-        #print self.route_polyline
-        #print self.closed_list
+            # 1. Calculate all possible paths
+            iterations = 1
+            [room_string, x, y] = self.start_room
+            # make an own open list with all the rooms
+            open_list = deepcopy(self.all_rooms)
+
+            room_count = self.path_matrix.get_room_count()
+            # calculate distances and polylines for all possible ways
+            # i is the start room and j the target
+            for i in xrange(room_count):
+                for j in xrange(room_count):
+                    # get the two rooms
+                    [room_string_i, x_i, y_i] = open_list[i]
+                    [room_string_j, x_j, y_j] = open_list[j]
+                    start = [x_i, y_i]
+                    end = [x_j, y_j]
+                    # if same room fill in a short polyline and length = 0
+                    if i == j:
+                        [length, polyline] = [0, [start, end]]
+                        self.path_matrix[i, j] = [length, polyline]
+                    else:
+                        # when reverse path exists, just copy it with reversed polyline
+                        if self.path_matrix[j, i] is not None:
+                            [length, polyline] = self.path_matrix[j, i]
+                            r_poly = deepcopy(polyline)
+                            r_poly.reverse()
+                            self.path_matrix[i, j] = [length, r_poly]
+                        # otherwise, calculate the path
+                        else:
+                            polyline = self.a_star_fast.dijkstra_algorithm(start, end)
+                            print "Performing path iteration", iterations
+                            length = self.a_star_fast.get_polyline_length()
+                            self.path_matrix[i, j] = [length, polyline]
+                            iterations += 1
+                    if i == 1 and j == 0:
+                        pass
+
+
+            # 2. Calculate all possible routes
+            #TODO autmatically choose start room
+            start_room = 0 # room 1
+            # create open list
+            open_list = range(len(self.all_rooms))
+            self.recursive_route_searcher(open_list, [], start_room)
+
+            # 3. Search the route with the shortest length
+            shortest_length = float("inf")
+            shortest_route_polys = None
+            shortest_route = None
+
+            # go through all the calculated possible routes
+            for route in self.possible_routes:
+                last_room = None
+                length = 0
+                route_poly = []
+                # go through all the rooms
+                for room_no in route:
+                    # skip first room
+                    if last_room is None:
+                        pass
+                    # then calculate total lenght
+                    else:
+                        [length_diff, polyline] = self.path_matrix[last_room, room_no]
+                        length += length_diff
+                        route_poly.append(polyline)
+                    last_room = room_no
+
+                # check if actual rout is the shortest one
+                if length < shortest_length:
+                    shortest_length = length
+                    shortest_route_polys = route_poly
+                    shortest_route = route
+
+            # 4. save the found route
+            self.route_polyline = shortest_route_polys
+            self.shortest_route_length = shortest_length
+            self.closed_list = []
+            for number in shortest_route:
+                room_string = "Room 0{0}".format(number+1)
+                if self.start_room[0] != room_string:
+                    self.closed_list.append(room_string)
+
 
         return self.route_polyline
 
-    def recursive_route_searcher(self, open_list, start_point, length, polylines, closed_list):
+    def recursive_route_searcher(self, open_list, closed_list, start_room):
         """
         function that goes through all possible combinations of rooms, beginning at actual start position
         :return:
         """
-        for [room_string, x, y] in open_list:
+        open_list.remove(start_room)
+        closed_list.append(start_room)
+        for room_no in open_list:
             # make a closed list to see the order of the visited rooms
-            internal_closed_list = copy.deepcopy(closed_list)
-            internal_closed_list.append(room_string)
+            internal_closed_list = deepcopy(closed_list)
+            #internal_closed_list.append(room_string)
 
             # remove actual room from open list
-            internal_open_list = copy.deepcopy(open_list)
-            internal_open_list.remove([room_string, x, y])
+            internal_open_list = deepcopy(open_list)
+            #internal_open_list.remove([room_string, x, y])
 
-            # the polylines that where found
-            internal_polylines = copy.deepcopy(polylines)
-            t_start = datetime.now()
-            poly = self.a_star_fast.dijkstra_algorithm(start_point, [x, y])
-            print self.iteration
-            self.iteration += 1
-            t_delta = (datetime.now() - t_start).total_seconds()
-            print internal_closed_list
-            print 'Astar in: %0.5f seconds' % t_delta
+            # when there are still rooms to visit, function calls itself
+            self.recursive_route_searcher(internal_open_list, internal_closed_list, room_no)
 
 
-            internal_polylines.append(poly)
-            internal_length = length + self.a_star_fast.last_poly_length
-
-            # for debug
-            if internal_closed_list == ['Room 02', 'Room 04', 'Room 05', 'Room 06', 'Room 03'] or \
-                            internal_closed_list == ['Room 02', 'Room 06', 'Room 05', 'Room 04', 'Room 03'] or \
-                            internal_closed_list == ['Room 02', 'Room 06', 'Room 05', 'Room 03', 'Room 04']:
-                self.debug_length.append(internal_length)
-
-            if len(internal_open_list) > 0:
-                # when there are still rooms to visit, function calls itself
-                self.recursive_route_searcher(internal_open_list, [x, y], internal_length, internal_polylines, internal_closed_list)
-            else:
-                # when finished with this iteration, look if the actual route is smaller, than the shortest route found before
-                if self.shortest_route_length is None or self.shortest_route_length > internal_length:
-                    self.shortest_route_length = internal_length
-                    self.closed_list = internal_closed_list
-                    self.route_polyline = internal_polylines
+        if len(open_list) < 1:
+            self.possible_routes.append(closed_list)
 
     def remove_from_open_list(self, room):
         [room_string, x, y] = room
@@ -201,6 +258,27 @@ class PathScheduler:
             return False
 
 
+class PathMatrix:
+
+    def __init__(self, room_count):
+        # total number of rooms
+        self.room_count = room_count
+        # matrix that contains all possible paths from room i+1 to room j+1. Data is stored as [path_len, polyline]
+        self.path_matrix = [[None for x in xrange(self.room_count)] for x in xrange(self.room_count)]
+
+    def __iter__(self):
+        return iter(self.path_matrix)
+
+    def __setitem__(self, index, value):
+        self.path_matrix[int(index[0])][int(index[1])] = value
+
+    def __getitem__(self, index):
+        return self.path_matrix[int(index[0])][int(index[1])]
+
+    def get_room_count(self):
+        return self.room_count
+
+
 class OpenListRooms:
 
     def __init__(self, rooms):
@@ -223,6 +301,8 @@ class OpenListRooms:
         self.rooms.remove([room_string, x, y])
 
 
+
+
 # OBSOLETE
 # def recursive_funct_backup(self, open_list):
 #     rooms = []
@@ -242,3 +322,62 @@ class OpenListRooms:
 #     def __init__(self):
 #         pass
 
+# def find_shortest_route(self, robot_position):
+#         """
+#         searches for the shortest route through all rooms and returns a list of the resulting polylines
+#         :return:
+#         """
+#         if not self.skip_calculations:
+#             [room_string, x, y] = self.start_room
+#             #open_list = self.open_list[0:2]
+#             open_list = self.open_list
+#             self.recursive_route_searcher(open_list, [x, y], 0, [], [])
+#
+#         #print self.route_polyline
+#         #print self.closed_list
+#
+#         return self.route_polyline
+#
+#     def recursive_route_searcher(self, open_list, start_point, length, polylines, closed_list):
+#         """
+#         function that goes through all possible combinations of rooms, beginning at actual start position
+#         :return:
+#         """
+#         for [room_string, x, y] in open_list:
+#             # make a closed list to see the order of the visited rooms
+#             internal_closed_list = copy.deepcopy(closed_list)
+#             internal_closed_list.append(room_string)
+#
+#             # remove actual room from open list
+#             internal_open_list = copy.deepcopy(open_list)
+#             internal_open_list.remove([room_string, x, y])
+#
+#             # the polylines that where found
+#             internal_polylines = copy.deepcopy(polylines)
+#             t_start = datetime.now()
+#             poly = self.a_star_fast.dijkstra_algorithm(start_point, [x, y])
+#             print self.iteration
+#             self.iteration += 1
+#             t_delta = (datetime.now() - t_start).total_seconds()
+#             print internal_closed_list
+#             print 'Astar in: %0.5f seconds' % t_delta
+#
+#
+#             internal_polylines.append(poly)
+#             internal_length = length + self.a_star_fast.last_poly_length
+#
+#             # for debug
+#             if internal_closed_list == ['Room 02', 'Room 04', 'Room 05', 'Room 06', 'Room 03'] or \
+#                             internal_closed_list == ['Room 02', 'Room 06', 'Room 05', 'Room 04', 'Room 03'] or \
+#                             internal_closed_list == ['Room 02', 'Room 06', 'Room 05', 'Room 03', 'Room 04']:
+#                 self.debug_length.append(internal_length)
+#
+#             if len(internal_open_list) > 0:
+#                 # when there are still rooms to visit, function calls itself
+#                 self.recursive_route_searcher(internal_open_list, [x, y], internal_length, internal_polylines, internal_closed_list)
+#             else:
+#                 # when finished with this iteration, look if the actual route is smaller, than the shortest route found before
+#                 if self.shortest_route_length is None or self.shortest_route_length > internal_length:
+#                     self.shortest_route_length = internal_length
+#                     self.closed_list = internal_closed_list
+#                     self.route_polyline = internal_polylines

@@ -28,7 +28,7 @@ class RoomScanner:
         self.found_corners = self.scan_for_corners()
 
         # search for the rooms
-        self.rooms = self.create_room_objects(world.getRooms())
+        self.rooms = self.create_room_objects(deepcopy(world.getRooms()))
 
         # the last room, where robot was inside
         self.last_room = None

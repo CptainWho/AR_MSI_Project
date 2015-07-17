@@ -118,11 +118,13 @@ class AStarAlgorithm():
             else:
                 self.last_poly_length += self.cell_size * sqrt(2.0)
         polyline.append(self.start_point)
+        self.last_poly_length += Calc.get_dist_from_point_to_point(polyline[-2], polyline[-1])
         polyline.reverse()
 
         # Add end point if not in polyline
         if polyline[-1] != last_point:
             polyline.append(last_point)
+            self.last_poly_length += Calc.get_dist_from_point_to_point(polyline[-2], polyline[-1])
 
         return polyline
 
