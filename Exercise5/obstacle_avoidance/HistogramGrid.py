@@ -166,9 +166,16 @@ class HistogramGrid:
                 pass
             # 2.2 Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
             #     If so concat the first and the last min_valley
-            elif min_indexes[0] == 0 \
-                    and min_indexes[np.size(min_indexes) - 1] == np.size(sector_angles) - 1:
-                min_valleys = [np.hstack((min_valleys[len(min_valleys) - 1], min_valleys[0]))] + min_valleys[1:-1]
+            elif min_valleys[0][0] == 0 and min_valleys[-1][-1] == np.size(sector_angles) - 1:
+                min_valleys = [np.hstack((min_valleys[-1], min_valleys[0]))] + min_valleys[1:-1]
+            # 2.3 Check if last sector was a single min_index (not treated as min_valley and discarded).
+            #     If so and if 0° in first min_valley, append last sector to this min_valley
+            elif min_valleys[0][0] == 0 and min_indexes[-1] == np.size(sector_angles) - 1:
+                min_valleys = [np.hstack((min_indexes[-1], min_valleys[0]))] + min_valleys[1:]
+            # 2.3 Check if first sector was a single min_index (not treated as min_valley and discarded).
+            #     If so and if last sector in last min_valley, append first sector to this min_valley
+            elif min_indexes[0] == 0 and min_valleys[-1][-1] == np.size(sector_angles) - 1:
+                min_valleys = [np.hstack((min_valleys[-1], min_indexes[0]))] + min_valleys[0:-1]
 
             # Choose either the simple, middle or an edge of the best min_valley
             if mode == 'simple' or mode == 'middle':
