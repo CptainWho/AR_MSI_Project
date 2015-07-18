@@ -75,7 +75,7 @@ class HistogramGrid:
 
         # values for closed loop
         self.kp_v = 0.7
-        self.kp_omega = 1.2
+        self.kp_omega = 2.1  # 2.1  # ^= 120°/s^2
         #self.kp_v = 0.7
         #self.kp_omega = 0.7
 
@@ -244,6 +244,14 @@ class HistogramGrid:
 
             # 5. Set omega proportional to diff(target_angle, closest_angle)
             omega = self.kp_omega * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
+            if abs(omega) > omega_max:
+                omega = np.sign(omega) * omega_max
+            print '####'
+            print (target_angle * 180.0 / pi)
+            print (closest_angle * 180.0 / pi)
+            print (robot_loc.get_robot_angle() * 180.0 / pi)
+            print (Calc.diff(robot_loc.get_robot_angle(), closest_angle) * 180.0 / pi)
+            print omega
 
             # 6. Set speed v anti-proportional to occupancy value of chosen valley and omega
             v = self.kp_v * (1 - np.sum(sector_occupancy[closest_min_valley]) /
@@ -426,8 +434,26 @@ class HistogramGrid:
             # Add sum of all indexed weights to current sector
             sector_occupancy[i] = np.sum(weights[indexes])
 
+        # Discard last sector and its occupancy_value
+        sector_angles = sector_angles[:-1]
+        sector_occupancy = sector_occupancy[:-1]
+
+        # Make histogram smoother
+        # l = 5
+        # occupancy_sum = 0
+        # len_sector_occupancy = np.size(sector_occupancy)
+        # for k in xrange(np.size(sector_occupancy) - 1):
+        #     for q in xrange(0, l+1):
+        #         occupancy_sum += float(q + 1) * sector_occupancy[k-l+q]
+        #     for q in xrange(l, 0, -1):
+        #         index = k+l-q+1
+        #         if index >= len_sector_occupancy:
+        #             index -= len_sector_occupancy
+        #         occupancy_sum += float(q) * sector_occupancy[index]
+        #     sector_occupancy[k] = occupancy_sum / (2 * l + 1)
+
         # Generate histogram, discard 360° sector and its occupancy value (last element)
-        histogram = np.array([[sector_angles[:-1]], [sector_occupancy[:-1]]])
+        histogram = np.array([[sector_angles], [sector_occupancy]])
 
         # DEBUG
         if debug:
