@@ -124,7 +124,7 @@ class HistogramGrid:
 
         v_max = robot_loc.get_max_robot_speed()
         omega_max = robot_loc.get_max_robot_omega()
-        valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
+        valley_edge_offset = 20.0 / 180.0 * pi  # Offset to hold to an edge of a valley
         closest_angle = None
 
         # Get direction to target_point [-pi...pi]

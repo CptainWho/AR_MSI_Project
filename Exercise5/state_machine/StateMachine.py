@@ -33,7 +33,7 @@ class StateMachine:
 
         elif self.current_state == 'Obstacle':
             # First check if obstacle is still in sight
-            if not self.transitions.obstacle_in_sight():
+            if self.transitions.no_obstacle_in_sight() and not self.transitions.obstacle_in_sight():
                 self.current_state = 'NoObstacle'
             elif self.transitions.next_room_reached():
                 self.current_state = 'RoomReached'

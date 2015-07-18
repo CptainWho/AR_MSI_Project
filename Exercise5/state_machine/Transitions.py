@@ -62,6 +62,31 @@ class Transitions:
         else:
             return False
 
+    def no_obstacle_in_sight(self):
+        """ Checks whether there is a obstacle around robot
+        :return: True / False
+        """
+
+        sensor_dist = np.asarray(self.robot.sense(), dtype=np.float)
+
+        threshold = 0.5 * self.robot.getSize()
+
+        # Calculate distance to next point -> threshold
+        # next_point = self.carrot_donkey.get_next_point()
+        next_point = self.carrot_donkey.get_carrot_position()
+        robot_point = self.robot_loc.get_robot_point()
+        target_dist = Calc.get_dist_from_point_to_point(robot_point, next_point)
+
+        # check if there is a obstacle in front of robot
+        # if target is nearer than obstacle -> ignore obstacle
+        sensor_dist_min = np.nanmin(sensor_dist)
+        if sensor_dist_min < (target_dist + threshold):
+            obstacle_detected = True
+        else:
+            obstacle_detected = False
+
+        return not obstacle_detected
+
     def obstacle_in_sight(self):
         """ Checks whether there is a obstacle in robots line of sight
         :return: True / False
