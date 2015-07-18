@@ -53,7 +53,7 @@ class ObstacleAvoidance:
         self.y_residual = 0
 
         # Mode: 'simple' params
-        self.max_sense_dist = 5.0  # 1.5
+        self.max_sense_dist = 3.0  # 1.5
 
     def avoid_obstacle(self, target_point):
         """ While in 'simple' mode, histogram 'forgets' about past values and only current sensor readings are used for

@@ -19,9 +19,10 @@ class CarrotDonkey:
         self.k_d_omega = 0.5
         self.pid_omega = PID.PID(self.k_p_omega, self.k_i_omega, self.k_d_omega)
         # PID Regler für v
-        self.k_p_v = 1.8
+        self.k_p_v = 3.8
         self.k_i_v = 0.002
         self.k_d_v = 0.1
+        #self.k_d_v = 0.1
         self.pid_v = PID.PID(self.k_p_v, self.k_i_v, self.k_d_v)
         # distance to keep from dot
         self.space = 0.3  # 0.3
@@ -188,7 +189,7 @@ class CarrotDonkey:
 
         # move carrot as long as end of polyline is not reached
         if not self.carrot.end_point_reached():
-            self.carrot.move_carrot_to_point(self.carrot.p_next(), 0.8)
+            self.carrot.move_carrot_to_point(self.carrot.p_next(), self.carrot.v_carrot)
             # when next point reached increase index
             if self.carrot.get_pos() == self.carrot.p_next():
                 self.carrot.update_polyline()
