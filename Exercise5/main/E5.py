@@ -67,7 +67,7 @@ path_sched = PathScheduler.PathScheduler(myWorld, grid_for_path_sched, skip_calc
 path_sched.find_shortest_route(robot_start_point)
 
 # Set up histogram grid for obstacle avoidance
-obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode='simple', plot_grid=True)
+obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode='simple', plot_grid=False)
 
 # Set up CarrotDonkey
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, robot_loc, move_backwards=False)

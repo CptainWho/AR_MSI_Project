@@ -42,7 +42,7 @@ class ObstacleAvoidance:
         self.mode = mode
 
         self.histogram_grid = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0, plot_grid=plot_grid)
-        self.histogram_grid_simple = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=0.5, plot_grid=False)
+        self.histogram_grid_simple = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=1.5, plot_grid=False)
         self.plot_grid = plot_grid
 
         # Set start_position for robot
@@ -53,7 +53,7 @@ class ObstacleAvoidance:
         self.y_residual = 0
 
         # Mode: 'simple' params
-        self.max_sense_dist = 5.0  # 1.5
+        self.max_sense_dist = 3.0  # 1.5
 
     def avoid_obstacle(self, target_point):
         """ While in 'simple' mode, histogram 'forgets' about past values and only current sensor readings are used for
@@ -65,7 +65,7 @@ class ObstacleAvoidance:
         # Get sensor angles, starting from -pi/2
         sensor_angles = np.asarray(self.robot.getSensorDirections())
         # Get sensor distances
-        sensor_distances = np.asarray(self.robot.sense())
+        sensor_distances = np.asarray(self.robot.sense(), dtype=np.float)
 
         # Get robot position and orientation
         robot_pos_x, robot_pos_y, robot_theta = self.robot_loc.get_robot_position()
@@ -74,24 +74,33 @@ class ObstacleAvoidance:
         sensor_angles += robot_theta
 
         if self.mode == 'simple':
-            # 1. Add detected distances to HistogramGrid
-            # 1.1 Reset histogram
-            self.histogram_grid_simple.reset_histogram()
-            # 1.2. Add all detected distances to the HistogramGrid
-            value_set = []
-            for j, dist in enumerate(sensor_distances):
-                if dist is not None and dist < self.max_sense_dist:
-                    # Add value to HistogramGrid
-                    value_set.append(self.histogram_grid_simple.set_value(dist, sensor_angles[j], debug=False))
-            # 2. Perform path-finding with the resulting histogram
-            # 2.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
-            if np.any(value_set):
-                v, omega = self.histogram_grid_simple.avoid_obstacle(self.robot_loc, target_point, mode=self.mode)
-            else:
-                # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
-                return None
+
+            # Filter sensor distances with max_sense_dist
+            sensor_distances[sensor_distances > self.max_sense_dist] = np.nan
+
+            sensor_data = [sensor_angles, sensor_distances]
+
+            v, omega = self.histogram_grid_simple.avoid_obstacle(self.robot_loc, target_point, sensor_data, self.max_sense_dist, mode=self.mode)
+
+            # # 1. Add detected distances to HistogramGrid
+            # # 1.1 Reset histogram
+            # self.histogram_grid_simple.reset_histogram()
+            # # 1.2. Add all detected distances to the HistogramGrid
+            # value_set = []
+            # for j, dist in enumerate(sensor_distances):
+            #     if dist is not None and dist < self.max_sense_dist:
+            #         # Add value to HistogramGrid
+            #         value_set.append(self.histogram_grid_simple.set_value(dist, sensor_angles[j], debug=False))
+            # # 2. Perform path-finding with the resulting histogram
+            # # 2.1 If at least 1 sensor value was set in the histogram, run avoid_obstacle
+            # if np.any(value_set):
+            #     v, omega = self.histogram_grid_simple.avoid_obstacle(self.robot_loc, target_point, mode=self.mode)
+            # else:
+            #     # No value was set in the histogram -> there's no obstacle in histogram range -> use old v & omega
+            #     return None
 
         if self.mode == 'middle' or self.mode == 'edge' or self.plot_grid:
+
             # 1. Shift HistogramGrid according to relative movements of robot
 
             # 1.1. Calculate dx & dy

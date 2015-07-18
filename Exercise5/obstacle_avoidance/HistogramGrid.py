@@ -113,7 +113,118 @@ class HistogramGrid:
 
         return plt_hist
 
-    def avoid_obstacle(self, robot_loc, target_point, mode='simple',  debug=False):
+    def avoid_obstacle(self, robot_loc, target_point, sensor_data, max_sense_dist, mode='simple',  debug=False):
+        """ Calculates nearest way in regard of given target point around detected obstacles
+        :param robot_loc:       Robot_Location reference
+        :param target_point:    [x,y]
+        :param sensor_data:     [angles, distances]
+        :param mode:            'simple', 'middle' or 'edge' choose path in min_valley, default=simple
+        :return:                speed, angular velocity ([v,omega])
+        """
+
+        v_max = robot_loc.get_max_robot_speed()
+        omega_max = robot_loc.get_max_robot_omega()
+        valley_edge_offset = 10.0 / 180.0 * pi  # Offset to hold to an edge of a valley
+        closest_angle = None
+
+        # Get direction to target_point [-pi...pi]
+        target_angle = Calc.get_angle_from_point_to_point(robot_loc.get_robot_point(), target_point)
+
+        # Create polar histogram and transform sector_angles from range [0..2pi] to [-pi...pi]
+        sector_angles, sector_distances = sensor_data
+        # sector_angles = sector_angles / 180.0 * pi
+        sector_angles[sector_angles > pi] -= 2 * pi
+
+        # Scale distances
+        sector_distances[np.isnan(sector_distances)] = max_sense_dist
+        sector_occupancy = max_sense_dist - sector_distances
+
+        # Check if polar histogram is empty. If so, no obstacle is around -> use target_angle directly
+        if not np.any(sector_occupancy):
+            # Set omega proportional to diff(target_angle, closest_angle)
+            omega = self.kp_omega * Calc.diff(robot_loc.get_robot_angle(), target_angle)
+
+            # Set speed v to v_max
+            v = v_max
+        else:
+            # Polar histogram contains at least 1 occupancy value -> search closest angle
+
+            # 1. Search for occupancy values below threshold and return indexes
+            min_indexes = np.where(sector_occupancy < self.hist_threshold)[0]
+
+            # 2. Group all found min_indexes to valleys (check for neighborhood indexes)
+            min_valleys = []
+            valley_temp = np.array([min_indexes[0]])
+            for i in xrange(1, np.size(min_indexes)):
+                if min_indexes[i-1] + 1 == min_indexes[i]:
+                    # Direct neighbor found -> add index to valley_temp
+                    valley_temp = np.hstack((valley_temp, min_indexes[i]))
+                else:
+                    # Next index is not direct neighbor -> add valley_temp to min_valleys and start a new valley_temp
+                    if np.size(valley_temp) > 1:
+                        min_valleys.append(valley_temp)
+                    valley_temp = min_indexes[i]
+            if np.size(valley_temp) > 1:
+                min_valleys.append(valley_temp)
+            # 2.1 Check if min_valleys contains only one min_valley with all sectors
+            if np.size(min_valleys) == np.size(sector_angles):
+                pass
+            # 2.2 Check if first (0°) and last sector (360° - hist_resolution) are neighbors.
+            #     If so concat the first and the last min_valley
+            elif min_valleys[0][0] == 0 and min_valleys[-1][-1] == np.size(sector_angles) - 1:
+                min_valleys = [np.hstack((min_valleys[-1], min_valleys[0]))] + min_valleys[1:-1]
+            # 2.3 Check if last sector was a single min_index (not treated as min_valley and discarded).
+            #     If so and if 0° in first min_valley, append last sector to this min_valley
+            elif min_valleys[0][0] == 0 and min_indexes[-1] == np.size(sector_angles) - 1:
+                min_valleys = [np.hstack((min_indexes[-1], min_valleys[0]))] + min_valleys[1:]
+            # 2.3 Check if first sector was a single min_index (not treated as min_valley and discarded).
+            #     If so and if last sector in last min_valley, append first sector to this min_valley
+            elif min_indexes[0] == 0 and min_valleys[-1][-1] == np.size(sector_angles) - 1:
+                min_valleys = [np.hstack((min_valleys[-1], min_indexes[0]))] + min_valleys[0:-1]
+
+            # Choose either the simple, middle or an edge of the best min_valley
+            if mode == 'simple' or mode == 'middle':
+                # 3. Check if target_angle is in one of the min_valleys, if so set target_angle directly as closest_angle
+                for min_valley in min_valleys:
+                    min_valley_angles = sector_angles[min_valley]
+                    try:
+                        if Calc.angle_in_range(min_valley_angles[0], min_valley_angles[-1], target_angle, offset=valley_edge_offset):
+                            closest_angle = target_angle
+                            closest_min_valley = min_valley
+                            break
+                    except IndexError:
+                        continue
+                # 4. If target_angle is not in one of the min_valleys -> search min_valley_edge closest to target_angle
+                if closest_angle is None:
+                    # Calculate the middle of each min_valley and min_valley_weight according to valley size (quadratic)
+                    min_valley_angles = np.empty(0, dtype=np.float)
+                    min_valley_weights = np.empty(0, dtype=np.float)
+                    for min_valley in min_valleys:
+                        min_valley_angle = Calc.get_average_angle(sector_angles[min_valley])
+                        if min_valley_angle is None:
+                            # Use old angle
+                            min_valley_angle = self.min_valley_angle_old
+                        self.min_valley_angle_old = min_valley_angle
+                        min_valley_angles = np.hstack((min_valley_angles, min_valley_angle))
+                        min_valley_weights = np.hstack((min_valley_weights, np.size(min_valley) ** 2.0))
+
+                    # Search angle closest to target_angle
+                    closest_angle, angle_diffs = Calc.search_closest_angle(target_angle, min_valley_angles)
+
+                    closest_min_valley = min_valleys[np.argwhere(min_valley_angles == closest_angle)]
+
+            # 5. Set omega proportional to diff(target_angle, closest_angle)
+            omega = self.kp_omega * Calc.diff(robot_loc.get_robot_angle(), closest_angle)
+            if abs(omega) > omega_max:
+                omega = np.sign(omega) * omega_max
+
+            # 6. Set speed v anti-proportional to occupancy value of chosen valley and omega
+            v = self.kp_v * (1 - np.sum(sector_occupancy[closest_min_valley]) /
+                       (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
+
+        return [v, omega]
+
+    def backup_avoid_obstacle(self, robot_loc, target_point, mode='simple',  debug=False):
         """ Calculates nearest way in regard of given target point around detected obstacles
         :param robot_loc:       Robot_Location reference
         :param target_point:    [x,y]
@@ -357,28 +468,6 @@ class HistogramGrid:
         """
 
         self.grid = np.zeros((self.x_size, self.y_size), dtype=np.int)
-
-    # def reset_value(self, theta):
-    #     """ Reset all values at angle theta
-    #     :param theta: angle
-    #     :return: value successfully reset in histogram: True/False
-    #     """
-    #
-    #     # Convert polar coordinates to cartesian coordinates
-    #     x, y = Calc.polar_2_cartesian(r, theta)
-    #
-    #     # Coord Transformation: Place origin in middle of coord-system and reverse y-axis
-    #     xi = int(x/self.cell_size + self.x_size / 2.0)
-    #     yi = int(-y/self.cell_size + self.y_size / 2.0)
-    #
-    #     # Check if coordinates exceed grid boundaries
-    #     if xi < 0 or xi >= self.x_size:
-    #         return False
-    #     if yi < 0 or yi >= self.y_size:
-    #         return False
-    #     self.grid[yi, xi] = 0
-    #
-    #     return True
 
     def create_histogram(self, debug=False, **kwargs):
         """ Creates histogram and returns the angles with corresponding occupancy values
