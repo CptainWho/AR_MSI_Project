@@ -42,7 +42,7 @@ class ObstacleAvoidance:
         self.mode = mode
 
         self.histogram_grid = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=5.0, plot_grid=plot_grid)
-        self.histogram_grid_simple = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=1.5, plot_grid=False)
+        self.histogram_grid_simple = HG.HistogramGrid(5, 5, cell_size=0.1, hist_threshold=1.2, plot_grid=False)
         self.plot_grid = plot_grid
 
         # Set start_position for robot

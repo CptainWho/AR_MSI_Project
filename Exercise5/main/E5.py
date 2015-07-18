@@ -87,8 +87,8 @@ polyline = path_sched.get_next_polyline()
 #polyline = Calc.douglas_peucker(polyline, 0.3)
 myWorld.drawPolyline(polyline)
 
-
-carrot_donkey.set_polyline(polyline, 0.8)
+speed = 1.0
+carrot_donkey.set_polyline(polyline, speed)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'RoomReached', 'InspectCorners', 'RotateToExit', 'Finished'}
@@ -116,7 +116,7 @@ while not target_reached:
             polyline = path_sched.get_next_polyline()
             polyline = Calc.douglas_peucker(polyline, 0.2)
             myWorld.drawPolyline(polyline)
-            carrot_donkey.set_polyline(polyline, 0.8)
+            carrot_donkey.set_polyline(polyline, speed)
 
         if state == 'InspectCorners':
             # rotate to all available corners

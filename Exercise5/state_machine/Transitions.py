@@ -94,7 +94,7 @@ class Transitions:
 
         sensor_dist = np.asarray(self.robot.sense(), dtype=np.float)
 
-        threshold = 1.0 * self.robot.getSize()
+        threshold = 2.0 * self.robot.getSize()
 
         # Get front sensors of the robot
         front_sensors = self.robot.getFrontSensors()

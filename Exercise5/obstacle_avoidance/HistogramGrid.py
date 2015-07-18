@@ -74,8 +74,8 @@ class HistogramGrid:
             self.plt_hist = None
 
         # values for closed loop
-        self.kp_v = 0.7
-        self.kp_omega = 2.1  # 2.1  # ^= 120°/s^2
+        self.kp_v = 2.0  # 1.0  # 0.7
+        self.kp_omega = 2.5  # 2.1  # ^= 120°/s^2
         #self.kp_v = 0.7
         #self.kp_omega = 0.7
 
@@ -219,8 +219,9 @@ class HistogramGrid:
                 omega = np.sign(omega) * omega_max
 
             # 6. Set speed v anti-proportional to occupancy value of chosen valley and omega
-            v = self.kp_v * (1 - np.sum(sector_occupancy[closest_min_valley]) /
-                       (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
+            # v = self.kp_v * (1 - np.sum(sector_occupancy[closest_min_valley]) /
+            #           (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
+            v = self.kp_v * (1 - abs(omega) / omega_max)
 
         return [v, omega]
 
