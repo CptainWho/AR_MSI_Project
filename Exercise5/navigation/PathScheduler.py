@@ -7,6 +7,7 @@ from Exercise5.util import Calculations as Calc
 from Exercise5.navigation import Brushfire
 from datetime import datetime
 from copy import deepcopy
+import re
 
 class PathScheduler:
 
@@ -166,8 +167,13 @@ class PathScheduler:
 
 
             # 2. Calculate all possible routes
-            #TODO autmatically choose start room
-            start_room = 0 # room 1
+
+            # convert start room string into a number from 0 to max_rooms-1
+            start_room_string = self.start_room[0]
+            number = int(re.split(' ', start_room_string)[-1])
+            start_room = number-1
+            # start_room = 0 # room 1
+
             # create open list
             open_list = range(len(self.all_rooms))
             self.recursive_route_searcher(open_list, [], start_room)
