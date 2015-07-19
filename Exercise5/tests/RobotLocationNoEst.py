@@ -33,26 +33,26 @@ class RobotLocation:
         self.landmark_positions = landmark_positions
 
         # Set up particle cloud and add particles
-        particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot, draw='estimation')
-        particle_cloud.create_particles(500, position=self.get_robot_position(est=False))
+        #particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot, draw='estimation')
+        #particle_cloud.create_particles(500, position=self.get_robot_position(est=False))
 
         # Set up MCL localization
-        self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=False)
+        #self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=False)
 
         # Update estimated position of the robot
         self.robot_position_est = None
-        self.update_robot_position_est([0, 0])
+#        self.update_robot_position_est([0, 0])
 
-    def update_robot_position_est(self, movement):
-        """ Update estimated robot position with given movement
-        :param movement:    [v, omega]
-        :return:            -
-        """
-
-        number_dist_angles = self.robot.sense_landmarks()
-        # Run MCL
-        self.robot_position_est = self.mcl.mcl_landmark(movement, self.landmark_positions,
-                                                        sensor_data=number_dist_angles, debug=False)
+    # def update_robot_position_est(self, movement):
+    #     """ Update estimated robot position with given movement
+    #     :param movement:    [v, omega]
+    #     :return:            -
+    #     """
+    #
+    #     number_dist_angles = self.robot.sense_landmarks()
+    #     # Run MCL
+    #     self.robot_position_est = self.mcl.mcl_landmark(movement, self.landmark_positions,
+    #                                                     sensor_data=number_dist_angles, debug=False)
 
     def get_robot_position(self, est=False):
         """ Return estimated robot position if est id True (localization with MCL), otherwise return true robot position

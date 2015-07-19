@@ -49,8 +49,8 @@ robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions)
 room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=False)
 
 corners = room_scan.scan_for_corners()
-# for corner in corners:
-#     myWorld.draw_found_box(corner)
+for corner in corners:
+     myWorld.draw_found_box(corner)
 
 room = room_scan.get_room(robot_loc.get_robot_point(est=False))
 if room is not None:

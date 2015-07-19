@@ -75,6 +75,7 @@ class CarrotDonkey:
         # when carrot has reached end of polyline, drive to carrot
         if self.carrot.end_point_reached():
             space = 0
+            #return [1, omega] #uncomment to drive with max speed to parking carrot
         else:
             space = self.space
 
