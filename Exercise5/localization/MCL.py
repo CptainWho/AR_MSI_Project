@@ -13,7 +13,7 @@ __version__ = '1.0'
 import matplotlib.pyplot as plt
 # Local imports
 
-class MCL():
+class MCL:
     """ class description:
 
     """

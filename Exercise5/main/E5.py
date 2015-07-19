@@ -23,7 +23,6 @@ from Exercise5.util import RobotLocation, Calculations as Calc
 from Exercise5.movements import CarrotDonkey as CarrotDonkey
 from Exercise5.navigation import PathScheduler
 from Exercise5.localization import BoxLocator
-from Exercise5.obstacle_avoidance import PolarHistogram
 from Exercise5.localization import RoomScanner
 from copy import deepcopy
 
@@ -34,8 +33,6 @@ rooms = myWorld.getRooms()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-#set_robot_opt['x'] = 2
-#set_robot_opt['y'] = 6
 robot_start_point = [rooms[0][1], rooms[0][2]]
 set_robot_opt['x'] = robot_start_point[0]
 set_robot_opt['y'] = robot_start_point[1]
@@ -48,8 +45,10 @@ myWorld.setRobot(**set_robot_opt)
 # polyline = [[3, 6], [9.5, 6], [11, 2]]
 
 # Place landmarks and return their positions
-myWorld.draw_landmark(9, 0)
-myWorld.draw_landmark(9, 14)
+myWorld.draw_landmark(9, 0.5)
+myWorld.draw_landmark(9, 13.5)
+# myWorld.draw_landmark(0.5, 7)
+# myWorld.draw_landmark(18.5, 7)
 landmark_positions = myWorld.get_landmark_positions()
 
 new_world = loadedWorld.buildWorld()
@@ -57,7 +56,11 @@ grid_for_path_sched = deepcopy(new_world.getOccupancyGrid(0.5))
 new_world.close(False)
 
 # Set up RobotLocation
-robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions, plot_errors=False)
+loc_amount_particles = 200
+loc_draw_mode = 'estimation'  # localization draw mode: estimation, particle, particle_number, particle_estimation
+loc_plot_errors = False
+robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions, loc_amount_particles,
+                                        draw=loc_draw_mode,  plot_errors=loc_plot_errors)
 
 # Set up RoomScanner
 room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=True)
@@ -67,7 +70,9 @@ path_sched = PathScheduler.PathScheduler(myWorld, grid_for_path_sched, skip_calc
 path_sched.find_shortest_route(robot_start_point)
 
 # Set up histogram grid for obstacle avoidance
-obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode='simple', plot_grid=False)
+hist_mode = 'simple'
+hist_plot_grid = False
+obstacle_avoidance = ObstacleAvoidance.ObstacleAvoidance(myRobot, robot_loc, mode=hist_mode, plot_grid=hist_plot_grid)
 
 # Set up CarrotDonkey
 carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld, robot_loc, move_backwards=False)
@@ -87,8 +92,8 @@ polyline = path_sched.get_next_polyline()
 #polyline = Calc.douglas_peucker(polyline, 0.3)
 myWorld.drawPolyline(polyline)
 
-speed = 1.0
-carrot_donkey.set_polyline(polyline, speed)
+carrot_speed = 1.0
+carrot_donkey.set_polyline(polyline, carrot_speed)
 
 target_reached = False
 states = {'NoObstacle', 'Obstacle', 'RoomReached', 'InspectCorners', 'RotateToExit', 'Finished'}
@@ -116,7 +121,7 @@ while not target_reached:
             polyline = path_sched.get_next_polyline()
             polyline = Calc.douglas_peucker(polyline, 0.2)
             myWorld.drawPolyline(polyline)
-            carrot_donkey.set_polyline(polyline, speed)
+            carrot_donkey.set_polyline(polyline, carrot_speed)
 
         if state == 'InspectCorners':
             # rotate to all available corners

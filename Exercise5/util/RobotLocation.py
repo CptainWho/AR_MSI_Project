@@ -19,11 +19,14 @@ from Exercise5.localization import ParticleCloud, MCL
 
 class RobotLocation:
 
-    def __init__(self, robot, world, landmark_positions, plot_errors=False):
+    def __init__(self, robot, world, landmark_positions, particles, draw='estimation', plot_errors=False):
         """
         :param robot:
         :param world:
         :param landmark_positions:
+        :param particles:           amount of particles
+        :param draw:                localization draw mode: estimation, particle, particle_number, particle_estimation
+                                    default: estimation
         :param plot_errors:         plot estimation errors, default=False
         :return:
         """
@@ -34,8 +37,8 @@ class RobotLocation:
         self.landmark_positions = landmark_positions
 
         # Set up particle cloud and add particles
-        particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot, draw='estimation')
-        particle_cloud.create_particles(500, position=self.get_robot_position(est=False))
+        particle_cloud = ParticleCloud.ParticleCloud(self.world, self.robot, draw=draw)
+        particle_cloud.create_particles(particles, position=self.get_robot_position(est=False))
 
         # Set up MCL localization
         self.mcl = MCL.MCL(particle_cloud, robot_loc=self, draw=plot_errors)
