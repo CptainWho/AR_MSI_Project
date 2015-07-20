@@ -127,10 +127,9 @@ class ParticleCloud:
             else:
                 # Place particle at given position
                 p_x, p_y, p_theta = position
-            particle = Particle(len(self.particles), p_x, p_y, p_theta, self.world_ref)
 
             # Append particle to particle_cloud
-            self.append(particle)
+            self.add_particle(p_x, p_y, p_theta)
 
     def move_particles(self, motion):
         """ Move all particles

@@ -16,6 +16,7 @@ class PathScheduler:
         # algorithm for fast path planning
         brushfire = Brushfire.Brushfire(occupancy_grid, 0.4)
         brushfire.apply_brushfire(adjacency=4, safety_distance=0.25)
+        # occupancy_grid.drawGrid()
         self.a_star_fast = AStarAlgo.AStarAlgorithm(occupancy_grid)
 
         self.all_rooms = world.getRooms()

@@ -56,8 +56,8 @@ grid_for_path_sched = deepcopy(new_world.getOccupancyGrid(0.5))
 new_world.close(False)
 
 # Set up RobotLocation
-loc_amount_particles = 200
-loc_draw_mode = 'estimation'  # localization draw mode: estimation, particle, particle_number, particle_estimation
+loc_amount_particles = 500
+loc_draw_mode = ''  # localization draw mode: estimation, particle, particle_number, particle_estimation
 loc_plot_errors = False
 robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions, loc_amount_particles,
                                         draw=loc_draw_mode,  plot_errors=loc_plot_errors)

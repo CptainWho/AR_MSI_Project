@@ -589,6 +589,8 @@ class HistogramGrid:
 
         if self.plt_grid is None:
             self.plt_grid = self._init_grid(self.ax1)
+            cbar = plt.colorbar(mappable=self.plt_grid)
+            cbar.set_label('Occupancy', fontsize=16)
         else:
             self.plt_grid.set_data(self.grid)
             self.plt_grid.autoscale()

@@ -42,7 +42,7 @@ carrot_donkey = CarrotDonkey.CarrotDonkey(myRobot, myWorld)
 occupancy_grid = deepcopy(myWorld.getOccupancyGrid(0.25))
 brushfire = Brushfire.Brushfire(occupancy_grid, myRobot)
 t_start = datetime.now()
-brushfire.apply_brushfire(adjacency=8, safety_distance=0.25)
+brushfire.apply_brushfire(adjacency=4, safety_distance=0.25)
 t_delta = (datetime.now() - t_start).total_seconds()
 print 'Brushfire in: %0.5f seconds' % t_delta
 a_star = AStarAlgo.AStarAlgorithm(occupancy_grid)
