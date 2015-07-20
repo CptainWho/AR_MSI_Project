@@ -135,6 +135,9 @@ class World:
         self._found_box_radius = 0.04
         self._found_box_color = 'green'
 
+        # Added 20.07.2015
+        self.boxes_points = []
+
         # Added 16.07.2015 Corners
         self._corner_radius = 0.08
         self._corner_color = 'yellow'
@@ -330,6 +333,10 @@ class World:
         box = Circle(Point(x,y),self._boxRadius)
         box.draw(self._win)
         self._boxes.append(box)
+        self.boxes_points.append([x, y])
+
+    def get_box_points(self):
+        return self.boxes_points
 
     # --------
     # Define a new room with name n and center position (x,y).

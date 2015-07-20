@@ -129,6 +129,7 @@ class PathScheduler:
         if not self.skip_calculations:
         #if True:
 
+            t_start_ges = datetime.now()
             # 1. Calculate all possible paths
             iterations = 1
             [room_string, x, y] = self.start_room
@@ -158,9 +159,13 @@ class PathScheduler:
                             self.path_matrix[i, j] = [length, r_poly]
                         # otherwise, calculate the path
                         else:
-                            polyline = self.a_star_fast.dijkstra_algorithm(start, end)
+                            t_start = datetime.now()
                             print "Performing path iteration", iterations
+                            polyline = self.a_star_fast.dijkstra_algorithm(start, end)
                             length = self.a_star_fast.get_polyline_length()
+                            t_delta = (datetime.now() - t_start).total_seconds()
+                            print 'Found shortest path in: %0.5f seconds' % t_delta
+
                             self.path_matrix[i, j] = [length, polyline]
                             iterations += 1
                     if i == 1 and j == 0:
@@ -216,6 +221,8 @@ class PathScheduler:
                 if self.start_room[0] != room_string:
                     self.closed_list.append(room_string)
 
+            t_delta_ges = (datetime.now() - t_start_ges).total_seconds()
+            print 'Ovarall route found in: %0.5f seconds' % t_delta_ges
 
         return self.route_polyline
 

@@ -106,6 +106,30 @@ class BoxLocator:
             print "Box", number, "at", box.pos, "in", box.get_room_name()
             number += 1
 
+        error = 0
+        max_error = 0
+        min_error= float("inf")
+
+        for box in boxes:
+            shortest_dist = float("inf")
+            for real_pos in self.world.get_box_points():
+                dist = Calc.get_dist_from_point_to_point(box.pos, real_pos)
+                if dist < shortest_dist:
+                    shortest_dist = dist
+            error +=shortest_dist
+            if shortest_dist > max_error:
+                max_error = shortest_dist
+            if shortest_dist < min_error:
+                min_error = shortest_dist
+
+        error /= float(len(boxes))
+        print "Average error is", error
+        print "Max error is", max_error
+        print "Min error is", min_error
+
+
+
+
 
 
     # OBSOLETE
