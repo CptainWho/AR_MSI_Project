@@ -11,6 +11,7 @@ __version__ = '1.0'
 
 # Standard library imports
 import matplotlib.pyplot as plt
+import numpy as np
 # Local imports
 
 class MCL:
@@ -30,7 +31,7 @@ class MCL:
         self.robot_loc = robot_loc
         self.draw = draw
 
-        if self.draw and self.robot_loc is not None:
+        if self.robot_loc is not None:
             # Error functions: current, min, max
             self.e_x = [0 for i in xrange(50)]
             self.e_y = [0 for i in xrange(50)]
@@ -41,37 +42,81 @@ class MCL:
             self.e_x_max = 0
             self.e_y_max = 0
             self.e_theta_max = 0
+
+            # Error Lists
+            self.lst_e_x = []
+            self.lst_e_y = []
+            self.lst_e_theta = []
+
             # Time
             self.time_step = self.robot_loc.get_time_step()
             self.T = [-self.time_step * i for i in xrange(50,0,-1)]
 
-            # Pyplot: enable interactive (= non-blocking) mode
-            plt.ion()
-            # Pyplot: create 3 subplots for error functions
-            fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(nrows=3, ncols=1)
-            self.plt_axes = [self.ax1, self.ax2, self.ax3]
-            # for axes in self.plt_axes:
-            #     axes.relim()
-            #     axes.autoscale_view(True,True,True)
-            self.ax1.set_title('Error x_est - x_real')
-            self.ax2.set_title('Error y_est - y_real')
-            self.ax3.set_title('Error theta_est - theta_real')
-            # Create plot-objects for continuous data updates
-            self.plt_plot_e_x = None
-            self.plt_plot_e_y = None
-            self.plt_plot_e_theta = None
+            if self.draw:
+                # Pyplot: enable interactive (= non-blocking) mode
+                plt.ion()
+                # Pyplot: create 3 subplots for error functions
+                fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(nrows=3, ncols=1)
+                self.plt_axes = [self.ax1, self.ax2, self.ax3]
+                # for axes in self.plt_axes:
+                #     axes.relim()
+                #     axes.autoscale_view(True,True,True)
+                self.ax1.set_title('Error x_est - x_real')
+                self.ax2.set_title('Error y_est - y_real')
+                self.ax3.set_title('Error theta_est - theta_real')
+                # Create plot-objects for continuous data updates
+                self.plt_plot_e_x = None
+                self.plt_plot_e_y = None
+                self.plt_plot_e_theta = None
 
-            # self.plt_plot_ax1_zero = None
-            # self.plt_plot_ax2_zero = None
-            # self.plt_plot_ax3_zero = None
+                # self.plt_plot_ax1_zero = None
+                # self.plt_plot_ax2_zero = None
+                # self.plt_plot_ax3_zero = None
 
-            self.plt_plot_e_x_min = None
-            self.plt_plot_e_y_min = None
-            self.plt_plot_e_theta_min = None
-            self.plt_plot_e_x_max = None
-            self.plt_plot_e_y_max = None
-            self.plt_plot_e_theta_max = None
-            self.plt_plots = [self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta]
+                self.plt_plot_e_x_min = None
+                self.plt_plot_e_y_min = None
+                self.plt_plot_e_theta_min = None
+                self.plt_plot_e_x_max = None
+                self.plt_plot_e_y_max = None
+                self.plt_plot_e_theta_max = None
+                self.plt_plots = [self.plt_plot_e_x, self.plt_plot_e_y, self.plt_plot_e_theta]
+
+    def get_errors(self):
+        """ Calculate standard deviation for all errors and return the localization-errors
+        :return: [[error_name, error_min, error_max, error_mean, error_std], [error_name...]]
+        """
+
+        array_e_x = np.asarray(self.lst_e_x, dtype=np.float)
+        array_e_y = np.asarray(self.lst_e_y, dtype=np.float)
+        array_e_theta = np.asarray(self.lst_e_theta, dtype=np.float)
+
+        # Calculate mean values
+        e_x_mean = np.mean(array_e_x)
+        e_y_mean = np.mean(array_e_y)
+        e_theta_mean = np.mean(array_e_theta)
+
+        # Calculate standard deviation
+        e_x_std = np.std(array_e_x)
+        e_y_std = np.std(array_e_y)
+        e_theta_std = np.std(array_e_theta)
+
+        error_x = ['Error_x', self.e_x_min, self.e_x_max, e_x_mean, e_x_std]
+        error_y = ['Error_y', self.e_y_min, self.e_y_max, e_y_mean, e_y_std]
+        error_theta = ['Error_theta', self.e_theta_min, self.e_theta_max, e_theta_mean, e_theta_std]
+
+        return [error_x, error_y, error_theta]
+
+    def update_errors(self):
+
+        # Get current errors
+        e_x = self.e_x[-1]
+        e_y = self.e_y[-1]
+        e_theta = self.e_theta[-1]
+
+        # Append current errors to error-lists
+        self.lst_e_x.append(e_x)
+        self.lst_e_y.append(e_y)
+        self.lst_e_theta.append(e_theta)
 
     def init_plots(self):
 
@@ -156,7 +201,7 @@ class MCL:
         est_robot_location = self.particle_cloud.get_est_location()
 
         # 5. Draw
-        if self.draw and self.robot_loc is not None:
+        if self.robot_loc is not None:
             # Update plots with current errors
             real_x, real_y, real_theta = self.robot_loc.get_robot_position(est=False)
             est_x, est_y, est_theta = est_robot_location
@@ -182,6 +227,9 @@ class MCL:
             self.e_y_max = self.e_y[-1] if self.e_y[-1] > self.e_y_max else self.e_y_max
             self.e_theta_max = self.e_theta[-1] if self.e_theta[-1] > self.e_theta_max else self.e_theta_max
 
-            self.draw_plots()
+            self.update_errors()
+
+            if self.draw:
+                self.draw_plots()
 
         return est_robot_location

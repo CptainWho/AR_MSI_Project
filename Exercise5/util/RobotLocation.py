@@ -47,6 +47,22 @@ class RobotLocation:
         self.robot_position_est = None
         self.update_robot_position_est([0, 0])
 
+    def print_localization_errors(self):
+        """ Print localization errors from MCL
+        :return: [[e_x_min, e_x_max, e_x_mean, e_x_std], [e_y...]]
+        """
+
+        errors = self.mcl.get_errors()
+
+        print 'Localization errors and statistics'
+
+        for error in errors:
+            print '%s:' % error[0]
+            print '\tNegative max:\t%0.2f' % error[1]
+            print '\tPositive max:\t%0.2f' % error[2]
+            print '\tMean value:\t%0.2f' % error[3]
+            print '\tStandard dev:\t%0.2f' % error[4]
+
     def update_robot_position_est(self, movement):
         """ Update estimated robot position with given movement
         :param movement:    [v, omega]

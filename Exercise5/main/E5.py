@@ -101,6 +101,8 @@ target_reached = False
 states = {'NoObstacle', 'Obstacle', 'RoomReached', 'InspectCorners', 'RotateToExit', 'Finished'}
 [v, omega] = [0, 0]
 movement_old = [0, 0]
+v_total = 0
+time_steps = 0
 
 while not target_reached:
     next_point = carrot_donkey.get_next_point()
@@ -143,13 +145,21 @@ while not target_reached:
 
         movement = w_dog.move_robot(myRobot, [v, omega])
         movement_old = movement
+        v_total += movement[0]
+        time_steps += 1
         # Update estimated robot position
         robot_loc.update_robot_position_est(movement)
         room_scan.update()
         box_loc.update_boxes(room_scan.get_room(robot_loc.get_robot_point()))
 
+print '########################################'
+print 'Mean Robot speed:'
+print '\t%0.2f' % (v_total / time_steps)
+
 box_loc.print_found_boxes()
 box_loc.draw_found_boxes()
+
+robot_loc.print_localization_errors()
 
 # close world by clicking
 myWorld.close()
