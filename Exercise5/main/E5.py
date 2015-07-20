@@ -5,7 +5,7 @@
 __project__ = 'Exercise 5'
 __module__  = 'E5'
 __author1__  = 'Philipp Lohrer'
-__author1__  = 'Daniel Eckstein'
+__author2__  = 'Daniel Eckstein'
 __date__    = '16.07.2015'
 
 __version__ = '1.0'
@@ -33,7 +33,9 @@ rooms = myWorld.getRooms()
 # Place Robot in World
 set_robot_opt = {}
 set_robot_opt['robot'] = myRobot
-robot_start_point = [rooms[0][1], rooms[0][2]]
+# robot_start_point = [rooms[0][1], rooms[0][2]]
+start_room = rooms[0]
+robot_start_point = [start_room[1], start_room[2]]
 set_robot_opt['x'] = robot_start_point[0]
 set_robot_opt['y'] = robot_start_point[1]
 set_robot_opt['theta'] = pi/2
@@ -57,7 +59,7 @@ new_world.close(False)
 
 # Set up RobotLocation
 loc_amount_particles = 500
-loc_draw_mode = ''  # localization draw mode: estimation, particle, particle_number, particle_estimation
+loc_draw_mode = 'estimation'  # localization draw mode: estimation, particle, particle_number, particle_estimation
 loc_plot_errors = False
 robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions, loc_amount_particles,
                                         draw=loc_draw_mode,  plot_errors=loc_plot_errors)
@@ -66,7 +68,7 @@ robot_loc = RobotLocation.RobotLocation(myRobot, myWorld, landmark_positions, lo
 room_scan = RoomScanner.RoomScanner(myWorld, robot_loc, est=True)
 
 # Set up PathScheduler
-path_sched = PathScheduler.PathScheduler(myWorld, grid_for_path_sched, skip_calculations=False)
+path_sched = PathScheduler.PathScheduler(myWorld, grid_for_path_sched, start_room=start_room, skip_calculations=False)
 path_sched.find_shortest_route(robot_start_point)
 
 # Set up histogram grid for obstacle avoidance
