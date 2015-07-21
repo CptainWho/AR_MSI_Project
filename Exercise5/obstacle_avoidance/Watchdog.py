@@ -88,6 +88,8 @@ class Watchdog:
                     omega = self.emergency_rotation
                     return [v, omega]
 
+                print 'Watchdog activated!'
+
         # when an impact point was found
         if impact_point is not None:
 

@@ -220,7 +220,7 @@ class HistogramGrid:
 
             # 6. Set speed v anti-proportional to occupancy value of chosen valley and omega
             # v = self.kp_v * (1 - np.sum(sector_occupancy[closest_min_valley]) /
-            #           (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
+            #         (np.size(closest_min_valley) * self.hist_threshold)) * (1 - abs(omega) / omega_max)
             v = self.kp_v * (1 - abs(omega) / omega_max)
 
         return [v, omega]
