@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Ecki'
+__project__ = 'Project'
+__module__  = 'PID'
+__author__  = 'Daniel Eckstein'
+__date__    = '12.07.2015'
 
 
 class PID:

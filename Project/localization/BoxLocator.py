@@ -1,4 +1,9 @@
-__author__ = 'Ecki'
+# -*- coding: utf-8 -*-
+
+__project__ = 'Project'
+__module__  = 'BoxLocator'
+__author__  = 'Daniel Eckstein'
+__date__    = '21.07.2015'
 
 from Project.util import Calculations as Calc
 

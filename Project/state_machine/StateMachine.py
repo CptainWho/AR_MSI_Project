@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Ecki'
+__project__ = 'Project'
+__module__  = 'BoxLocator'
+__author__  = 'Daniel Eckstein'
+__date__    = '18.07.2015'
 
 class StateMachine:
     """ Class description:

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Ecki'
-__date__ = '15.07.2015'
-__version__ = '1.0'
+
+__project__ = 'Project'
+__module__  = 'RoomScanner'
+__author__  = 'Daniel Eckstein'
+__date__    = '15.07.2015'
 
 import numpy as np
 from Queue import PriorityQueue

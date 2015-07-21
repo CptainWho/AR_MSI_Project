@@ -5,6 +5,7 @@
 __project__ = 'Project'
 __module__ = 'AStarAlgo'
 __author__ = 'Philipp Lohrer'
+__author2__ = 'Daniel Ecsktein'
 __date__ = '19.06.2015'
 
 __version__ = '1.0'

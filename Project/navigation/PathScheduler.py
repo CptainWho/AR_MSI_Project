@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Ecki'
+
+__project__ = 'Project'
+__module__  = 'PathScheduler'
+__author__  = 'Daniel Eckstein'
+__date__    = '21.07.2015'
 
 from Project.navigation import AStarAlgo, Brushfire
 from Project.util import Calculations as Calc

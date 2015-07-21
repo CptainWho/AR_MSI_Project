@@ -1,4 +1,7 @@
-__author__ = 'Ecki'
+__project__ = 'Project'
+__module__  = 'Polyline'
+__author__  = 'Daniel Eckstein'
+__date__    = '05.07.2015'
 
 from Project.util import Calculations as Calc
 

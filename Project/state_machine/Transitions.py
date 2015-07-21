@@ -3,7 +3,7 @@
 Transitions for StateMachine
 """
 
-__author1__ = 'Ecki'
+__author1__ = 'Daniel Eckstein'
 __author2__ = 'Philipp Lohrer'
 __date__ = '16.07.2015'
 __version__ = '1.1'
